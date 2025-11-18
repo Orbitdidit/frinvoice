@@ -1,0 +1,371 @@
+
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { Invoice } from "@/entities/Invoice";
+import { User } from "@/entities/User"; // Import User
+import {
+  Mic,
+  LayoutDashboard,
+  FileText,
+  Users,
+  Settings,
+  Zap,
+  Bell,
+  Home,
+  FileCheck // Added icon for Estimates
+} from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarHeader,
+  SidebarFooter,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
+
+const navigationItems = [
+  {
+    title: "Dashboard",
+    url: createPageUrl("Dashboard"),
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Create Invoice",
+    url: createPageUrl("CreateInvoice"),
+    icon: FileText,
+    highlight: true,
+  },
+  {
+    title: "Voice Invoice",
+    url: createPageUrl("VoiceInvoice"),
+    icon: Mic,
+    highlight: true,
+  },
+  {
+    title: "Invoices",
+    url: createPageUrl("Invoices"),
+    icon: FileText,
+  },
+  {
+    title: "Estimates",
+    url: createPageUrl("Estimates"),
+    icon: FileCheck,
+  },
+  {
+    title: "Clients",
+    url: createPageUrl("Clients"),
+    icon: Users,
+  },
+  {
+    title: "Settings",
+    url: createPageUrl("Settings"),
+    icon: Settings,
+  },
+];
+
+const bottomNavItems = [
+  {
+    title: "Home",
+    url: createPageUrl("Dashboard"),
+    icon: Home,
+  },
+  {
+    title: "Create",
+    url: createPageUrl("CreateInvoice"),
+    icon: FileText,
+    highlight: true,
+  },
+  {
+    title: "Voice",
+    url: createPageUrl("VoiceInvoice"),
+    icon: Mic,
+    highlight: true,
+  },
+  {
+    title: "Documents",
+    url: createPageUrl("Invoices"),
+    icon: FileText,
+  },
+  {
+    title: "Clients",
+    url: createPageUrl("Clients"),
+    icon: Users,
+  },
+  {
+    title: "Settings",
+    url: createPageUrl("Settings"),
+    icon: Settings,
+  },
+];
+
+function DesktopSidebar({ location, navigationItems, createPageUrl }) {
+  const [stats, setStats] = useState({ revenue: 0, invoices: 0 });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const user = await User.me(); // Get current user
+        const invoiceData = await Invoice.filter({ created_by: user.email }); // Filter by user
+        const totalRevenue = invoiceData
+          .filter(inv => inv.status === 'paid')
+          .reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
+        const totalInvoices = invoiceData.length;
+        setStats({ revenue: totalRevenue, invoices: totalInvoices });
+      } catch (error) {
+        // This will catch errors if user is not logged in (e.g., on a public page)
+        // In that case, stats will just remain 0, which is fine.
+        console.log("Not logged in, sidebar stats not loaded.");
+      }
+    };
+
+    fetchStats();
+  }, [location.pathname]); // Refetch when navigation occurs
+
+  return (
+    <Sidebar className="border-r border-slate-200/60 bg-white/80 backdrop-blur-xl hidden md:flex">
+      <SidebarHeader className="border-b border-slate-200/60 p-6">
+        <Link to={createPageUrl("Dashboard")} className="block">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Zap className="w-6 h-6 text-white" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
+            </div>
+            <div>
+              <h2 className="font-bold text-xl text-slate-900 tracking-tight">INVIO</h2>
+              <p className="text-xs text-slate-500 font-medium">Voice-Powered Invoicing</p>
+            </div>
+          </div>
+        </Link>
+      </SidebarHeader>
+
+      <SidebarContent className="p-3">
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-1">
+              {navigationItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    className={`group relative hover:bg-slate-50 transition-all duration-200 rounded-xl mb-1 ${
+                      location.pathname === item.url
+                        ? 'bg-gradient-to-r from-purple-50 to-blue-50 text-purple-700 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    } ${item.highlight ? 'ring-2 ring-purple-100' : ''}`}
+                  >
+                    <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
+                      <item.icon className={`w-5 h-5 transition-colors ${
+                        location.pathname === item.url ? 'text-purple-600' : ''
+                      }`} />
+                      <span className="font-medium">{item.title}</span>
+                      {item.highlight && (
+                        <Badge className="ml-auto bg-purple-100 text-purple-700 text-xs px-2 py-1">
+                          NEW
+                        </Badge>
+                      )}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup className="mt-8">
+          <SidebarGroupLabel className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-4 mb-3">
+            Quick Stats
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <div className="px-4 space-y-4">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-100">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-slate-700">Revenue</span>
+                  <span className="text-lg font-bold text-green-600">${stats.revenue.toFixed(2)}</span>
+                </div>
+              </div>
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-3 border border-purple-100">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-slate-700">Invoices</span>
+                  <span className="text-lg font-bold text-purple-600">{stats.invoices}</span>
+                </div>
+              </div>
+            </div>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="border-t border-slate-200/60 p-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-r from-slate-200 to-slate-300 rounded-xl flex items-center justify-center">
+            <span className="text-slate-700 font-semibold text-sm">U</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-slate-900 text-sm truncate">User</p>
+            <p className="text-xs text-slate-500 truncate">Professional Plan</p>
+          </div>
+          <Bell className="w-4 h-4 text-slate-400" />
+        </div>
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
+
+function MobileHeader({ createPageUrl }) {
+  return (
+    <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200/60 px-6 py-4 md:hidden">
+      <div className="flex items-center gap-4">
+        <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors duration-200" />
+        <Link to={createPageUrl("Dashboard")} className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+            <Zap className="w-4 h-4 text-white" />
+          </div>
+          <h1 className="text-xl font-bold text-slate-900">INVIO</h1>
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+function MobileBottomNavigation({ location, bottomNavItems, createPageUrl }) {
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 md:hidden z-50">
+      <div className="flex items-center justify-around px-2 py-2">
+        {bottomNavItems.map((item) => (
+          <Link
+            key={item.title}
+            to={item.url}
+            className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all duration-200 ${
+              location.pathname === item.url
+                ? 'bg-gradient-to-t from-purple-50 to-blue-50 text-purple-700'
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <item.icon className={`w-5 h-5 ${
+              location.pathname === item.url ? 'text-purple-600' : ''
+            }`} />
+            <span className={`text-xs font-medium ${
+              item.highlight && location.pathname !== item.url ? 'text-purple-600' : ''
+            }`}>
+              {item.title}
+            </span>
+            {item.highlight && location.pathname === item.url && (
+              <div className="absolute -top-1 right-2 w-2 h-2 bg-purple-500 rounded-full"></div>
+            )}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function Layout({ children, currentPageName }) {
+  const location = useLocation();
+
+  // --- PUBLIC PAGE BYPASS ---
+  // If the page is a public-facing one, render it without any layout, sidebars, or auth checks.
+  const publicPages = ['PublicInvoice', 'PaymentSuccess', 'PaymentCancelled'];
+  if (publicPages.includes(currentPageName)) {
+    return <>{children}</>;
+  }
+  
+  useEffect(() => {
+    // --- PWA Installation Logic ---
+    const manifest = {
+      name: "INVIO - Voice-Powered Invoicing",
+      short_name: "INVIO",
+      description: "Create professional invoices instantly using just your voice.",
+      start_url: "/",
+      display: "standalone",
+      background_color: "#FFFFFF",
+      theme_color: "#8B5CF6", // Purple
+      icons: [
+        {
+          src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXphcCI+PHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHg9IjAiIHk9IjAiIHJ4PSIyNCIgZmlsbD0iIzhCNUNGNyIvPjxwYXRoIGQ9Ik0xMyAyTDMgMTRoOWwtMiA4IDgtMTEuMDY2NjY2NzYzMjQ1MjA1SDVMMi04eiIvPjwvc3ZnPg==",
+          sizes: "192x192",
+          type: "image/svg+xml",
+        },
+        {
+          src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXphcCI+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHg9IjAiIHk9IjAiIHJ4PSI4MCIgZmlsbD0iIzhCNUNGNyIvPjxwYXRoIGQ9Ik0xMyAyTDMgMTRoOWwtMiA4IDgtMTEuMDY2NjY2NzYzMjQ1MjA1SDVMMi04eiIvPjwvc3ZnPg==",
+          sizes: "512x512",
+          type: "image/svg+xml",
+        },
+      ],
+    };
+
+    const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/json" });
+    const manifestUrl = URL.createObjectURL(manifestBlob);
+
+    const manifestLink = document.createElement("link");
+    manifestLink.rel = "manifest";
+    manifestLink.href = manifestUrl;
+    document.head.appendChild(manifestLink);
+
+    // Add theme color meta tag for iOS Safari
+    const themeColorMeta = document.createElement("meta");
+    themeColorMeta.name = "theme-color";
+    themeColorMeta.content = manifest.theme_color;
+    document.head.appendChild(themeColorMeta);
+    
+    // Add apple touch icon
+    const appleTouchIcon = document.createElement("link");
+    appleTouchIcon.rel = "apple-touch-icon";
+    appleTouchIcon.href = manifest.icons[1].src; // Use the larger icon
+    document.head.appendChild(appleTouchIcon);
+
+
+    // Cleanup on component unmount
+    return () => {
+      // Check if elements exist before trying to remove them
+      if (document.head.contains(manifestLink)) {
+        document.head.removeChild(manifestLink);
+      }
+      if (document.head.contains(themeColorMeta)) {
+        document.head.removeChild(themeColorMeta);
+      }
+      if (document.head.contains(appleTouchIcon)) {
+        document.head.removeChild(appleTouchIcon);
+      }
+      URL.revokeObjectURL(manifestUrl);
+    };
+  }, []);
+
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-white to-blue-50">
+        <style>{`
+          :root {
+            --primary: #8B5CF6;
+            --primary-dark: #7C3AED;
+            --accent: #10B981;
+            --background: #FAFBFC;
+            --surface: #FFFFFF;
+            --text-primary: #0B1426;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+          }
+        `}</style>
+
+        <DesktopSidebar location={location} navigationItems={navigationItems} createPageUrl={createPageUrl} />
+
+        <main className="flex-1 flex flex-col min-w-0">
+          <MobileHeader createPageUrl={createPageUrl} />
+
+          <div className="flex-1 overflow-auto pb-20 md:pb-0" key={location.pathname}>
+            {children}
+          </div>
+
+          <MobileBottomNavigation location={location} bottomNavItems={bottomNavItems} createPageUrl={createPageUrl} />
+        </main>
+      </div>
+    </SidebarProvider>
+  );
+}

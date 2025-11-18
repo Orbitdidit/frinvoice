@@ -1,0 +1,170 @@
+
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Invoice } from "@/entities/Invoice";
+import { User } from "@/entities/User";
+import InvoiceViewer from "../components/invoices/InvoiceViewer";
+import SendEmailModal from "../components/invoices/SendEmailModal";
+import ClientInvoiceView from "../components/invoices/ClientInvoiceView";
+import { Loader2, Send, Copy, Share, CheckCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { createPageUrl } from "@/utils";
+
+export default function InvoiceDetail() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const invoiceId = searchParams.get("id");
+  const [invoice, setInvoice] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkLoginAndLoad = async () => {
+      // Check if user is logged in
+      try {
+        await User.me();
+        setIsLoggedIn(true);
+      } catch (e) {
+        setIsLoggedIn(false);
+      }
+
+      if (invoiceId) {
+        loadInvoice();
+      } else {
+        if (isLoggedIn) {
+          navigate(createPageUrl("Invoices"));
+        } else {
+          setError("No invoice specified.");
+          setIsLoading(false);
+        }
+      }
+    };
+
+    checkLoginAndLoad();
+  }, [invoiceId, navigate]);
+
+  const loadInvoice = async () => {
+    setIsLoading(true);
+    try {
+      const data = await Invoice.get(invoiceId);
+      setInvoice(data);
+    } catch (err) {
+      console.error("Failed to load invoice:", err);
+      setError("Invoice not found or inaccessible.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getPublicInvoiceUrl = () => {
+    // FIXED: Generate the PUBLIC invoice URL, not the business owner URL
+    return `${window.location.origin}${createPageUrl(`PublicInvoice?id=${invoiceId}`)}`;
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(getPublicInvoiceUrl());
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-10 h-10 animate-spin text-purple-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!invoice) {
+    return null;
+  }
+
+  // If user is NOT logged in, show the client view
+  if (!isLoggedIn) {
+    return <ClientInvoiceView invoice={invoice} onInvoiceUpdate={loadInvoice} />;
+  }
+
+  // If user IS logged in, show the business owner view
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-4 md:p-6 space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
+        {/* Send & Share Section - ONLY for logged-in users */}
+        {isLoggedIn && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Send & Share</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <div className="flex flex-wrap items-center gap-4">
+                  <Button onClick={() => setShowEmailModal(true)}>
+                    <Send className="w-4 h-4 mr-2" />
+                    Send by Email
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCopyLink}
+                    className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    {linkCopied ? "Link Copied!" : "Copy Payment Link"}
+                  </Button>
+
+                  <div className="relative">
+                    <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
+                      <Share className="w-4 h-4 mr-2" />
+                      Share Options
+                    </Button>
+                  </div>
+              </div>
+              
+              <Alert className="bg-green-50 border-green-200 shadow-sm mt-4">
+                <CheckCircle className="h-4 w-4 text-green-700" />
+                <AlertTitle className="text-green-800 font-semibold flex items-center gap-2">
+                  🎉 Ready to get paid!
+                </AlertTitle>
+                <AlertDescription className="text-green-700">
+                  Send the link to your client. They can view and pay the invoice instantly - no login required!
+                </AlertDescription>
+              </Alert>
+
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Business Owner Invoice View */}
+        <InvoiceViewer
+          invoice={invoice}
+          onInvoiceUpdate={loadInvoice}
+          showEditButton={true}
+          showPayButton={false}
+        />
+      </div>
+
+      {isLoggedIn && invoice && (
+        <SendEmailModal
+          isOpen={showEmailModal}
+          onClose={() => setShowEmailModal(false)}
+          invoice={invoice}
+          invoiceUrl={getPublicInvoiceUrl()}
+        />
+      )}
+    </div>
+  );
+}

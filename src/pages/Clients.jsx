@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Client } from '@/entities/Client';
 import { User } from '@/entities/User';
 import { Plus, Search, Users, MoreHorizontal, Edit, Trash2 } from 'lucide-react';

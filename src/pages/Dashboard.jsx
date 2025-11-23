@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Invoice } from "@/entities/Invoice";
 import { Client } from "@/entities/Client";
 import { User } from "@/entities/User"; // Import User
@@ -13,6 +12,8 @@ import {
   DollarSign,
   Clock,
   CheckCircle,
+  AlertCircle,
+  Plus,
   ArrowRight
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

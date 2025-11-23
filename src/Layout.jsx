@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Invoice } from "@/entities/Invoice";
@@ -13,6 +12,10 @@ import {
   Zap,
   Bell,
   Home,
+  Clock,
+  Menu,
+  X,
+  Bot,
   FileCheck // Added icon for Estimates
 } from "lucide-react";
 import {
@@ -30,6 +33,8 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const navigationItems = [
   {
@@ -141,8 +146,8 @@ function DesktopSidebar({ location, navigationItems, createPageUrl }) {
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
             </div>
             <div>
-              <h2 className="font-bold text-xl text-slate-900 tracking-tight">INVIO</h2>
-              <p className="text-xs text-slate-500 font-medium">Voice-Powered Invoicing</p>
+              <h2 className="font-bold text-xl text-slate-900 tracking-tight">Frinvoice</h2>
+              <p className="text-xs text-slate-500 font-medium">Smart Invoice Management</p>
             </div>
           </div>
         </Link>
@@ -228,7 +233,7 @@ function MobileHeader({ createPageUrl }) {
           <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
             <Zap className="w-4 h-4 text-white" />
           </div>
-          <h1 className="text-xl font-bold text-slate-900">INVIO</h1>
+          <h1 className="text-xl font-bold text-slate-900">Frinvoice</h1>
         </Link>
       </div>
     </header>
@@ -280,9 +285,9 @@ export default function Layout({ children, currentPageName }) {
   useEffect(() => {
     // --- PWA Installation Logic ---
     const manifest = {
-      name: "INVIO - Voice-Powered Invoicing",
-      short_name: "INVIO",
-      description: "Create professional invoices instantly using just your voice.",
+      name: "Frinvoice - Smart Invoice Management",
+      short_name: "Frinvoice",
+      description: "Create professional invoices instantly with AI-powered tools.",
       start_url: "/",
       display: "standalone",
       background_color: "#FFFFFF",

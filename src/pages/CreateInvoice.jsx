@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Invoice } from "@/entities/Invoice";
 import { Client } from "@/entities/Client";
 import { InvokeLLM } from "@/integrations/Core";
 import {
+  FileText,
   Wand2,
   RefreshCw,
   FileUp,
@@ -101,7 +102,7 @@ export default function CreateInvoice() {
 
     try {
       const prompt = `
-You are INVIO, an AI assistant specialized in converting natural language requests into detailed, professional invoices.
+You are Frinvoice AI, an assistant specialized in converting natural language requests into detailed, professional invoices.
 
 Context: The user has provided the following request for creating an invoice:
 "${inputText}"
@@ -271,17 +272,25 @@ Return the invoice data in the exact JSON structure specified.
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-4"
+          className="relative overflow-hidden"
         >
-          <div className="flex items-center justify-center gap-3">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
-              <Wand2 className="w-5 h-5 md:w-6 md:h-6 text-white" />
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-purple-600/10 rounded-3xl"></div>
+          <div className="relative bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-3xl p-8 md:p-12 text-center space-y-6 shadow-xl">
+            <div className="flex items-center justify-center gap-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform">
+                <Wand2 className="w-8 h-8 text-white" />
+              </div>
+              <div className="text-left">
+                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                  Create Invoice
+                </h1>
+                <p className="text-sm text-slate-500 font-medium">Powered by Frinvoice AI</p>
+              </div>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Create New Invoice</h1>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+              Generate professional invoices in seconds using AI text, voice commands, or upload receipts and documents
+            </p>
           </div>
-          <p className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto">
-            Choose your preferred method to create professional invoices quickly and easily.
-          </p>
         </motion.div>
 
         <AnimatePresence mode="wait">
@@ -414,7 +423,7 @@ Return the invoice data in the exact JSON structure specified.
                      <div className="flex flex-col items-center justify-center text-center p-4">
                         <RefreshCw className="w-8 h-8 mr-2 animate-spin text-purple-600" />
                         <p className="text-slate-700 font-semibold mt-4">Processing your request...</p>
-                        <p className="text-slate-500">INVIO is generating your invoice.</p>
+                        <p className="text-slate-500">Frinvoice AI is generating your invoice.</p>
                      </div>
                   )}
                 </CardContent>
@@ -452,9 +461,9 @@ Return the invoice data in the exact JSON structure specified.
                   )}
                   {inputMode === 'screenshot' && (
                     <>
-                      <p>• Upload a screenshot or image of an invoice, receipt, or quote.</p>
-                      <p>• AI will automatically extract all relevant data into an editable invoice.</p>
-                      <p>• Great for converting images into structured invoice data quickly.</p>
+                      <p>• Upload a screenshot or photo of any receipt, invoice, or quote</p>
+                      <p>• Frinvoice AI extracts all data instantly - no manual typing needed</p>
+                      <p>• Perfect for converting photos into professional invoices in seconds</p>
                     </>
                   )}
                   {inputMode === 'pdf' && (

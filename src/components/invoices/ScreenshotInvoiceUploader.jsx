@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { UploadFile, InvokeLLM } from '@/integrations/Core';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,10 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Save,
+  Edit3,
   X,
+  FileText,
+  Calendar,
   DollarSign,
   User,
   Mail,
+  RotateCcw,
   Sparkles,
   BookOpen,
   Trash2,
@@ -23,7 +27,8 @@ import {
   Phone,
   Building
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { format } from "date-fns";
 import LineItemImageUpload from "./LineItemImageUpload";
 import ImageCarousel from "./ImageCarousel";
 import { User as UserEntity } from "@/entities/User";
@@ -514,6 +519,16 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
                     </Command>
                   </PopoverContent>
                 </Popover>
+
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    value={editableData.client_contact_person || ''}
+                    onChange={(e) => handleFieldChange('client_contact_person', e.target.value)}
+                    placeholder="Contact Person (optional)"
+                    className="pl-10"
+                  />
+                </div>
 
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

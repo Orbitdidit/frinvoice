@@ -64,7 +64,7 @@ export default function ScreenshotInvoiceUploader({ onDataExtracted, onProcessin
       setProgress(60);
       
       const prompt = `
-You are INVIO's AI vision assistant. Analyze this image and extract ALL invoice/quote details you can find.
+You are Frinvoice AI vision assistant. Analyze this image and extract ALL invoice/quote details you can find.
 
 The image might contain:
 - Text messages discussing a project

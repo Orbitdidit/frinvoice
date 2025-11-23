@@ -552,17 +552,15 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
                   />
                 </div>
 
-                {editableData.client_company && (
-                  <div className="relative">
-                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <Input
-                      value={editableData.client_company || ''}
-                      onChange={(e) => handleFieldChange('client_company', e.target.value)}
-                      placeholder="Company Name (optional)"
-                      className="pl-10"
-                    />
-                  </div>
-                )}
+                <div className="relative">
+                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    value={editableData.client_company || ''}
+                    onChange={(e) => handleFieldChange('client_company', e.target.value)}
+                    placeholder="Company/Business Name (optional)"
+                    className="pl-10"
+                  />
+                </div>
               </div>
             </div>
 

@@ -1,5 +1,5 @@
 // Stripe Settings Component
-function StripeSettings() {
+export default function StripeSettings() {
   const [config, setConfig] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

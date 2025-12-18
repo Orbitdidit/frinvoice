@@ -173,8 +173,11 @@ export default function Clients() {
           transition={{ delay: 0.5 }}
         >
           <Card>
-            <CardHeader>
-              <CardTitle>Your Clients</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                  <CardTitle>Client Portal & Directory</CardTitle>
+                  <p className="text-sm text-slate-500 mt-1">Manage client details and history</p>
+              </div>
             </CardHeader>
             <CardContent className="p-0">
               {isLoading ? (

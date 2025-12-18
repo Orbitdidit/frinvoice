@@ -102,30 +102,29 @@ export default function CreateInvoice() {
 
     try {
       const prompt = `
-You are Frinvoice AI, an assistant specialized in converting natural language requests into detailed, professional invoices.
+      You are Frinvoice AI, an expert financial assistant. Convert this request into a perfect, professional invoice.
 
-Context: The user has provided the following request for creating an invoice:
-"${inputText}"
+      USER REQUEST: "${inputText}"
 
-Your task is to extract and structure this information into a comprehensive invoice format. Be intelligent about:
-1. Identifying the client/company name and email.
-2. Breaking down services into clear line items with descriptions.
-3. Calculating appropriate pricing (use reasonable market rates if not specified).
-4. Identifying any discounts OR deposits mentioned. Treat deposits as a form of discount.
-5. Generating a professional invoice number.
+      INSTRUCTIONS:
+      1. **Client Identification**: Extract Name, Email, Phone, Company. If missing, leave blank or infer from context if obvious.
+      2. **Line Items**: Break down the work into specific, professional line items.
+         - Example: Instead of "Website", use "Website Design & Development - Phase 1".
+         - Example: Instead of "Labor", use "Professional Services: 5 Hours".
+      3. **Pricing Strategy**: 
+         - If user gave a total, break it down logically.
+         - If no price given, use premium industry standard rates (e.g., $150/hr for dev, $100/hr for design).
+      4. **Discounts/Deposits**: 
+         - **CRITICAL**: Deposits are NEGATIVE line items. E.g., "Deposit Paid" with price -500.
+         - Set 'is_discount': true for these.
+      5. **Metadata**:
+         - Invoice Number: INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}
+         - Date: Today
+         - Due Date: Net 30 unless specified otherwise.
+      6. **Tone**: Use formal, business-appropriate language for all descriptions.
 
-Rules:
-- If pricing isn't specified, use reasonable industry standard rates.
-- Break complex services into individual line items.
-- Include detailed descriptions for each item.
-- **IMPORTANT**: Apply any discounts or deposits as separate line items with negative amounts and set the 'is_discount' flag to true.
-- Generate a unique invoice number (format: INV-YYYY-XXXX).
-- Set invoice date to today's date.
-- Set due date to 30 days from today if not specified.
-- Use professional language for all descriptions.
-- Try to extract a phone number if mentioned.
-Return the invoice data in the exact JSON structure specified.
-`;
+      OUTPUT: Only the JSON object matching the schema.
+      `;
 
       const invoiceSchema = {
         type: "object",

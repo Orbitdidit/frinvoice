@@ -13,9 +13,19 @@ Deno.serve(async (req) => {
     }
 
     try {
-        const base44 = createClientFromRequest(req);
-        const { invoice_id } = await req.json();
+        // 1. Safe Body Parsing
+        let body;
+        try {
+            body = await req.json();
+        } catch (e) {
+            console.error("JSON Parse Error:", e);
+            return new Response(JSON.stringify({ error: "Invalid JSON body" }), { 
+                status: 400, 
+                headers: { "Content-Type": "application/json", ...corsHeaders } 
+            });
+        }
 
+        const { invoice_id } = body;
         if (!invoice_id) {
             return new Response(JSON.stringify({ error: "Invoice ID required" }), {
                 status: 400,
@@ -23,28 +33,40 @@ Deno.serve(async (req) => {
             });
         }
 
-        // Use Service Role to bypass RLS for the Invoice and User
-        // This is safe because we only return specific sanitized data
-        const admin = base44.asServiceRole;
+        // 2. Initialize SDK
+        // NOTE: For public functions, createClientFromRequest might not have user session, 
+        // but it still initializes the client for Service Role usage.
+        const base44 = createClientFromRequest(req);
         
-        const invoice = await admin.entities.Invoice.get(invoice_id);
+        // 3. Service Role Access (Bypass RLS)
+        const admin = base44.asServiceRole;
+
+        // 4. Fetch Invoice
+        // We use .filter instead of .get because .get might throw if not found or permissions issue
+        // .filter is often safer with service role
+        const invoices = await admin.entities.Invoice.filter({ id: invoice_id });
+        const invoice = invoices[0];
         
         if (!invoice) {
+            console.error(`Invoice not found: ${invoice_id}`);
             return new Response(JSON.stringify({ error: "Invoice not found" }), {
                 status: 404,
                 headers: { "Content-Type": "application/json", ...corsHeaders }
             });
         }
 
-        // Fetch company/creator info
-        const creators = await admin.entities.User.filter({ email: invoice.created_by });
-        const creator = creators[0] || {};
+        // 5. Fetch Creator Info
+        let creator = {};
+        if (invoice.created_by) {
+            const users = await admin.entities.User.filter({ email: invoice.created_by });
+            creator = users[0] || {};
+        }
 
-        // Sanitize return data (don't send sensitive user info)
+        // 6. Sanitize Response
         const companyInfo = {
-            company_name: creator.company_name,
+            company_name: creator.company_name || "Frinvoice User",
             company_logo_url: creator.company_logo_url,
-            payment_details: creator.payment_details || creator.default_invoice_terms,
+            payment_details: creator.payment_details || creator.default_invoice_terms || "",
             email: creator.email,
             phone: creator.phone
         };
@@ -58,8 +80,11 @@ Deno.serve(async (req) => {
         });
 
     } catch (error) {
-        console.error("getPublicInvoice error:", error);
-        return new Response(JSON.stringify({ error: error.message }), {
+        console.error("CRITICAL getPublicInvoice ERROR:", error);
+        return new Response(JSON.stringify({ 
+            error: "Internal Server Error", 
+            details: error.message 
+        }), {
             status: 500,
             headers: { "Content-Type": "application/json", ...corsHeaders },
         });

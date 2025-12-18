@@ -70,18 +70,18 @@ export default function VoiceRecorder({ onTranscriptChange, onRecordingChange, i
   };
 
   const startRecording = async () => {
+    // On iPhone/Mobile, prefer browser native STT if server failed previously or just as a better UX
+    // But let's keep the main button for High Quality AI, and add the fallback button.
+    
     if (!checkMicrophoneSupport()) return;
     
     setError(null);
     audioChunksRef.current = [];
 
     try {
+      // Relaxed constraints for better compatibility
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        }
+        audio: true 
       });
 
       // Better MIME type detection for Safari/Chrome compatibility
@@ -282,9 +282,26 @@ export default function VoiceRecorder({ onTranscriptChange, onRecordingChange, i
             🎤 {usingBrowserSTT ? "Browser listening..." : "Recording... Speak now!"}
           </p>
         ) : (
-          <p className="text-slate-600">Click to start voice recording</p>
+          <div className="space-y-1">
+            <p className="text-slate-600 font-medium">Tap to start recording</p>
+            <p className="text-xs text-slate-400">or use your keyboard's microphone 🎤</p>
+          </div>
         )}
       </div>
+      
+      {/* Mobile/Browser Native Fallback Button - Always visible on mobile/touch if not recording */}
+      {!isRecording && !isProcessing && (
+        <div className="md:hidden pt-2">
+            <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={startBrowserSTT}
+                className="text-xs bg-slate-50 border-slate-200 text-slate-600"
+            >
+                Start Device Dictation (Offline)
+            </Button>
+        </div>
+      )}
 
       {/* Error Display */}
       {error && (

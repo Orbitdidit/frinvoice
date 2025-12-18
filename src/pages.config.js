@@ -1,31 +1,33 @@
-import Dashboard from './pages/Dashboard';
-import VoiceInvoice from './pages/VoiceInvoice';
-import Invoices from './pages/Invoices';
 import Clients from './pages/Clients';
-import Settings from './pages/Settings';
-import InvoiceDetail from './pages/InvoiceDetail';
-import EditInvoice from './pages/EditInvoice';
-import PaymentSuccess from './pages/PaymentSuccess';
-import PaymentCancelled from './pages/PaymentCancelled';
-import PublicInvoice from './pages/PublicInvoice';
 import CreateInvoice from './pages/CreateInvoice';
+import Dashboard from './pages/Dashboard';
+import EditInvoice from './pages/EditInvoice';
 import Estimates from './pages/Estimates';
+import Home from './pages/Home';
+import InvoiceDetail from './pages/InvoiceDetail';
+import Invoices from './pages/Invoices';
+import PaymentCancelled from './pages/PaymentCancelled';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PublicInvoice from './pages/PublicInvoice';
+import Settings from './pages/Settings';
+import VoiceInvoice from './pages/VoiceInvoice';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Dashboard": Dashboard,
-    "VoiceInvoice": VoiceInvoice,
-    "Invoices": Invoices,
     "Clients": Clients,
-    "Settings": Settings,
-    "InvoiceDetail": InvoiceDetail,
-    "EditInvoice": EditInvoice,
-    "PaymentSuccess": PaymentSuccess,
-    "PaymentCancelled": PaymentCancelled,
-    "PublicInvoice": PublicInvoice,
     "CreateInvoice": CreateInvoice,
+    "Dashboard": Dashboard,
+    "EditInvoice": EditInvoice,
     "Estimates": Estimates,
+    "Home": Home,
+    "InvoiceDetail": InvoiceDetail,
+    "Invoices": Invoices,
+    "PaymentCancelled": PaymentCancelled,
+    "PaymentSuccess": PaymentSuccess,
+    "PublicInvoice": PublicInvoice,
+    "Settings": Settings,
+    "VoiceInvoice": VoiceInvoice,
 }
 
 export const pagesConfig = {

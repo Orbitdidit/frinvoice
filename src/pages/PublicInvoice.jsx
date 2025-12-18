@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Invoice } from "@/entities/Invoice";
-import { User } from "@/entities/User";
+import { base44 } from "@/api/base44Client";
 import {
   CheckCircle,
   Clock,
@@ -30,19 +29,18 @@ export default function PublicInvoice() {
 
     const loadData = async () => {
       try {
-        const invoiceData = await Invoice.get(invoiceId);
-        if (!invoiceData) {
-          throw new Error("Invoice not found or you do not have permission to view it.");
-        }
-        setInvoice(invoiceData);
-
-        const companyData = await User.filter({ email: invoiceData.created_by });
-        if (companyData.length > 0) {
-          setCompanyInfo(companyData[0]);
+        // Use backend function to fetch data securely without requiring login
+        const { data } = await base44.functions.invoke("getPublicInvoice", { invoice_id: invoiceId });
+        
+        if (data && data.invoice) {
+          setInvoice(data.invoice);
+          setCompanyInfo(data.companyInfo);
+        } else {
+          throw new Error(data?.error || "Invoice not found");
         }
       } catch (err) {
         console.error("Error loading public invoice:", err);
-        setError(err.message);
+        setError(err.message || "Failed to load invoice");
       } finally {
         setIsLoading(false);
       }

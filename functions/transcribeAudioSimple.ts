@@ -1,12 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
-// NATIVE FETCH IMPLEMENTATION - No heavy libraries to cause 500 errors
+// BULLETPROOF FETCH IMPLEMENTATION for iPhone/Safari compatibility
 Deno.serve(async (req) => {
-    // CORS Headers
+    // 1. CORS Headers - Critical for mobile browsers
     const corsHeaders = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
     };
 
     if (req.method === 'OPTIONS') {
@@ -14,40 +14,58 @@ Deno.serve(async (req) => {
     }
 
     try {
-        const base44 = createClientFromRequest(req);
+        console.log("🎤 Voice Request Started");
         
-        // 1. Auth Check
+        // 2. Auth Check with safe error handling
+        const base44 = createClientFromRequest(req);
         try {
             await base44.auth.me();
         } catch (e) {
-            return new Response(JSON.stringify({ error: 'Authentication failed' }), { 
+            console.error("Auth failed:", e);
+            return new Response(JSON.stringify({ error: 'Authentication failed. Please log in.' }), { 
                 status: 401, 
                 headers: { "Content-Type": "application/json", ...corsHeaders } 
             });
         }
 
-        // 2. Parse Form Data
-        const formData = await req.formData();
-        const audioFile = formData.get('audio');
-        
-        if (!audioFile) {
-            return new Response(JSON.stringify({ error: 'No audio file provided' }), { 
+        // 3. Parse Form Data with checks
+        let formData;
+        try {
+            formData = await req.formData();
+        } catch (e) {
+            console.error("FormData parse failed:", e);
+            return new Response(JSON.stringify({ error: 'Failed to upload audio. Network issue?' }), { 
                 status: 400, 
                 headers: { "Content-Type": "application/json", ...corsHeaders } 
             });
         }
 
-        console.log(`🎵 Audio file: ${audioFile.name}, size: ${audioFile.size}`);
+        const audioFile = formData.get('audio');
+        if (!audioFile) {
+            return new Response(JSON.stringify({ error: 'No audio data received' }), { 
+                status: 400, 
+                headers: { "Content-Type": "application/json", ...corsHeaders } 
+            });
+        }
+
+        console.log(`🎵 Received: ${audioFile.name} (${audioFile.type}), Size: ${audioFile.size}`);
+        
+        if (audioFile.size < 100) {
+            return new Response(JSON.stringify({ error: 'Audio file is empty or too short' }), { 
+                status: 400, 
+                headers: { "Content-Type": "application/json", ...corsHeaders } 
+            });
+        }
 
         let transcript = "";
         let successfulService = "";
         const errors = [];
 
-        // 3. Try AssemblyAI (Free Tier)
+        // 4. Try AssemblyAI (Free Tier)
         const ASSEMBLY_API_KEY = Deno.env.get("ASSEMBLY_AI_KEY");
         if (ASSEMBLY_API_KEY) {
             try {
-                console.log("🔄 Trying AssemblyAI...");
+                console.log("🔄 Attempting AssemblyAI...");
                 const uploadResp = await fetch('https://api.assemblyai.com/v2/upload', {
                     method: 'POST',
                     headers: { 'authorization': ASSEMBLY_API_KEY },
@@ -64,62 +82,82 @@ Deno.serve(async (req) => {
 
                     if (txResp.ok) {
                         const { id } = await txResp.json();
-                        // Poll
-                        for (let i = 0; i < 30; i++) {
+                        // Poll with timeout
+                        let retries = 0;
+                        while (retries < 40) { // 40 seconds max
                             await new Promise(r => setTimeout(r, 1000));
                             const check = await fetch(`https://api.assemblyai.com/v2/transcripts/${id}`, {
                                 headers: { 'authorization': ASSEMBLY_API_KEY }
                             });
+                            if (!check.ok) break;
                             const res = await check.json();
                             if (res.status === 'completed') {
                                 transcript = res.text;
                                 successfulService = "AssemblyAI";
+                                console.log("✅ AssemblyAI Success");
                                 break;
                             }
                             if (res.status === 'error') throw new Error(res.error);
+                            retries++;
                         }
                     }
+                } else {
+                    console.error("AssemblyAI Upload Failed:", await uploadResp.text());
                 }
             } catch (e) {
-                console.error("AssemblyAI error:", e);
+                console.error("AssemblyAI Error:", e);
                 errors.push(`AssemblyAI: ${e.message}`);
             }
         }
 
-        // 4. Fallback to OpenAI Whisper (using lightweight FETCH, no SDK)
+        // 5. Fallback to OpenAI Whisper (Robust)
         if (!transcript) {
             const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
             if (OPENAI_API_KEY) {
                 try {
-                    console.log("🔄 Trying OpenAI Whisper...");
+                    console.log("🔄 Attempting OpenAI Whisper...");
                     const openaiForm = new FormData();
-                    openaiForm.append('file', audioFile);
+                    // IMPORTANT: OpenAI requires a filename with extension
+                    openaiForm.append('file', audioFile, audioFile.name || 'recording.mp4'); 
                     openaiForm.append('model', 'whisper-1');
                     
                     const openAIResp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
                         method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${OPENAI_API_KEY}`,
-                        },
+                        headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` },
                         body: openaiForm
                     });
 
                     const data = await openAIResp.json();
-                    if (!openAIResp.ok) throw new Error(data.error?.message || "OpenAI error");
+                    if (!openAIResp.ok) {
+                        console.error("OpenAI Error Response:", data);
+                        throw new Error(data.error?.message || "OpenAI rejected the file");
+                    }
                     
                     if (data.text) {
                         transcript = data.text;
                         successfulService = "OpenAI Whisper";
+                        console.log("✅ OpenAI Whisper Success");
                     }
                 } catch (e) {
-                    console.error("OpenAI error:", e);
+                    console.error("OpenAI Error:", e);
                     errors.push(`OpenAI: ${e.message}`);
                 }
+            } else {
+                errors.push("OpenAI API Key missing");
             }
         }
 
         if (!transcript) {
-            throw new Error(`All transcription services failed. Details: ${errors.join(', ')}`);
+            // Provide a very specific error for the UI
+            const errorMsg = errors.length > 0 ? errors.join(' | ') : "All services failed silently";
+            return new Response(JSON.stringify({ 
+                error: "Transcription failed. Please try again.",
+                details: errorMsg,
+                debug: { errors }
+            }), {
+                status: 500,
+                headers: { "Content-Type": "application/json", ...corsHeaders },
+            });
         }
 
         return new Response(JSON.stringify({ 
@@ -131,10 +169,10 @@ Deno.serve(async (req) => {
         });
 
     } catch (error) {
-        console.error("💥 Function error:", error);
+        console.error("💥 Critical Server Error:", error);
         return new Response(JSON.stringify({ 
-            error: error.message || "Internal Server Error",
-            details: error.stack
+            error: "Server connection failed",
+            details: error.message
         }), {
             status: 500,
             headers: { "Content-Type": "application/json", ...corsHeaders },

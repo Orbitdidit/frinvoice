@@ -156,9 +156,17 @@ export default function VoiceRecorder({ onTranscriptChange, onRecordingChange, i
     try {
       const formData = new FormData();
       // Determine extension based on blob type
-      const ext = audioBlob.type.includes('mp4') ? 'mp4' : 
-                  audioBlob.type.includes('ogg') ? 'ogg' : 
-                  'webm';
+      // Enhanced extension detection for iOS/Safari
+      let ext = 'webm';
+      if (audioBlob.type.includes('mp4') || audioBlob.type.includes('m4a')) {
+        ext = 'mp4';
+      } else if (audioBlob.type.includes('ogg')) {
+        ext = 'ogg';
+      } else if (audioBlob.type.includes('wav')) {
+        ext = 'wav';
+      }
+      // Safari often produces audio/mp4 but calls it something else or nothing
+      // We'll trust the mime type check we did earlier
       formData.append('audio', audioBlob, `recording.${ext}`);
 
       console.log(`🎤 Sending audio (${audioBlob.type}) to transcription service...`);

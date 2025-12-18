@@ -14,18 +14,23 @@ Deno.serve(async (req) => {
 
     try {
         // 1. Safe Body Parsing
-        let body;
-        try {
-            body = await req.json();
-        } catch (e) {
-            console.error("JSON Parse Error:", e);
-            return new Response(JSON.stringify({ error: "Invalid JSON body" }), { 
-                status: 400, 
-                headers: { "Content-Type": "application/json", ...corsHeaders } 
-            });
+        let invoice_id;
+
+        // Support both GET (query param) and POST (body)
+        if (req.method === 'GET') {
+            const url = new URL(req.url);
+            invoice_id = url.searchParams.get('invoice_id');
+        } else {
+            try {
+                const body = await req.json();
+                invoice_id = body.invoice_id;
+            } catch (e) {
+                // If body is empty or invalid, check query params as fallback
+                 const url = new URL(req.url);
+                 invoice_id = url.searchParams.get('invoice_id');
+            }
         }
 
-        const { invoice_id } = body;
         if (!invoice_id) {
             return new Response(JSON.stringify({ error: "Invoice ID required" }), {
                 status: 400,

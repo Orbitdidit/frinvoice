@@ -17,9 +17,15 @@ Deno.serve(async (req) => {
         console.log("🎤 Voice Request Started");
         
         // 2. Auth Check with safe error handling
+        // For voice dictation on public pages (if any), we might want to relax this.
+        // But assuming this is only for logged in users in CreateInvoice.
         const base44 = createClientFromRequest(req);
         try {
-            await base44.auth.me();
+            const user = await base44.auth.me();
+             if (!user) {
+                 // Double check if it returned null without throwing
+                 throw new Error("User not found");
+             }
         } catch (e) {
             console.error("Auth failed:", e);
             return new Response(JSON.stringify({ error: 'Authentication failed. Please log in.' }), { 
@@ -48,10 +54,15 @@ Deno.serve(async (req) => {
             });
         }
 
-        console.log(`🎵 Received: ${audioFile.name} (${audioFile.type}), Size: ${audioFile.size}`);
+        // Fix for iPhone/Safari blobs sometimes having weird names or types
+        const safeName = audioFile.name || 'recording.m4a';
+        // Safari usually records as audio/mp4 or audio/x-m4a, but sometimes type is empty
+        const safeType = audioFile.type || 'audio/mp4';
+
+        console.log(`🎵 Received: ${safeName} (${safeType}), Size: ${audioFile.size}`);
         
         if (audioFile.size < 100) {
-            return new Response(JSON.stringify({ error: 'Audio file is empty or too short' }), { 
+            return new Response(JSON.stringify({ error: 'Audio file is empty or too short. Please speak longer.' }), { 
                 status: 400, 
                 headers: { "Content-Type": "application/json", ...corsHeaders } 
             });
@@ -117,8 +128,21 @@ Deno.serve(async (req) => {
                 try {
                     console.log("🔄 Attempting OpenAI Whisper...");
                     const openaiForm = new FormData();
-                    // IMPORTANT: OpenAI requires a filename with extension
-                    openaiForm.append('file', audioFile, audioFile.name || 'recording.mp4'); 
+                    
+                    // Normalize the file for OpenAI
+                    // If the file comes from iPhone, it might be audio/mp4 but explicitly named 'recording' (no ext)
+                    // We force an extension that OpenAI likes based on content or fallback
+                    let fileName = audioFile.name || 'recording.mp4';
+                    if (!fileName.includes('.')) {
+                        fileName += '.mp4'; // Default to mp4 for safety
+                    }
+                    
+                    // Create a new blob/file with the correct name/type if needed
+                    // In Deno/Fetch, we pass the file object directly. 
+                    // However, we can trick it by passing the filename as the 3rd argument to append if supported,
+                    // or just relying on the file object having a name property.
+                    // The safest way is to ensure the 3rd arg is provided.
+                    openaiForm.append('file', audioFile, fileName); 
                     openaiForm.append('model', 'whisper-1');
                     
                     const openAIResp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
@@ -127,7 +151,13 @@ Deno.serve(async (req) => {
                         body: openaiForm
                     });
 
-                    const data = await openAIResp.json();
+                    let data;
+                    try {
+                        data = await openAIResp.json();
+                    } catch (jsonError) {
+                         console.error("OpenAI JSON Parse Error:", jsonError);
+                         throw new Error(`OpenAI API returned invalid JSON: ${openAIResp.statusText}`);
+                    }
                     if (!openAIResp.ok) {
                         console.error("OpenAI Error Response:", data);
                         throw new Error(data.error?.message || "OpenAI rejected the file");

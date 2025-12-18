@@ -30,16 +30,29 @@ export default function PublicInvoice() {
     const loadData = async () => {
       try {
         // Use backend function to fetch data securely without requiring login
-        const { data } = await base44.functions.invoke("getPublicInvoice", { invoice_id: invoiceId });
+        // We catch the error here to prevent the UI from crashing or redirecting
+        let response;
+        try {
+            response = await base44.functions.invoke("getPublicInvoice", { invoice_id: invoiceId });
+        } catch (invokeError) {
+            console.error("Invoke error:", invokeError);
+            throw new Error("Network error loading invoice. Please refresh.");
+        }
+
+        const { data } = response;
         
         if (data && data.invoice) {
           setInvoice(data.invoice);
           setCompanyInfo(data.companyInfo);
         } else {
+          // If the backend returned a 200 OK but with an error field, or just no invoice
           throw new Error(data?.error || "Invoice not found");
         }
       } catch (err) {
         console.error("Error loading public invoice:", err);
+        // If it's a 404 or 500, we show the error message.
+        // Important: Ensure we don't trigger a redirect loop if the user is not logged in.
+        // Since we are in PublicInvoice, we just show the error state.
         setError(err.message || "Failed to load invoice");
       } finally {
         setIsLoading(false);

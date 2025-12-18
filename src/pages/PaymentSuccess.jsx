@@ -6,18 +6,29 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { createPageUrl } from '@/utils';
 import { Invoice } from '@/entities/Invoice';
+import { base44 } from '@/api/base44Client';
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
-  const invoiceId = searchParams.get('invoiceId');
+  // Handle both snake_case (from backend) and camelCase (legacy)
+  const invoiceId = searchParams.get('invoice_id') || searchParams.get('invoiceId');
   const [invoice, setInvoice] = useState(null);
 
   useEffect(() => {
     if (invoiceId) {
       const fetchInvoice = async () => {
         try {
-          const inv = await Invoice.get(invoiceId);
-          setInvoice(inv);
+            // Try fetching via public backend function first (if user is not logged in)
+            // Or use direct Entity access if logged in. 
+            // Since this page might be public, use the backend function for reliability.
+            const { data } = await base44.functions.invoke("getPublicInvoice", { invoice_id: invoiceId });
+            if (data?.invoice) {
+                setInvoice(data.invoice);
+            } else {
+                 // Fallback to Entity SDK if function fails or for older versions
+                 const inv = await Invoice.get(invoiceId);
+                 setInvoice(inv);
+            }
         } catch (err) {
           console.error("Could not fetch invoice details:", err);
         }

@@ -3,36 +3,46 @@ import { Button } from "@/components/ui/button";
 import { CreditCard, Loader2, ExternalLink } from "lucide-react";
 import { createCheckoutSession } from "@/functions/createCheckoutSession";
 
-export default function PayNowButton({ invoice, size = "default", className = "" }) {
+export default function PayNowButton({ invoice, invoiceId, amount, disabled, size = "default", className = "" }) {
   const [isLoading, setIsLoading] = useState(false);
+
+  // Normalize props
+  const id = invoiceId || invoice?.id;
+  const totalAmount = amount || invoice?.total_amount || 0;
+  const isPaid = disabled || invoice?.status === 'paid' || invoice?.payment_status === 'paid';
 
   const handlePayNow = async () => {
     setIsLoading(true);
     
     try {
+      // Use the correct backend function signature
       const response = await createCheckoutSession({
-        invoiceId: invoice.id,
-        successUrl: `${window.location.origin}/payment-success?invoice_id=${invoice.id}`,
-        cancelUrl: `${window.location.origin}/invoice/${invoice.id}`,
+        invoice_id: id,
+        return_url: window.location.origin
       });
 
-      if (response.data && response.data.checkout_url) {
+      if (response.data && response.data.url) {
         // Redirect to Stripe checkout
-        window.location.href = response.data.checkout_url;
+        window.location.href = response.data.url;
       } else {
-        throw new Error('Failed to create checkout session');
+        const errorMsg = response.data?.error || 'Failed to create checkout session';
+        throw new Error(errorMsg);
       }
     } catch (error) {
       console.error('Payment initiation failed:', error);
-      alert('Failed to initiate payment. Please try again.');
+      alert(`Failed to initiate payment: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
   // Don't show button if already paid
-  if (invoice.status === 'paid' || invoice.payment_status === 'paid') {
-    return null;
+  if (isPaid) {
+    return (
+        <Button disabled size={size} className={`bg-slate-200 text-slate-500 cursor-not-allowed ${className}`}>
+            Paid
+        </Button>
+    );
   }
 
   return (
@@ -50,7 +60,7 @@ export default function PayNowButton({ invoice, size = "default", className = ""
       ) : (
         <>
           <CreditCard className="w-4 h-4 mr-2" />
-          Pay ${invoice.total_amount?.toFixed(2)}
+          Pay ${totalAmount?.toFixed(2)}
           <ExternalLink className="w-3 h-3 ml-1" />
         </>
       )}

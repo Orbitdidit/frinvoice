@@ -25,7 +25,9 @@ import {
   ChevronDown,
   UserPlus,
   Phone,
-  Building
+  Building,
+  Copy,
+  BookmarkPlus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
@@ -33,6 +35,7 @@ import LineItemImageUpload from "./LineItemImageUpload";
 import ImageCarousel from "./ImageCarousel";
 import { User as UserEntity } from "@/entities/User";
 import { Client } from "@/entities/Client";
+import { PricingPreset } from "@/entities/PricingPreset";
 import { UploadFile } from "@/integrations/Core";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -250,6 +253,34 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
     const newLineItems = editableData.line_items.filter((_, i) => i !== index);
     const newData = recalculateTotals(newLineItems, editableData);
     setEditableData(newData);
+  };
+
+  const handleDuplicateLineItem = (index) => {
+    const itemToDuplicate = editableData.line_items[index];
+    const newItem = {
+      ...itemToDuplicate,
+      id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    };
+    const newLineItems = [...editableData.line_items];
+    newLineItems.splice(index + 1, 0, newItem);
+    const newData = recalculateTotals(newLineItems, editableData);
+    setEditableData(newData);
+  };
+
+  const handleSaveAsPreset = async (item) => {
+    if (!item.description || !item.unit_price) return;
+    try {
+      await PricingPreset.create({
+        name: item.description,
+        description: item.detail || item.description,
+        base_price: parseFloat(item.unit_price) || 0,
+        unit_type: 'flat_rate',
+        category: 'other'
+      });
+      alert("✅ Saved as preset!");
+    } catch (error) {
+      console.error("Error saving preset:", error);
+    }
   };
 
   const handleAddLineItem = () => {
@@ -690,6 +721,24 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
                                     <Button
                                       variant="ghost"
                                       size="icon"
+                                      onClick={() => handleSaveAsPreset(item)}
+                                      title="Save as Preset"
+                                      className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                                    >
+                                      <BookmarkPlus className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleDuplicateLineItem(index)}
+                                      title="Duplicate Item"
+                                      className="text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                                    >
+                                      <Copy className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
                                       onClick={() => handleRemoveLineItem(index)}
                                       className="text-red-500 hover:text-red-700 hover:bg-red-50"
                                     >
@@ -752,13 +801,34 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
                       </Draggable>
                     ))}
                     {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-          </div>
+                    </div>
+                    )}
+                    </Droppable>
+                    </DragDropContext>
 
-          {/* Totals */}
+                    <div className="flex gap-2 justify-center mt-4 border-t pt-4 border-dashed border-slate-200">
+                    <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddDiscountLineItem}
+                    className="text-green-600 border-green-300 hover:bg-green-50"
+                    >
+                    <DollarSign className="w-4 h-4 mr-1" />
+                    Add Discount/Deposit
+                    </Button>
+                    <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddLineItem}
+                    className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                    >
+                    <PlusCircle className="w-4 h-4 mr-1" />
+                    Add Item
+                    </Button>
+                    </div>
+                    </div>
+
+                    {/* Totals */}
           <div className="flex justify-end mb-8">
             <div className="w-full md:w-96 space-y-3">
               <div className="flex justify-between items-center py-2 border-b">

@@ -81,13 +81,30 @@ export default function VoiceRecorder({ onTranscriptChange, onRecordingChange, i
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          sampleRate: 44100,
         }
       });
 
-      mediaRecorderRef.current = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
+      // Better MIME type detection for Safari/Chrome compatibility
+      const getMimeType = () => {
+        const types = [
+          'audio/webm;codecs=opus',
+          'audio/webm',
+          'audio/mp4',
+          'audio/mp4;codecs=mp4a.40.2',
+          'audio/ogg',
+          ''
+        ];
+        for (const type of types) {
+          if (type === '' || MediaRecorder.isTypeSupported(type)) return type;
+        }
+        return '';
+      };
+
+      const mimeType = getMimeType();
+      console.log("🎤 Using MIME type:", mimeType || "default");
+
+      const options = mimeType ? { mimeType } : {};
+      mediaRecorderRef.current = new MediaRecorder(stream, options);
 
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -96,7 +113,7 @@ export default function VoiceRecorder({ onTranscriptChange, onRecordingChange, i
       };
 
       mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm;codecs=opus' });
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType || 'audio/webm' });
         await transcribeAudio(audioBlob);
         
         // Stop all tracks to release microphone
@@ -138,9 +155,13 @@ export default function VoiceRecorder({ onTranscriptChange, onRecordingChange, i
 
     try {
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.webm');
+      // Determine extension based on blob type
+      const ext = audioBlob.type.includes('mp4') ? 'mp4' : 
+                  audioBlob.type.includes('ogg') ? 'ogg' : 
+                  'webm';
+      formData.append('audio', audioBlob, `recording.${ext}`);
 
-      console.log("🎤 Sending audio to transcription service...");
+      console.log(`🎤 Sending audio (${audioBlob.type}) to transcription service...`);
       const response = await transcribeAudioSimple(formData);
 
       if (response.data.transcript) {

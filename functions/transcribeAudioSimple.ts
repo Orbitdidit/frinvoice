@@ -1,7 +1,19 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import OpenAI from 'npm:openai@4.28.4';
 
 Deno.serve(async (req) => {
     console.log("🎤 Simple transcription request received");
+
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+        return new Response(null, {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            },
+        });
+    }
 
     const base44 = createClientFromRequest(req);
     
@@ -124,7 +136,6 @@ Deno.serve(async (req) => {
                 try {
                     console.log("🔄 Trying OpenAI Whisper (PAID)...");
                     
-                    const OpenAI = (await import('npm:openai@4.28.4')).default;
                     const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
                     const transcription = await openai.audio.transcriptions.create({

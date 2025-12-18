@@ -1,36 +1,43 @@
-import { createClient } from 'npm:@base44/sdk@0.1.0';
-import OpenAI from 'npm:openai';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import OpenAI from 'npm:openai@4.28.4';
 
-const base44 = createClient({
-    appId: Deno.env.get('BASE44_APP_ID'),
-});
-
-const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 const ELEVENLABS_VOICE_ID = Deno.env.get('ELEVENLABS_VOICE_ID') || "EXAVITQu4vr4xnSDxMaL"; // Default if not set
 
-const openai = new OpenAI({
-    apiKey: OPENAI_API_KEY,
-});
-
 Deno.serve(async (req) => {
-    // 1. Authenticate the user
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { "Content-Type": "application/json" } });
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+        return new Response(null, {
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            },
+        });
     }
-    const token = authHeader.split(' ')[1];
-    base44.auth.setToken(token);
+
+    // 1. Authenticate the user
+    const base44 = createClientFromRequest(req);
+    
     try {
         await base44.auth.me();
     } catch (e) {
         return new Response(JSON.stringify({ error: 'Authentication failed' }), { status: 401, headers: { "Content-Type": "application/json" } });
     }
     
+    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+
     // Check for required API Key
     if (!ELEVENLABS_API_KEY) {
       return new Response(JSON.stringify({ error: "ELEVENLABS_API_KEY missing from server environment" }), { status: 500 });
     }
+    if (!OPENAI_API_KEY) {
+        return new Response(JSON.stringify({ error: "OPENAI_API_KEY missing from server environment" }), { status: 500 });
+    }
+
+    const openai = new OpenAI({
+        apiKey: OPENAI_API_KEY,
+    });
 
     try {
         const formData = await req.formData();
@@ -49,7 +56,7 @@ Deno.serve(async (req) => {
         const userText = (tr.text || "").trim();
 
         // 3. Generate Chat Response (GPT-4o mini)
-        const systemPrompt = `You are INVIO, a concise, friendly voice invoicing assistant. Respond briefly and conversationally, and ask for one clarifying detail when appropriate.`;
+        const systemPrompt = `You are Frinvoice, a concise, friendly voice invoicing assistant. Respond briefly and conversationally, and ask for one clarifying detail when appropriate.`;
         const chat = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [

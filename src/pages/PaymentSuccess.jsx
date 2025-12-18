@@ -12,20 +12,34 @@ export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   // Handle both snake_case (from backend) and camelCase (legacy)
   const invoiceId = searchParams.get('invoice_id') || searchParams.get('invoiceId');
+  const sessionId = searchParams.get('session_id');
   const [invoice, setInvoice] = useState(null);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     if (invoiceId) {
-      const fetchInvoice = async () => {
-        try {
-            // Try fetching via public backend function first (if user is not logged in)
-            // Or use direct Entity access if logged in. 
-            // Since this page might be public, use the backend function for reliability.
+      const initPage = async () => {
+          // 1. If we have a session_id, verify the payment first
+          if (sessionId) {
+              setIsVerifying(true);
+              try {
+                  await base44.functions.invoke("verifyStripeSession", { 
+                      invoice_id: invoiceId,
+                      session_id: sessionId
+                  });
+              } catch (e) {
+                  console.error("Verification failed", e);
+              } finally {
+                  setIsVerifying(false);
+              }
+          }
+
+          // 2. Fetch Invoice Details
+          try {
             const { data } = await base44.functions.invoke("getPublicInvoice", { invoice_id: invoiceId });
             if (data?.invoice) {
                 setInvoice(data.invoice);
             } else {
-                 // Fallback to Entity SDK if function fails or for older versions
                  const inv = await Invoice.get(invoiceId);
                  setInvoice(inv);
             }
@@ -33,9 +47,9 @@ export default function PaymentSuccess() {
           console.error("Could not fetch invoice details:", err);
         }
       };
-      fetchInvoice();
+      initPage();
     }
-  }, [invoiceId]);
+  }, [invoiceId, sessionId]);
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-6">

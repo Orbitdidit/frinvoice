@@ -124,7 +124,7 @@ export default function Settings() {
         </motion.div>
 
         <Tabs defaultValue="company" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-lg bg-slate-100">
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl bg-slate-100">
             <TabsTrigger value="company" className="flex items-center gap-2">
               <UserIcon className="w-4 h-4" />
               Company

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { PricingPreset } from "@/entities/PricingPreset";
 import { User } from "@/entities/User";
@@ -11,7 +10,9 @@ import {
   Trash2,
   Save,
   DollarSign,
-  X
+  X,
+  CreditCard,
+  CheckCircle2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -129,6 +130,10 @@ export default function Settings() {
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <UserIcon className="w-4 h-4" />
               Profile
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4" />
+              Payments
             </TabsTrigger>
           </TabsList>
 
@@ -313,6 +318,54 @@ export default function Settings() {
                     <p className="text-sm text-slate-500">
                       Profile information is managed through your authentication provider.
                       Contact support if you need to make changes to your account details.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </TabsContent>
+
+          {/* Payments Tab */}
+          <TabsContent value="payments">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="w-5 h-5 text-purple-600" />
+                    Payment Integrations
+                  </CardTitle>
+                  <p className="text-slate-600">Manage how you accept payments from clients</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                         <svg className="w-8 h-8" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11.606 14.124c0-2.036 1.838-2.736 4.618-2.736 1.954 0 3.796.476 4.962 1.054v-4.66c-1.122-.494-2.836-.894-5.112-.894-4.992 0-8.242 2.656-8.242 7.558 0 5.86 8.072 6.16 8.072 9.098 0 1.256-1.504 1.88-3.608 1.88-2.188 0-4.32-.736-5.83-1.636v4.86c1.6.666 3.658 1.106 5.892 1.106 5.394 0 8.638-2.654 8.638-7.79 0-6.02-8.39-6.316-8.39-9.158 0-1.022 1.144-1.682 3.018-1.682h-.018z" fill="#635bff"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-slate-900 text-lg">Stripe Payments</h3>
+                          <Badge className="bg-green-600 hover:bg-green-700 text-white">
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            Active
+                          </Badge>
+                        </div>
+                        <p className="text-slate-600">
+                          Your Stripe account is connected. You can now accept credit card payments on your invoices.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 text-sm text-slate-500">
+                    <p>
+                        To view your balance, payouts, and detailed transaction history, please visit your <a href="https://dashboard.stripe.com" target="_blank" rel="noreferrer" className="text-purple-600 hover:underline">Stripe Dashboard</a>.
                     </p>
                   </div>
                 </CardContent>

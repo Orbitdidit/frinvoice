@@ -7,7 +7,7 @@ import { createPageUrl } from '@/utils';
 
 export default function PaymentCancelled() {
   const [searchParams] = useSearchParams();
-  const invoiceId = searchParams.get('invoiceId');
+  const invoiceId = searchParams.get('invoice_id') || searchParams.get('invoiceId');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-red-100 flex items-center justify-center p-6">
@@ -29,7 +29,7 @@ export default function PaymentCancelled() {
               If this was a mistake, you can go back and try again.
             </p>
             <Link to={createPageUrl(`PublicInvoice?id=${invoiceId}`)}>
-              <Button>
+              <Button className="w-full">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Return to Invoice
               </Button>

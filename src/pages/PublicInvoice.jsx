@@ -6,7 +6,8 @@ import {
   Clock,
   AlertCircle,
   Loader2,
-  Printer
+  Printer,
+  Download
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,11 @@ export default function PublicInvoice() {
   }, [invoiceId]);
 
   const handlePrint = () => {
+    window.print();
+  };
+
+  const handleDownloadPDF = () => {
+    // On mobile, trigger print which opens native save/share dialog
     window.print();
   };
 
@@ -126,11 +132,27 @@ export default function PublicInvoice() {
 
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Action Header */}
-        <div className="flex justify-between items-center no-print">
+        <div className="flex justify-between items-center no-print flex-wrap gap-2">
           <h2 className="text-xl font-semibold text-slate-700">Invoice {invoice.invoice_number}</h2>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <PayNowButton invoiceId={invoice.id} amount={invoice.total_amount} disabled={invoice.status === 'paid'} />
-            <Button variant="outline" onClick={handlePrint}>
+            
+            {/* Mobile: Download PDF */}
+            <Button 
+              variant="outline" 
+              onClick={handleDownloadPDF}
+              className="md:hidden"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Save PDF
+            </Button>
+
+            {/* Desktop: Print / Save PDF */}
+            <Button 
+              variant="outline" 
+              onClick={handlePrint}
+              className="hidden md:flex"
+            >
               <Printer className="w-4 h-4 mr-2" />
               Print / Save PDF
             </Button>

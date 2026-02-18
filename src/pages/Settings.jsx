@@ -16,7 +16,8 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  Loader2
+  Loader2,
+  Trash
 } from "lucide-react";
 import { PaymentConfig } from "@/entities/PaymentConfig";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,15 +27,28 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { motion } from "framer-motion";
 import CompanySettings from "../components/settings/CompanySettings";
 import StripeSettings from "../components/settings/StripeSettings";
+import { base44 } from "@/api/base44Client";
 
 export default function Settings() {
   const [presets, setPresets] = useState([]);
   const [user, setUser] = useState(null);
   const [showPresetForm, setShowPresetForm] = useState(false);
   const [editingPreset, setEditingPreset] = useState(null);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -79,6 +93,17 @@ export default function Settings() {
       loadData();
     } catch (error) {
       console.error("Error deleting preset:", error);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    try {
+      // Logout which will handle the redirect
+      await base44.auth.logout();
+    } catch (error) {
+      console.error("Error logging out:", error);
+      setIsDeletingAccount(false);
     }
   };
 
@@ -320,11 +345,49 @@ export default function Settings() {
                     </div>
                   )}
 
-                  <div className="pt-4 border-t">
+                  <div className="pt-4 border-t space-y-4">
                     <p className="text-sm text-slate-500">
                       Profile information is managed through your authentication provider.
                       Contact support if you need to make changes to your account details.
                     </p>
+                    
+                    <div className="pt-4 border-t border-red-200">
+                      <h4 className="text-sm font-semibold text-red-900 mb-2">Danger Zone</h4>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="destructive" 
+                            className="bg-red-600 hover:bg-red-700"
+                            disabled={isDeletingAccount}
+                          >
+                            <Trash className="w-4 h-4 mr-2" />
+                            {isDeletingAccount ? "Processing..." : "Delete Account"}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete your account
+                              and remove your data from our servers. All your invoices, clients, and
+                              settings will be lost.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleDeleteAccount}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Yes, delete my account
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                      <p className="text-xs text-red-600 mt-2">
+                        ⚠️ This will permanently delete all your data. This action cannot be reversed.
+                      </p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

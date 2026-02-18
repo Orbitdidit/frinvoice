@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Invoice } from "@/entities/Invoice";
 import { User } from "@/entities/User";
 import { useNavigate } from "react-router-dom";
@@ -18,7 +17,8 @@ import {
   Edit,
   Trash2,
   Copy,
-  FileText
+  FileText,
+  RefreshCw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,10 +54,46 @@ export default function Estimates() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isPullRefreshing, setIsPullRefreshing] = useState(false);
+  const startY = useRef(0);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     loadEstimates();
   }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleTouchStart = (e) => {
+      if (container.scrollTop === 0) {
+        startY.current = e.touches[0].clientY;
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      if (container.scrollTop === 0 && !isPullRefreshing) {
+        const currentY = e.touches[0].clientY;
+        const pullDistance = currentY - startY.current;
+        
+        if (pullDistance > 80) {
+          setIsPullRefreshing(true);
+          loadEstimates().finally(() => {
+            setTimeout(() => setIsPullRefreshing(false), 500);
+          });
+        }
+      }
+    };
+
+    container.addEventListener('touchstart', handleTouchStart);
+    container.addEventListener('touchmove', handleTouchMove);
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [isPullRefreshing]);
 
   // Move filterEstimates logic into useEffect to fix dependency issue
   useEffect(() => {
@@ -181,7 +217,14 @@ export default function Estimates() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-6" ref={containerRef}>
+      {isPullRefreshing && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 md:hidden">
+          <div className="bg-white rounded-full shadow-lg p-3 animate-bounce">
+            <RefreshCw className="w-5 h-5 text-purple-600 animate-spin" />
+          </div>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <motion.div

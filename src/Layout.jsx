@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Invoice } from "@/entities/Invoice";
 import { User } from "@/entities/User"; // Import User
@@ -16,7 +16,8 @@ import {
   Menu,
   X,
   Bot,
-  FileCheck // Added icon for Estimates
+  FileCheck,
+  ArrowLeft
 } from "lucide-react";
 import {
   Sidebar,
@@ -224,11 +225,32 @@ function DesktopSidebar({ location, navigationItems, createPageUrl }) {
   );
 }
 
-function MobileHeader({ createPageUrl }) {
+function MobileHeader({ createPageUrl, currentPageName }) {
+  const navigate = useNavigate();
+  const childPages = ['InvoiceDetail', 'EditInvoice', 'PublicInvoice', 'Clients', 'Settings'];
+  const isChildPage = childPages.includes(currentPageName);
+
   return (
-    <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200/60 px-6 py-4 md:hidden">
+    <header 
+      className="bg-white/80 backdrop-blur-xl border-b border-slate-200/60 px-6 md:hidden select-none"
+      style={{ 
+        paddingTop: 'max(1rem, env(safe-area-inset-top))',
+        paddingBottom: '1rem'
+      }}
+    >
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors duration-200" />
+        {isChildPage ? (
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="hover:bg-slate-100 p-2 rounded-lg transition-colors duration-200"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        ) : (
+          <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors duration-200" />
+        )}
         <Link to={createPageUrl("Dashboard")} className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
             <Zap className="w-4 h-4 text-white" />
@@ -242,7 +264,12 @@ function MobileHeader({ createPageUrl }) {
 
 function MobileBottomNavigation({ location, bottomNavItems, createPageUrl }) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 md:hidden z-50">
+    <div 
+      className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 md:hidden z-50 select-none"
+      style={{ 
+        paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))'
+      }}
+    >
       <div className="flex items-center justify-around px-2 py-2">
         {bottomNavItems.map((item) => (
           <Link
@@ -274,6 +301,7 @@ function MobileBottomNavigation({ location, bottomNavItems, createPageUrl }) {
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
+  const navigate = useNavigate();
 
   // --- PUBLIC PAGE BYPASS ---
   // If the page is a public-facing one, render it without any layout, sidebars, or auth checks.
@@ -357,14 +385,34 @@ export default function Layout({ children, currentPageName }) {
             --text-secondary: #64748B;
             --border: #E2E8F0;
           }
+          
+          @media (prefers-color-scheme: dark) {
+            :root {
+              --background: #0F172A;
+              --surface: #1E293B;
+              --text-primary: #F1F5F9;
+              --text-secondary: #94A3B8;
+              --border: #334155;
+            }
+          }
+          
+          /* Disable text selection on UI elements */
+          button, [role="tab"], [role="button"], .select-none {
+            user-select: none;
+            -webkit-user-select: none;
+          }
         `}</style>
 
         <DesktopSidebar location={location} navigationItems={navigationItems} createPageUrl={createPageUrl} />
 
         <main className="flex-1 flex flex-col min-w-0">
-          <MobileHeader createPageUrl={createPageUrl} />
+          <MobileHeader createPageUrl={createPageUrl} currentPageName={currentPageName} />
 
-          <div className="flex-1 overflow-auto pb-20 md:pb-0" key={location.pathname}>
+          <div 
+            className="flex-1 overflow-auto pb-20 md:pb-0" 
+            key={location.pathname}
+            style={{ overscrollBehavior: 'none' }}
+          >
             {children}
           </div>
 

@@ -39,7 +39,7 @@ import { Client } from "@/entities/Client";
 import { PricingPreset } from "@/entities/PricingPreset";
 import { UploadFile } from "@/integrations/Core";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MobileSelect, SelectItem } from "@/components/ui/mobile-select";
 import {
   Command,
   CommandEmpty,
@@ -280,7 +280,7 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
         unit_type: 'flat_rate',
         category: 'other'
       });
-      alert("✅ Saved as preset!");
+      toast.success("✅ Saved as preset!");
     } catch (error) {
       console.error("Error saving preset:", error);
     }
@@ -393,18 +393,15 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
       )}
 
       <div className="flex items-center justify-center flex-wrap gap-4">
-        <Select
+        <MobileSelect
           value={editableData.document_type}
           onValueChange={(value) => handleFieldChange('document_type', value)}
+          placeholder="Select type"
+          className="w-[180px] bg-white dark:bg-slate-800 rounded-full"
         >
-          <SelectTrigger className="w-[180px] bg-white rounded-full">
-            <SelectValue placeholder="Select type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="invoice">Invoice</SelectItem>
-            <SelectItem value="estimate">Estimate</SelectItem>
-          </SelectContent>
-        </Select>
+          <SelectItem value="invoice">Invoice</SelectItem>
+          <SelectItem value="estimate">Estimate</SelectItem>
+        </MobileSelect>
       
         <Button
           variant={!isClassic ? 'default' : 'outline'}

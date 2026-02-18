@@ -76,7 +76,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 dark:from-slate-900 dark:to-slate-800 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Hero Section */}
         <motion.div 
@@ -87,7 +87,7 @@ export default function Dashboard() {
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
             Welcome to INVIO
           </h1>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
             Create professional invoices instantly with our intelligent AI assistant and voice features.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -109,14 +109,14 @@ export default function Dashboard() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 hover:shadow-lg transition-all duration-300">
+            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-300">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-green-700">Total Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">Total Revenue</CardTitle>
                 <DollarSign className="w-4 h-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-800">${totalRevenue.toFixed(2)}</div>
-                <p className="text-xs text-green-600 flex items-center mt-1">
+                <div className="text-2xl font-bold text-green-800 dark:text-green-300">${totalRevenue.toFixed(2)}</div>
+                <p className="text-xs text-green-600 dark:text-green-400 flex items-center mt-1">
                   <TrendingUp className="w-3 h-3 mr-1" />
                   All time earnings
                 </p>
@@ -125,14 +125,14 @@ export default function Dashboard() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:shadow-lg transition-all duration-300">
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800 hover:shadow-lg transition-all duration-300">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-blue-700">Total Invoices</CardTitle>
+                <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-400">Total Invoices</CardTitle>
                 <FileText className="w-4 h-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-800">{invoices.length}</div>
-                <p className="text-xs text-blue-600 flex items-center mt-1">
+                <div className="text-2xl font-bold text-blue-800 dark:text-blue-300">{invoices.length}</div>
+                <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center mt-1">
                   <CheckCircle className="w-3 h-3 mr-1" />
                   {paidInvoices} paid
                 </p>
@@ -141,27 +141,27 @@ export default function Dashboard() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200 hover:shadow-lg transition-all duration-300">
+            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800 hover:shadow-lg transition-all duration-300">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-purple-700">Active Clients</CardTitle>
+                <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-400">Active Clients</CardTitle>
                 <Users className="w-4 h-4 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-purple-800">{clients.length}</div>
-                <p className="text-xs text-purple-600">Registered clients</p>
+                <div className="text-2xl font-bold text-purple-800 dark:text-purple-300">{clients.length}</div>
+                <p className="text-xs text-purple-600 dark:text-purple-400">Registered clients</p>
               </CardContent>
             </Card>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200 hover:shadow-lg transition-all duration-300">
+            <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border-orange-200 dark:border-orange-800 hover:shadow-lg transition-all duration-300">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-orange-700">Pending</CardTitle>
+                <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-400">Pending</CardTitle>
                 <Clock className="w-4 h-4 text-orange-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-800">{pendingInvoices}</div>
-                <p className="text-xs text-orange-600">Awaiting payment</p>
+                <div className="text-2xl font-bold text-orange-800 dark:text-orange-300">{pendingInvoices}</div>
+                <p className="text-xs text-orange-600 dark:text-orange-400">Awaiting payment</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -174,7 +174,7 @@ export default function Dashboard() {
           transition={{ delay: 0.5 }}
           className="grid md:grid-cols-2 gap-6"
         >
-          <Card className="bg-gradient-to-br from-purple-600 to-blue-600 text-white border-0 hover:shadow-xl transition-all duration-300">
+          <Card className="bg-gradient-to-br from-purple-600 to-blue-600 dark:from-purple-700 dark:to-blue-700 text-white border-0 hover:shadow-xl transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-xl font-bold flex items-center gap-3">
                 <FileText className="w-6 h-6" />
@@ -194,7 +194,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white border-0 hover:shadow-xl transition-all duration-300">
+          <Card className="bg-gradient-to-br from-green-500 to-emerald-600 dark:from-green-600 dark:to-emerald-700 text-white border-0 hover:shadow-xl transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-xl font-bold flex items-center gap-3">
                 <Mic className="w-6 h-6" />
@@ -218,17 +218,17 @@ export default function Dashboard() {
         {/* Recent Activity */}
         <div className="grid md:grid-cols-2 gap-6">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }}>
-            <Card className="hover:shadow-lg transition-all duration-300">
+            <Card className="hover:shadow-lg transition-all duration-300 bg-white dark:bg-slate-800">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-bold text-slate-800">Recent Invoices</CardTitle>
+                <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">Recent Invoices</CardTitle>
                 <Link to={createPageUrl("Invoices")}>
                   <Button variant="ghost" size="sm">View All</Button>
                 </Link>
               </CardHeader>
               <CardContent>
                 {invoices.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">
-                    <FileText className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                  <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                    <FileText className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                     <p className="font-medium">No invoices yet</p>
                     <p className="text-sm">Create your first invoice with voice commands!</p>
                   </div>
@@ -241,11 +241,11 @@ export default function Dashboard() {
                         onClick={() => handleViewInvoice(invoice.id)}
                       >
                         <div>
-                          <p className="font-medium text-slate-800">{invoice.client_name}</p>
-                          <p className="text-sm text-slate-500">#{invoice.invoice_number}</p>
+                          <p className="font-medium text-slate-800 dark:text-slate-100">{invoice.client_name}</p>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">#{invoice.invoice_number}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold text-slate-800">${invoice.total_amount?.toFixed(2)}</p>
+                          <p className="font-semibold text-slate-800 dark:text-slate-100">${invoice.total_amount?.toFixed(2)}</p>
                           <Badge className={getStatusColor(invoice.status)}>
                             {invoice.status}
                           </Badge>
@@ -259,17 +259,17 @@ export default function Dashboard() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7 }}>
-            <Card className="hover:shadow-lg transition-all duration-300">
+            <Card className="hover:shadow-lg transition-all duration-300 bg-white dark:bg-slate-800">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-bold text-slate-800">Top Clients</CardTitle>
+                <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">Top Clients</CardTitle>
                 <Link to={createPageUrl("Clients")}>
                   <Button variant="ghost" size="sm">View All</Button>
                 </Link>
               </CardHeader>
               <CardContent>
                 {clients.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">
-                    <Users className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                  <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                    <Users className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                     <p className="font-medium">No clients yet</p>
                     <p className="text-sm">Add clients to get started!</p>
                   </div>
@@ -278,7 +278,7 @@ export default function Dashboard() {
                     {clients.slice(0, 5).map((client) => (
                       <div 
                         key={client.id} 
-                        className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
+                        className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors cursor-pointer"
                         onClick={() => handleViewClientInvoices(client.name)}
                       >
                         <div className="flex items-center gap-3">
@@ -288,13 +288,13 @@ export default function Dashboard() {
                             </span>
                           </div>
                           <div>
-                            <p className="font-medium text-slate-800">{client.name}</p>
-                            <p className="text-sm text-slate-500">{client.email}</p>
+                            <p className="font-medium text-slate-800 dark:text-slate-100">{client.name}</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{client.email}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold text-slate-800">${client.total_revenue?.toFixed(2) || '0.00'}</p>
-                          <p className="text-sm text-slate-500">{client.total_invoices || 0} invoices</p>
+                          <p className="font-semibold text-slate-800 dark:text-slate-100">${client.total_revenue?.toFixed(2) || '0.00'}</p>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">{client.total_invoices || 0} invoices</p>
                         </div>
                       </div>
                     ))}

@@ -29,6 +29,7 @@ import {
   Copy,
   BookmarkPlus
 } from "lucide-react";
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import LineItemImageUpload from "./LineItemImageUpload";
@@ -66,6 +67,8 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
     return { ...dataWithDocType, line_items: lineItemsWithIds };
   });
   const [isEditing, setIsEditing] = useState(initialIsEditing);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState(null);
   const [carouselImages, setCarouselImages] = useState([]);
   const [showCarousel, setShowCarousel] = useState(false);
   const [userCompany, setUserCompany] = useState(null);
@@ -323,8 +326,40 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
     setEditableData(prev => ({ ...prev, line_items: items }));
   };
 
-  const handleSaveChanges = () => {
-    onSave(editableData);
+  const handleSave = async () => {
+    if (!editableData.client_name) {
+      setError("Please enter a client name");
+      return;
+    }
+
+    if (editableData.line_items.length === 0) {
+      setError("Please add at least one line item");
+      return;
+    }
+
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      calculateTotals();
+      const savePromise = onSave(editableData);
+      toast.promise(savePromise, {
+        loading: 'Saving...',
+        success: 'Saved successfully!',
+        error: 'Failed to save'
+      });
+      await savePromise;
+    } catch (error) {
+      console.error("Error saving invoice:", error);
+      setError("Failed to save invoice. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const calculateTotals = () => {
+    const newData = recalculateTotals(editableData.line_items, editableData);
+    setEditableData(newData);
   };
 
   const isClassic = editableData.template === 'classic';
@@ -391,11 +426,21 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
 
       <div className="flex flex-col sm:flex-row justify-center gap-4">
         <Button
-          onClick={handleSaveChanges}
+          onClick={handleSave}
+          disabled={isProcessing}
           className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl shadow-lg order-1"
         >
-          <Save className="w-5 h-5 mr-2" />
-          Save {isEstimate ? 'Estimate' : 'Invoice'}
+          {isProcessing ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="w-5 h-5 mr-2" />
+              Save {isEstimate ? 'Estimate' : 'Invoice'}
+            </>
+          )}
         </Button>
         <Button
             variant="outline"
@@ -885,11 +930,21 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row justify-center gap-4">
         <Button
-          onClick={handleSaveChanges}
+          onClick={handleSave}
+          disabled={isProcessing}
           className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl shadow-lg"
         >
-          <Save className="w-5 h-5 mr-2" />
-          Save {isEstimate ? 'Estimate' : 'Invoice'}
+          {isProcessing ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="w-5 h-5 mr-2" />
+              Save {isEstimate ? 'Estimate' : 'Invoice'}
+            </>
+          )}
         </Button>
         <Button
           variant="outline"

@@ -99,10 +99,28 @@ export default function Settings() {
   const handleDeleteAccount = async () => {
     setIsDeletingAccount(true);
     try {
-      // Logout which will handle the redirect
+      const currentUser = await User.me();
+      
+      // Delete all user's data
+      const [invoices, clients, pricingPresets, paymentConfigs] = await Promise.all([
+        Invoice.filter({ created_by: currentUser.email }),
+        Client.filter({ created_by: currentUser.email }),
+        PricingPreset.filter({ created_by: currentUser.email }),
+        PaymentConfig.filter({ created_by: currentUser.email })
+      ]);
+
+      // Delete all records
+      await Promise.all([
+        ...invoices.map(inv => Invoice.delete(inv.id)),
+        ...clients.map(client => Client.delete(client.id)),
+        ...pricingPresets.map(preset => PricingPreset.delete(preset.id)),
+        ...paymentConfigs.map(config => PaymentConfig.delete(config.id))
+      ]);
+
+      // Logout after deletion
       await base44.auth.logout();
     } catch (error) {
-      console.error("Error logging out:", error);
+      console.error("Error deleting account:", error);
       setIsDeletingAccount(false);
     }
   };

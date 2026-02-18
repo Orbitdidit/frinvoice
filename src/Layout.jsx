@@ -263,6 +263,15 @@ function MobileHeader({ createPageUrl, currentPageName }) {
 }
 
 function MobileBottomNavigation({ location, bottomNavItems, createPageUrl }) {
+  const navigate = useNavigate();
+
+  const handleNavClick = (e, item) => {
+    if (location.pathname === item.url) {
+      e.preventDefault();
+      navigate(item.url, { replace: true });
+    }
+  };
+
   return (
     <div 
       className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 md:hidden z-50 select-none"
@@ -275,6 +284,7 @@ function MobileBottomNavigation({ location, bottomNavItems, createPageUrl }) {
           <Link
             key={item.title}
             to={item.url}
+            onClick={(e) => handleNavClick(e, item)}
             className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all duration-200 ${
               location.pathname === item.url
                 ? 'bg-gradient-to-t from-purple-50 to-blue-50 text-purple-700'
@@ -397,9 +407,16 @@ export default function Layout({ children, currentPageName }) {
           }
           
           /* Disable text selection on UI elements */
-          button, [role="tab"], [role="button"], .select-none {
+          button, [role="tab"], [role="button"], .select-none, a, 
+          [role="menuitem"], [role="option"], label {
             user-select: none;
             -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+          }
+          
+          /* Remove tap highlight on all interactive elements */
+          * {
+            -webkit-tap-highlight-color: transparent;
           }
         `}</style>
 

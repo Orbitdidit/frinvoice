@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -83,24 +82,27 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
 
   const handleStatusChange = async (newStatus) => {
     setIsUpdatingStatus(true);
+    
+    // Optimistic update
+    const previousStatus = invoice.status;
+    const updatedInvoice = {
+      ...invoice,
+      status: newStatus,
+      payment_status: !isEstimate && newStatus === 'paid' ? 'paid' : invoice.payment_status 
+    };
+    setInvoice(updatedInvoice);
+    
     try {
-      const updatedInvoice = {
-        ...invoice,
-        status: newStatus,
-        // For invoices, set payment_status to 'paid' if status is 'paid'. For estimates, this might not apply directly.
-        // We preserve payment_status otherwise.
-        payment_status: !isEstimate && newStatus === 'paid' ? 'paid' : invoice.payment_status 
-      };
       await Invoice.update(invoice.id, updatedInvoice);
-      setInvoice(updatedInvoice);
 
-      // Notify parent component if provided
       if (onInvoiceUpdate) {
         onInvoiceUpdate();
       }
 
       toast.success(`${isEstimate ? 'Estimate' : 'Invoice'} status updated to ${newStatus}`);
     } catch (error) {
+      // Revert on error
+      setInvoice({ ...invoice, status: previousStatus });
       console.error("Error updating status:", error);
       toast.error(`Failed to update ${isEstimate ? 'estimate' : 'invoice'} status. Please try again.`);
     } finally {

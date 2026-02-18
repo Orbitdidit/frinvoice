@@ -19,6 +19,7 @@ import {
   FileCheck,
   ArrowLeft
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Sidebar,
   SidebarContent,
@@ -265,8 +266,21 @@ function MobileHeader({ createPageUrl, currentPageName }) {
 function MobileBottomNavigation({ location, bottomNavItems, createPageUrl }) {
   const navigate = useNavigate();
 
+  const getTabRoot = (itemTitle) => {
+    const rootPages = {
+      'Documents': createPageUrl('Invoices'),
+      'Clients': createPageUrl('Clients'),
+      'Settings': createPageUrl('Settings')
+    };
+    return rootPages[itemTitle];
+  };
+
   const handleNavClick = (e, item) => {
-    if (location.pathname === item.url) {
+    const tabRoot = getTabRoot(item.title);
+    if (tabRoot && location.pathname !== item.url && location.pathname.includes(item.url.split('?')[0])) {
+      e.preventDefault();
+      navigate(tabRoot, { replace: false });
+    } else if (location.pathname === item.url) {
       e.preventDefault();
       navigate(item.url, { replace: true });
     }
@@ -426,11 +440,26 @@ export default function Layout({ children, currentPageName }) {
           <MobileHeader createPageUrl={createPageUrl} currentPageName={currentPageName} />
 
           <div 
-            className="flex-1 overflow-auto pb-20 md:pb-0" 
-            key={location.pathname}
+            className="flex-1 overflow-auto pb-20 md:pb-0 relative" 
             style={{ overscrollBehavior: 'none' }}
           >
-            {children}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={location.pathname}
+                initial={{ x: '100%', opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: '-100%', opacity: 0 }}
+                transition={{ 
+                  type: 'tween',
+                  ease: 'easeInOut',
+                  duration: 0.3
+                }}
+                className="absolute inset-0 overflow-auto"
+                style={{ overscrollBehavior: 'none' }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           <MobileBottomNavigation location={location} bottomNavItems={bottomNavItems} createPageUrl={createPageUrl} />

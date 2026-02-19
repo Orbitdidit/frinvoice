@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Invoice } from "@/entities/Invoice";
 import { Client } from "@/entities/Client";
@@ -276,22 +275,22 @@ Return the invoice data in the exact JSON structure specified.
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 p-4 md:p-6">
-      <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-purple-900/20 p-3 md:p-6">
+      <div className="max-w-4xl mx-auto space-y-4 md:space-y-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-4"
+          className="text-center space-y-2 md:space-y-4"
         >
-          <div className="flex items-center justify-center gap-3">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
-              <Wand2 className="w-5 h-5 md:w-6 md:h-6 text-white" />
+          <div className="flex items-center justify-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg md:rounded-xl flex items-center justify-center">
+              <Wand2 className="w-4 h-4 md:w-6 md:h-6 text-white" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900">AI Invoice Creator</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">AI Invoice Creator</h1>
           </div>
-          <p className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto">
-            Create invoices by voice, typing details, or uploading a PDF. 🆓 <strong>5 FREE hours</strong> of premium voice per month!
+          <p className="text-sm md:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto px-2">
+            Create invoices by voice, typing, or uploading files
           </p>
         </motion.div>
 
@@ -302,40 +301,44 @@ Return the invoice data in the exact JSON structure specified.
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Card className="bg-gradient-to-br from-white to-purple-50 border-purple-200 shadow-xl">
-              <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border-b">
-                <Tabs value={inputMode} onValueChange={setInputMode} className="w-full md:w-auto">
-                  <TabsList className="grid w-full grid-cols-4 bg-slate-100"> {/* Changed to grid-cols-4 */}
-                    <TabsTrigger value="voice" className="flex items-center gap-2">
+            <Card className="bg-gradient-to-br from-white to-purple-50 dark:from-slate-800 dark:to-purple-900/20 border-purple-200 dark:border-purple-800 shadow-xl">
+              <CardHeader className="p-3 md:p-6 border-b dark:border-slate-700">
+                <Tabs value={inputMode} onValueChange={setInputMode} className="w-full">
+                  <TabsList className="grid w-full grid-cols-4 bg-slate-100 dark:bg-slate-700 h-auto">
+                    <TabsTrigger value="voice" className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-2 px-2 text-xs md:text-sm">
                       <Mic className="w-4 h-4" />
-                      Voice 🆓
+                      <span className="hidden sm:inline">Voice</span>
+                      <span className="sm:hidden">🎤</span>
                     </TabsTrigger>
-                    {/* Added Screenshot Tab Trigger */}
-                    <TabsTrigger value="screenshot" className="flex items-center gap-2">
+                    <TabsTrigger value="screenshot" className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-2 px-2 text-xs md:text-sm">
                       <Camera className="w-4 h-4" />
-                      📸
+                      <span className="hidden sm:inline">Photo</span>
+                      <span className="sm:hidden">📸</span>
                     </TabsTrigger>
-                    <TabsTrigger value="manual" className="flex items-center gap-2">
+                    <TabsTrigger value="manual" className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-2 px-2 text-xs md:text-sm">
                       <Keyboard className="w-4 h-4" />
-                      Type
+                      <span className="hidden sm:inline">Type</span>
+                      <span className="sm:hidden">⌨️</span>
                     </TabsTrigger>
-                    <TabsTrigger value="pdf" className="flex items-center gap-2">
+                    <TabsTrigger value="pdf" className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-2 px-2 text-xs md:text-sm">
                       <FileUp className="w-4 h-4" />
-                      PDF
+                      <span className="hidden sm:inline">PDF</span>
+                      <span className="sm:hidden">📄</span>
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
                 <Button
                   variant="outline"
                   onClick={() => setShowVoiceConversation(true)}
-                  className="bg-purple-50 hover:bg-purple-100"
+                  className="bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 mt-3 w-full md:w-auto text-sm"
+                  size="sm"
                 >
                   <MessageSquare className="w-4 h-4 mr-2" />
-                  AI Conversation 🤖
+                  AI Chat
                 </Button>
               </CardHeader>
 
-              <CardContent className="p-6 space-y-6">
+              <CardContent className="p-3 md:p-6 space-y-4 md:space-y-6">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={inputMode}
@@ -345,25 +348,24 @@ Return the invoice data in the exact JSON structure specified.
                     transition={{ duration: 0.2 }}
                   >
                     {inputMode === 'voice' && (
-                      <div className="space-y-6">
-                        <VoiceSetupGuide />
+                      <div className="space-y-4 md:space-y-6">
                         <VoiceRecorder
                           onTranscriptChange={setTranscript}
                           onRecordingChange={setIsRecording}
                           isProcessing={isProcessing}
                         />
                          {(transcript && !isProcessing) && (
-                            <div className="flex flex-col items-center gap-4">
+                            <div className="flex flex-col items-center gap-3 md:gap-4">
                                 <VoiceTranscript transcript={transcript} isProcessing={isProcessing} />
                                 <Button
                                   onClick={handleProcessClick}
                                   disabled={!transcript || isProcessing}
-                                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl shadow-lg"
+                                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 md:px-8 py-2 md:py-3 rounded-xl shadow-lg w-full md:w-auto text-sm md:text-base"
                                 >
                                   {isProcessing ? (
-                                    <><RefreshCw className="w-5 h-5 mr-2 animate-spin" />Processing...</>
+                                    <><RefreshCw className="w-4 h-4 md:w-5 md:h-5 mr-2 animate-spin" />Processing...</>
                                   ) : (
-                                    <><Wand2 className="w-5 h-5 mr-2" />Generate from Transcript</>
+                                    <><Wand2 className="w-4 h-4 md:w-5 md:h-5 mr-2" />Generate Invoice</>
                                   )}
                                 </Button>
                             </div>
@@ -372,7 +374,7 @@ Return the invoice data in the exact JSON structure specified.
                     )}
 
                     {inputMode === 'manual' && (
-                      <div className="space-y-6">
+                      <div className="space-y-4 md:space-y-6">
                         <ManualInput
                           value={manualInput}
                           onChange={setManualInput}
@@ -382,12 +384,12 @@ Return the invoice data in the exact JSON structure specified.
                            <Button
                               onClick={handleProcessClick}
                               disabled={!manualInput || isProcessing}
-                              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl shadow-lg"
+                              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 md:px-8 py-2 md:py-3 rounded-xl shadow-lg w-full md:w-auto text-sm md:text-base"
                             >
                               {isProcessing ? (
-                                <><RefreshCw className="w-5 h-5 mr-2 animate-spin" />Processing...</>
+                                <><RefreshCw className="w-4 h-4 md:w-5 md:h-5 mr-2 animate-spin" />Processing...</>
                               ) : (
-                                <><Wand2 className="w-5 h-5 mr-2" />Generate Invoice</>
+                                <><Wand2 className="w-4 h-4 md:w-5 md:h-5 mr-2" />Generate Invoice</>
                               )}
                             </Button>
                         </div>
@@ -414,37 +416,32 @@ Return the invoice data in the exact JSON structure specified.
                 
                  {isProcessing && (
                    <div className="flex flex-col items-center justify-center text-center p-4">
-                      <RefreshCw className="w-8 h-8 mr-2 animate-spin text-purple-600" />
-                      <p className="text-slate-700 font-semibold mt-4">Processing your request...</p>
-                      <p className="text-slate-500">INVIO is generating your invoice.</p>
+                      <RefreshCw className="w-8 h-8 animate-spin text-purple-600" />
+                      <p className="text-slate-700 dark:text-slate-300 font-semibold mt-4 text-sm md:text-base">Processing your request...</p>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm">Generating your invoice.</p>
                    </div>
                 )}
               </CardContent>
             </Card>
             
-            {/* Updated Example Commands with Voice First */}
-            <div className="mt-8 p-4 md:p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-purple-200">
-              <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-purple-600" />
-                Examples - Now with 🆓 FREE Voice AI:
+            {/* Examples - hidden on mobile, shown on desktop */}
+            <div className="hidden md:block mt-8 p-4 md:p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
+              <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                Examples:
               </h3>
-              <div className="space-y-2 text-sm text-slate-600">
+              <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
                 <p className="italic flex items-start gap-2">
                   <Mic className="w-4 h-4 mt-0.5 text-purple-600 flex-shrink-0" />
-                  <span><strong>🆓 Voice (FREE):</strong> "Create an invoice for John Smith for website work, 10 hours at 75 dollars per hour"</span>
+                  <span><strong>Voice:</strong> "Create an invoice for John Smith for website work, 10 hours at 75 dollars per hour"</span>
                 </p>
-                {/* Added Screenshot Example */}
                 <p className="italic flex items-start gap-2">
                   <Camera className="w-4 h-4 mt-0.5 text-orange-600 flex-shrink-0" />
-                  <span><strong>Screenshot:</strong> Upload an image of an invoice or receipt</span>
+                  <span><strong>Photo:</strong> Upload an image of an invoice or receipt</span>
                 </p>
                 <p className="italic flex items-start gap-2">
                   <FileUp className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
-                  <span><strong>Upload:</strong> Any PDF quotation or invoice to convert it</span>
-                </p>
-                <p className="italic flex items-start gap-2">
-                  <Keyboard className="w-4 h-4 mt-0.5 text-green-600 flex-shrink-0" />
-                  <span><strong>Type:</strong> "Invoice ABC Corp for logo design, 5 hours at $100/hour"</span>
+                  <span><strong>PDF:</strong> Any PDF quotation or invoice to convert</span>
                 </p>
               </div>
             </div>

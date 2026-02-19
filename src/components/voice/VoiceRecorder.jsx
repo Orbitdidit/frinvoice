@@ -11,6 +11,8 @@ export default function VoiceRecorder({ onTranscriptChange, onRecordingChange, i
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [micSupported, setMicSupported] = useState(true);
   const [usingBrowserSTT, setUsingBrowserSTT] = useState(false);
+  const [micPermission, setMicPermission] = useState('unknown');
+  const [isCheckingPermission, setIsCheckingPermission] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const recognitionRef = useRef(null);
@@ -23,6 +25,30 @@ export default function VoiceRecorder({ onTranscriptChange, onRecordingChange, i
     }
     return true;
   }, []);
+
+  const requestMicrophonePermission = async () => {
+    setIsCheckingPermission(true);
+    setError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+      setMicPermission('granted');
+    } catch (error) {
+      console.error('Microphone permission error:', error);
+      if (error.name === 'NotAllowedError') {
+        setMicPermission('denied');
+        setError("🎤 Microphone access denied. Please allow microphone permissions in your browser settings.");
+      } else if (error.name === 'NotFoundError') {
+        setMicPermission('denied');
+        setError("🎤 No microphone found. Please connect a microphone and try again.");
+      } else {
+        setMicPermission('denied');
+        setError(`Permission failed: ${error.message}`);
+      }
+    } finally {
+      setIsCheckingPermission(false);
+    }
+  };
 
   // 🆓 FREE Browser Speech Recognition Fallback
   const startBrowserSTT = async () => {
@@ -245,28 +271,50 @@ export default function VoiceRecorder({ onTranscriptChange, onRecordingChange, i
   }
 
   return (
-    <div className="flex flex-col items-center space-y-4">
+    <div className="flex flex-col items-center space-y-3 md:space-y-4 p-4">
+      {/* Microphone Permission Request - Mobile Optimized */}
+      {micPermission !== 'granted' && (
+        <Alert className="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 border-orange-300 dark:border-orange-700">
+          <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+          <AlertDescription>
+            <div className="space-y-3">
+              <p className="font-semibold text-orange-900 dark:text-orange-200">⚠️ Microphone Permission Required</p>
+              <p className="text-sm text-orange-800 dark:text-orange-300">Click the button below to enable voice recording:</p>
+              <Button 
+                onClick={requestMicrophonePermission}
+                disabled={isCheckingPermission}
+                className="bg-orange-600 hover:bg-orange-700 text-white w-full"
+              >
+                {isCheckingPermission ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mic className="w-4 h-4 mr-2" />}
+                Request Microphone Access
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Voice Recording Button */}
       <motion.div
         initial={{ scale: 1 }}
         animate={{ scale: isRecording ? 1.05 : 1 }}
         transition={{ duration: 0.2 }}
+        className="w-full flex justify-center"
       >
         <Button
           onClick={isRecording ? stopRecording : startRecording}
           disabled={isProcessing || isTranscribing}
-          className={`w-20 h-20 rounded-full transition-all duration-300 ${
+          className={`w-24 h-24 md:w-28 md:h-28 rounded-full transition-all duration-300 shadow-xl ${
             isRecording 
               ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
               : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
           }`}
         >
           {isTranscribing ? (
-            <Loader2 className="w-8 h-8 animate-spin text-white" />
+            <Loader2 className="w-10 h-10 md:w-12 md:h-12 animate-spin text-white" />
           ) : isRecording ? (
-            <MicOff className="w-8 h-8 text-white" />
+            <MicOff className="w-10 h-10 md:w-12 md:h-12 text-white" />
           ) : (
-            <Mic className="w-8 h-8 text-white" />
+            <Mic className="w-10 h-10 md:w-12 md:h-12 text-white" />
           )}
         </Button>
       </motion.div>
@@ -274,50 +322,50 @@ export default function VoiceRecorder({ onTranscriptChange, onRecordingChange, i
       {/* Status Text */}
       <div className="text-center">
         {isTranscribing ? (
-          <p className="text-purple-700 font-medium">
-            {usingBrowserSTT ? "🆓 Browser processing..." : "🤖 AI processing your voice..."}
+          <p className="text-purple-700 dark:text-purple-400 font-medium text-sm md:text-base">
+            {usingBrowserSTT ? "🆓 Processing..." : "🤖 AI processing..."}
           </p>
         ) : isRecording ? (
-          <p className="text-red-600 font-medium animate-pulse">
-            🎤 {usingBrowserSTT ? "Browser listening..." : "Recording... Speak now!"}
+          <p className="text-red-600 dark:text-red-400 font-medium animate-pulse text-sm md:text-base">
+            🎤 {usingBrowserSTT ? "Listening..." : "Recording... Speak now!"}
           </p>
         ) : (
           <div className="space-y-1">
-            <p className="text-slate-600 font-medium">Tap to start recording</p>
-            <p className="text-xs text-slate-400">or use your keyboard's microphone 🎤</p>
+            <p className="text-slate-600 dark:text-slate-300 font-medium text-sm md:text-base">Tap to start recording</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">Speak clearly for best results</p>
           </div>
         )}
       </div>
       
-      {/* Mobile/Browser Native Fallback Button - Always visible on mobile/touch if not recording */}
-      {!isRecording && !isProcessing && (
-        <div className="md:hidden pt-2">
-            <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={startBrowserSTT}
-                className="text-xs bg-slate-50 border-slate-200 text-slate-600"
-            >
-                Start Device Dictation (Offline)
-            </Button>
-        </div>
+      {/* Mobile/Browser Native Fallback Button - Prominent */}
+      {!isRecording && !isProcessing && micPermission === 'granted' && (
+        <Button 
+            variant="outline" 
+            size="lg"
+            onClick={startBrowserSTT}
+            className="text-sm bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 w-full max-w-sm"
+        >
+          <Mic className="w-4 h-4 mr-2" />
+          Try Device Voice (Works Offline)
+        </Button>
       )}
 
       {/* Error Display */}
       {error && (
-        <Alert variant="destructive" className="max-w-md">
+        <Alert variant="destructive" className="w-full max-w-md">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="flex flex-col gap-2">
+          <AlertDescription className="flex flex-col gap-2 text-sm">
             {typeof error === 'string' ? (
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-2">
                 <span>{error}</span>
                 <Button 
-                  variant="ghost" 
+                  variant="outline" 
                   size="sm" 
                   onClick={handleRetry}
-                  className="ml-2"
+                  className="w-full"
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Try Again
                 </Button>
               </div>
             ) : (
@@ -326,17 +374,6 @@ export default function VoiceRecorder({ onTranscriptChange, onRecordingChange, i
           </AlertDescription>
         </Alert>
       )}
-
-      {/* Instructions */}
-      <div className="text-center text-sm text-slate-500 max-w-md">
-        <p className="mb-2">💡 <strong>Multiple Options Available:</strong></p>
-        <ul className="text-xs space-y-1">
-          <li>• 🆓 <strong>Browser Voice:</strong> Free, works offline (Chrome/Safari)</li>
-          <li>• 🤖 <strong>AI Transcription:</strong> Higher accuracy (requires API setup)</li>
-          <li>• 💻 <strong>Manual Typing:</strong> Always available as backup</li>
-          <li>• AssemblyAI gives you 5 hours FREE per month!</li>
-        </ul>
-      </div>
     </div>
   );
 }

@@ -485,29 +485,44 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
 
             {/* Totals */}
             <div className="flex justify-end">
-                <div className="w-full md:w-80 space-y-3">
+                <div className="w-full md:w-80 space-y-2">
+                  {/* Subtotal */}
                   <div className="flex justify-between items-center py-2 border-b border-slate-200">
                     <span className="text-slate-600 font-medium">Subtotal:</span>
-                    <span className="font-semibold text-lg text-slate-900">${(invoice.subtotal || 0).toFixed(2)}</span>
+                    <span className="font-semibold text-slate-900">${(invoice.subtotal || 0).toFixed(2)}</span>
                   </div>
 
-                  {/* Separate Discounts - Show in pink/red */}
-                  {generalDiscounts.map((discountItem, index) => (
-                    <div key={`discount-${index}`} className="flex justify-between items-center py-2 border-b border-slate-200 bg-pink-50 px-2 rounded">
-                      <span className="text-slate-600 font-medium">{discountItem.description}:</span>
-                      <span className="font-semibold text-red-600 text-lg">-${Math.abs(discountItem.total || 0).toFixed(2)}</span>
-                    </div>
-                  ))}
+                  {/* Condensed Discounts - one line total */}
+                  {generalDiscounts.length > 0 && (() => {
+                    const totalDiscount = generalDiscounts.reduce((sum, d) => sum + Math.abs(d.total || 0), 0);
+                    return (
+                      <div className="flex justify-between items-center py-1.5 px-2 bg-pink-50 rounded border border-pink-100">
+                        <span className="text-slate-600 text-sm font-medium">Discount{generalDiscounts.length > 1 ? ` (×${generalDiscounts.length})` : ''}:</span>
+                        <span className="font-semibold text-red-600">-${totalDiscount.toFixed(2)}</span>
+                      </div>
+                    );
+                  })()}
 
-                  {/* Show tax if applicable */}
+                  {/* Tax */}
                   {invoice.tax_rate > 0 && (
                     <div className="flex justify-between items-center py-2 border-b border-slate-200">
                       <span className="text-slate-600 font-medium">Tax ({invoice.tax_rate || 0}%):</span>
-                      <span className="font-semibold text-lg text-slate-900">${(invoice.tax_amount || 0).toFixed(2)}</span>
+                      <span className="font-semibold text-slate-900">${(invoice.tax_amount || 0).toFixed(2)}</span>
                     </div>
                   )}
 
-                  {/* FIXED TOTAL - BOLD BLACK TEXT */}
+                  {/* Deposit line (above total) */}
+                  {deposits.length > 0 && (() => {
+                    const totalDeposits = deposits.reduce((sum, d) => sum + Math.abs(d.total || 0), 0);
+                    return (
+                      <div className="flex justify-between items-center py-1.5 px-2 bg-blue-50 rounded border border-blue-100">
+                        <span className="text-slate-600 text-sm font-medium">Deposit{deposits.length > 1 ? ` (×${deposits.length})` : ''}:</span>
+                        <span className="font-semibold text-blue-600">-${totalDeposits.toFixed(2)}</span>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Total */}
                   <div className={`flex justify-between items-center py-4 px-4 rounded-lg transition-all duration-500 ${isClassic ? 'bg-slate-100 border-2 border-slate-300' : 'bg-slate-900 text-white print-total-modern shadow-lg'}`}>
                     <span className={`text-xl font-bold ${isClassic ? 'text-black' : 'text-white'}`}>Total:</span>
                     <span className={`text-2xl md:text-3xl font-bold flex items-center gap-1 ${isClassic ? 'text-black' : 'text-white'}`}>
@@ -516,25 +531,17 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
                     </span>
                   </div>
 
-                  {/* Separate Deposits Section - At the bottom */}
-                  {deposits.length > 0 && (
-                    <div className="mt-4 pt-4 border-t-2 border-blue-200">
-                      <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Deposits & Payments</h4>
-                      {deposits.map((depositItem, index) => (
-                        <div key={`deposit-${index}`} className="flex justify-between items-center py-2 bg-blue-50 px-2 rounded mb-1">
-                          <span className="text-slate-600 font-medium">{depositItem.description}:</span>
-                          <span className="font-semibold text-blue-600 text-lg">-${Math.abs(depositItem.total || 0).toFixed(2)}</span>
-                        </div>
-                      ))}
-                      {/* Balance Due only applies to invoices after deposits */}
-                      {!isEstimate && (
-                        <div className="flex justify-between items-center py-2 mt-2 pt-2 border-t border-blue-200 font-bold">
-                          <span className="text-slate-700">Balance Due:</span>
-                          <span className="text-xl text-slate-900">${(invoice.total_amount || 0).toFixed(2)}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {/* Balance Due */}
+                  {!isEstimate && (() => {
+                    const totalDeposits = deposits.reduce((sum, d) => sum + Math.abs(d.total || 0), 0);
+                    const balanceDue = (invoice.total_amount || 0) - totalDeposits;
+                    return (
+                      <div className="flex justify-between items-center py-2 mt-1 border-t-2 border-slate-300 font-bold">
+                        <span className="text-slate-800 text-lg">Balance Due:</span>
+                        <span className="text-xl text-slate-900">${balanceDue.toFixed(2)}</span>
+                      </div>
+                    );
+                  })()}
                 </div>
             </div>
           </div>

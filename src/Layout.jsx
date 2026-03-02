@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Invoice } from "@/entities/Invoice";
@@ -17,7 +17,9 @@ import {
   X,
   Bot,
   FileCheck,
-  ArrowLeft
+  ArrowLeft,
+  Moon,
+  Sun
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -233,7 +235,7 @@ function MobileHeader({ createPageUrl, currentPageName }) {
 
   return (
     <header 
-      className="bg-white/80 backdrop-blur-xl border-b border-slate-200/60 px-6 md:hidden select-none"
+    className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-700/60 px-6 md:hidden select-none"
       style={{ 
         paddingTop: 'max(1rem, env(safe-area-inset-top))',
         paddingBottom: '1rem'
@@ -256,8 +258,14 @@ function MobileHeader({ createPageUrl, currentPageName }) {
           <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
             <Zap className="w-4 h-4 text-white" />
           </div>
-          <h1 className="text-xl font-bold text-slate-900">Frinvoice</h1>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Frinvoice</h1>
         </Link>
+        <button
+          onClick={() => setDarkMode(d => !d)}
+          className="ml-auto p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+        >
+          {darkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-500" />}
+        </button>
       </div>
     </header>
   );
@@ -326,6 +334,18 @@ function MobileBottomNavigation({ location, bottomNavItems, createPageUrl }) {
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const [darkMode, setDarkMode] = useState(() => {
+    try { return localStorage.getItem('darkMode') === 'true'; } catch { return false; }
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    try { localStorage.setItem('darkMode', darkMode); } catch {}
+  }, [darkMode]);
 
   // --- PUBLIC PAGE BYPASS ---
   // If the page is a public-facing one, render it without any layout, sidebars, or auth checks.

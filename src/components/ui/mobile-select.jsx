@@ -18,16 +18,13 @@ export function MobileSelect({
   children,
   className,
   triggerClassName,
-  disabled,
-  ...props
+  disabled
 }) {
   const [open, setOpen] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -39,7 +36,7 @@ export function MobileSelect({
 
   if (!isMobile) {
     return (
-      <Select value={value} onValueChange={onValueChange} disabled={disabled} {...props}>
+      <Select value={value} onValueChange={onValueChange} disabled={disabled}>
         <SelectTrigger className={cn(className, triggerClassName)}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>

@@ -797,12 +797,20 @@ Client: "${editableData.client_name || ''}"`,
 
                                 <div className="flex-1 space-y-3">
                                   <div className="flex items-center gap-2">
-                                    <Input
-                                      value={item.description}
-                                      onChange={(e) => handleLineItemChange(index, 'description', e.target.value)}
-                                      placeholder={item.is_discount ? "Discount/Deposit Description" : "Item Description"}
-                                      className="font-semibold"
-                                    />
+                                    <div className="relative flex-1">
+                                      <Input
+                                        value={item.description}
+                                        onChange={(e) => handleLineItemChange(index, 'description', e.target.value)}
+                                        placeholder={item.is_discount ? "Discount/Deposit Description" : "Item Description"}
+                                        className="font-semibold"
+                                        disabled={item._aiLoading}
+                                      />
+                                      {item._aiLoading && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-white/70 rounded">
+                                          <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
+                                        </div>
+                                      )}
+                                    </div>
                                     {!item.is_discount && (
                                       <Button
                                         variant="ghost"
@@ -810,8 +818,9 @@ Client: "${editableData.client_name || ''}"`,
                                         onClick={() => handleAiRewrite(index)}
                                         title="AI: Rewrite professionally"
                                         className="text-purple-500 hover:text-purple-700 hover:bg-purple-50 flex-shrink-0"
+                                        disabled={item._aiLoading}
                                       >
-                                        <Wand2 className="w-4 h-4" />
+                                        {item._aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
                                       </Button>
                                     )}
                                     <Button

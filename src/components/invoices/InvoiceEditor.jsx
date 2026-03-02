@@ -281,6 +281,38 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
     setEditableData(newData);
   };
 
+  const handleAiRewrite = async (index) => {
+    const item = editableData.line_items[index];
+    if (!item.description) return;
+    const newLineItems = [...editableData.line_items];
+    newLineItems[index] = { ...newLineItems[index], _aiLoading: true };
+    setEditableData(prev => ({ ...prev, line_items: newLineItems }));
+    try {
+      const result = await InvokeLLM({
+        prompt: `Rewrite this invoice line item description to be professional and concise (1 line, max 10 words). Also rewrite the detail field to be a clear professional one-liner. Return JSON only.
+Description: "${item.description}"
+Detail: "${item.detail || ''}"
+Client: "${editableData.client_name || ''}"`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            description: { type: "string" },
+            detail: { type: "string" }
+          }
+        }
+      });
+      const updated = [...editableData.line_items];
+      updated[index] = { ...updated[index], description: result.description, detail: result.detail, _aiLoading: false };
+      setEditableData(prev => ({ ...prev, line_items: updated }));
+      toast.success("✨ Line item rewritten by AI");
+    } catch (e) {
+      const updated = [...editableData.line_items];
+      updated[index] = { ...updated[index], _aiLoading: false };
+      setEditableData(prev => ({ ...prev, line_items: updated }));
+      toast.error("AI rewrite failed");
+    }
+  };
+
   const handleSaveAsPreset = async (item) => {
     if (!item.description || !item.unit_price) return;
     try {
@@ -771,6 +803,17 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
                                       placeholder={item.is_discount ? "Discount/Deposit Description" : "Item Description"}
                                       className="font-semibold"
                                     />
+                                    {!item.is_discount && (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleAiRewrite(index)}
+                                        title="AI: Rewrite professionally"
+                                        className="text-purple-500 hover:text-purple-700 hover:bg-purple-50 flex-shrink-0"
+                                      >
+                                        <Wand2 className="w-4 h-4" />
+                                      </Button>
+                                    )}
                                     <Button
                                       variant="ghost"
                                       size="icon"

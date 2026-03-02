@@ -411,6 +411,10 @@ export default function Layout({ children, currentPageName }) {
     };
   }, []);
 
+  if (isPublicPage) {
+    return <>{children}</>;
+  }
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-white to-blue-50">

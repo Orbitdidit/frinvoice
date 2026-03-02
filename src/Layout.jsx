@@ -228,7 +228,7 @@ function DesktopSidebar({ location, navigationItems, createPageUrl }) {
   );
 }
 
-function MobileHeader({ createPageUrl, currentPageName }) {
+function MobileHeader({ createPageUrl, currentPageName, darkMode, setDarkMode }) {
   const navigate = useNavigate();
   const childPages = ['InvoiceDetail', 'EditInvoice', 'PublicInvoice', 'Clients', 'Settings'];
   const isChildPage = childPages.includes(currentPageName);
@@ -457,7 +457,7 @@ export default function Layout({ children, currentPageName }) {
         <DesktopSidebar location={location} navigationItems={navigationItems} createPageUrl={createPageUrl} />
 
         <main className="flex-1 flex flex-col min-w-0">
-          <MobileHeader createPageUrl={createPageUrl} currentPageName={currentPageName} />
+          <MobileHeader createPageUrl={createPageUrl} currentPageName={currentPageName} darkMode={darkMode} setDarkMode={setDarkMode} />
 
           <div 
             className="flex-1 overflow-auto pb-20 md:pb-0 relative" 

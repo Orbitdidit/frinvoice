@@ -27,7 +27,8 @@ import {
   Phone,
   Building,
   Copy,
-  BookmarkPlus
+  BookmarkPlus,
+  Wand2
 } from "lucide-react";
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from "framer-motion";
@@ -104,6 +105,16 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
           notes: user.default_invoice_terms
         }));
       }
+
+      // Apply user's default due date setting
+      const dueDays = parseInt(user.default_due_days) || 0;
+      const today = new Date();
+      const dueDate = new Date(today);
+      dueDate.setDate(dueDate.getDate() + dueDays);
+      setEditableData(prev => ({
+        ...prev,
+        due_date: prev.due_date || dueDate.toISOString().split('T')[0]
+      }));
     } catch (error) {
       console.error("Error loading user company info:", error);
     }

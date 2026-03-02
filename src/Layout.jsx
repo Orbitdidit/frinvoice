@@ -412,6 +412,10 @@ export default function Layout({ children, currentPageName }) {
     };
   }, []);
 
+  if (MAINTENANCE_MODE) {
+    return <MaintenanceScreen />;
+  }
+
   if (isPublicPage) {
     return <>{children}</>;
   }

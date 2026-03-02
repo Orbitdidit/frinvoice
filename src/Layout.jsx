@@ -348,10 +348,6 @@ export default function Layout({ children, currentPageName }) {
     try { localStorage.setItem('darkMode', darkMode); } catch {}
   }, [darkMode]);
 
-  if (MAINTENANCE_MODE) {
-    return <MaintenanceScreen />;
-  }
-
   const publicPages = ['PublicInvoice', 'PaymentSuccess', 'PaymentCancelled'];
   const isPublicPage = publicPages.includes(currentPageName);
 

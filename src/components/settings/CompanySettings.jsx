@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, Building, Save, FileText, DollarSign } from "lucide-react";
+import { Upload, Building, Save, FileText, DollarSign, Calendar } from "lucide-react";
+import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 export default function CompanySettings() {
@@ -17,7 +18,8 @@ export default function CompanySettings() {
     phone: "",
     website: "",
     default_invoice_terms: "",
-    payment_details: ""
+    payment_details: "",
+    default_due_days: "0"
   });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -36,7 +38,8 @@ export default function CompanySettings() {
         phone: user.phone || "",
         website: user.website || "",
         default_invoice_terms: user.default_invoice_terms || "",
-        payment_details: user.payment_details || ""
+        payment_details: user.payment_details || "",
+        default_due_days: user.default_due_days !== undefined ? String(user.default_due_days) : "0"
       });
     } catch (error) {
       console.error("Error loading user data:", error);
@@ -63,11 +66,11 @@ export default function CompanySettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await User.updateMyUserData(userData);
-      alert("Settings saved successfully!");
+      await User.updateMyUserData({ ...userData, default_due_days: parseInt(userData.default_due_days) || 0 });
+      toast.success("Settings saved successfully!");
     } catch (error) {
       console.error("Error saving user data:", error);
-      alert("Error saving settings. Please try again.");
+      toast.error("Error saving settings. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -173,6 +176,27 @@ export default function CompanySettings() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-purple-600" />
+              Default Due Date
+            </Label>
+            <select
+              value={userData.default_due_days}
+              onChange={(e) => setUserData(prev => ({ ...prev, default_due_days: e.target.value }))}
+              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm bg-white"
+            >
+              <option value="0">Due Today (same day)</option>
+              <option value="7">Net 7 (7 days)</option>
+              <option value="14">Net 14 (14 days)</option>
+              <option value="15">Net 15 (15 days)</option>
+              <option value="30">Net 30 (30 days)</option>
+              <option value="45">Net 45 (45 days)</option>
+              <option value="60">Net 60 (60 days)</option>
+            </select>
+            <p className="text-sm text-slate-500">Default due date for all new invoices.</p>
+          </div>
+
           <div className="space-y-2">
             <Label>Default Terms & Conditions</Label>
             <Textarea

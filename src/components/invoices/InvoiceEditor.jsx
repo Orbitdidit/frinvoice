@@ -37,7 +37,7 @@ import ImageCarousel from "./ImageCarousel";
 import { User as UserEntity } from "@/entities/User";
 import { Client } from "@/entities/Client";
 import { PricingPreset } from "@/entities/PricingPreset";
-import { UploadFile } from "@/integrations/Core";
+import { UploadFile, InvokeLLM } from "@/integrations/Core";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { MobileSelect, SelectItem } from "@/components/ui/mobile-select";
 import {

@@ -54,15 +54,14 @@ export default function CreateInvoice() {
   };
 
   const createBlankInvoice = () => {
-    const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 30);
+    const today = new Date().toISOString().split('T')[0];
 
     return {
       invoice_number: `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
       client_name: "",
       client_email: "",
-      invoice_date: new Date().toISOString().split('T')[0],
-      due_date: dueDate.toISOString().split('T')[0],
+      invoice_date: today,
+      due_date: today,
       line_items: [{
           description: "",
           detail: "",

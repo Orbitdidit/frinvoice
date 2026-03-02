@@ -347,13 +347,9 @@ export default function Layout({ children, currentPageName }) {
     try { localStorage.setItem('darkMode', darkMode); } catch {}
   }, [darkMode]);
 
-  // --- PUBLIC PAGE BYPASS ---
-  // If the page is a public-facing one, render it without any layout, sidebars, or auth checks.
   const publicPages = ['PublicInvoice', 'PaymentSuccess', 'PaymentCancelled'];
-  if (publicPages.includes(currentPageName)) {
-    return <>{children}</>;
-  }
-  
+  const isPublicPage = publicPages.includes(currentPageName);
+
   useEffect(() => {
     // --- PWA Installation Logic ---
     const manifest = {

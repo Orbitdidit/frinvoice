@@ -407,29 +407,41 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
                 <div className="col-span-2 text-right">Unit Price</div>
                 <div className="col-span-2 text-right">Total</div>
               </div>
-              {invoice.line_items.map((item, index) => !item.is_discount && (
-                <div key={index} className="grid grid-cols-12 gap-4 p-4 border-b border-slate-200 items-start">
-                  <div className="col-span-6">
-                    <div className="flex gap-3">
-                      {item.thumbnail_url && (
-                         <div
-                           className="w-16 h-16 rounded-lg overflow-hidden bg-slate-100 border cursor-pointer flex-shrink-0 relative"
-                           onClick={() => openImageCarousel(item.file_urls || [item.thumbnail_url])}
-                         >
-                           <img src={item.thumbnail_url} alt="Item reference" className="w-full h-full object-cover" />
-                         </div>
-                      )}
-                      <div>
-                        <p className="font-semibold text-slate-900">{item.description}</p>
-                        <p className="text-sm text-slate-600">{item.detail}</p>
+              {invoice.line_items.map((item, index) => {
+                // Find any discount items that follow this item (before next non-discount)
+                const relatedDiscounts = !item.is_discount ? invoice.line_items.slice(index + 1).filter((next, i, arr) => {
+                  // Only grab discount items immediately following until we hit a non-discount
+                  const prevItems = arr.slice(0, i);
+                  return next.is_discount && prevItems.every(p => p.is_discount);
+                }) : [];
+
+                if (item.is_discount) return null;
+                return (
+                  <React.Fragment key={index}>
+                    <div className="grid grid-cols-12 gap-4 p-4 border-b border-slate-200 items-start">
+                      <div className="col-span-6">
+                        <div className="flex gap-3">
+                          {item.thumbnail_url && (
+                             <div
+                               className="w-16 h-16 rounded-lg overflow-hidden bg-slate-100 border cursor-pointer flex-shrink-0 relative"
+                               onClick={() => openImageCarousel(item.file_urls || [item.thumbnail_url])}
+                             >
+                               <img src={item.thumbnail_url} alt="Item reference" className="w-full h-full object-cover" />
+                             </div>
+                          )}
+                          <div>
+                            <p className="font-semibold text-slate-900">{item.description}</p>
+                            <p className="text-sm text-slate-600">{item.detail}</p>
+                          </div>
+                        </div>
                       </div>
+                      <div className="col-span-2 text-center">{item.quantity}</div>
+                      <div className="col-span-2 text-right">${(item.unit_price || 0).toFixed(2)}</div>
+                      <div className="col-span-2 text-right font-bold">${(item.total || 0).toFixed(2)}</div>
                     </div>
-                  </div>
-                  <div className="col-span-2 text-center">{item.quantity}</div>
-                  <div className="col-span-2 text-right">${(item.unit_price || 0).toFixed(2)}</div>
-                  <div className="col-span-2 text-right font-bold">${(item.total || 0).toFixed(2)}</div>
-                </div>
-              ))}
+                  </React.Fragment>
+                );
+              })}
             </div>
 
             <div className="md:hidden space-y-4">

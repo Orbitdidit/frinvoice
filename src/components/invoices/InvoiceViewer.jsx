@@ -432,6 +432,12 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
                           <div>
                             <p className="font-semibold text-slate-900">{item.description}</p>
                             <p className="text-sm text-slate-600">{item.detail}</p>
+                            {/* Inline discount note if next item is a discount */}
+                            {invoice.line_items[index + 1]?.is_discount && (
+                              <p className="text-xs text-red-500 mt-1 italic">
+                                ↳ {invoice.line_items[index + 1].description}: -${Math.abs(invoice.line_items[index + 1].total || 0).toFixed(2)}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>

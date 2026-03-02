@@ -453,6 +453,7 @@ const SidebarMenuButton = React.forwardRef((
   },
   ref
 ) => {
+  // eslint-disable-next-line no-unused-vars
   const Comp = asChild ? Slot : "button"
   const { isMobile, state } = useSidebar()
 

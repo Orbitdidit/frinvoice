@@ -11,15 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function MobileSelect({ 
-  value, 
-  onValueChange, 
-  placeholder, 
-  children, 
+export function MobileSelect({
+  value,
+  onValueChange,
+  placeholder,
+  children,
   className,
   triggerClassName,
   disabled,
-  ...props 
+  ...props
 }) {
   const [open, setOpen] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);

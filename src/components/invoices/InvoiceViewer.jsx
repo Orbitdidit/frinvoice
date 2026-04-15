@@ -176,59 +176,72 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
     >
       <style>{`
         @media print {
-          /* Hide everything on the page except the invoice itself */
-          body * {
-            visibility: hidden;
-          }
-          
-          #invoice-viewer-content,
-          #invoice-viewer-content * {
-            visibility: visible;
-          }
-          
-          /* Position the invoice to take up the whole page */
-          #invoice-viewer-content {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            background: white;
-            padding: 0;
-            margin: 0;
-            box-shadow: none;
-            border: none;
-          }
-          
-          /* Remove buttons and other non-printable elements */
-          .no-print {
-            display: none !important;
-          }
-          
-          /* Set page margins */
           @page {
             margin: 0.5in;
             size: letter;
           }
-          
-          /* Force printing of background colors and images */
-          .print-header-modern, .print-total-modern {
+
+          /* Hide all non-invoice UI */
+          body > * {
+            display: none !important;
+          }
+
+          /* Show only the invoice card */
+          #invoice-print-root,
+          #invoice-print-root * {
+            display: revert !important;
+            visibility: visible !important;
+          }
+
+          #invoice-print-root {
+            position: fixed;
+            inset: 0;
+            overflow: visible;
+          }
+
+          /* Remove card chrome for print */
+          #invoice-viewer-content {
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          /* Hide non-printable elements */
+          .no-print {
+            display: none !important;
+          }
+
+          /* Allow content to break across pages naturally */
+          #invoice-viewer-content * {
+            overflow: visible !important;
+          }
+
+          /* Avoid breaking inside line items */
+          .print-no-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+
+          /* Force background colors and images */
+          * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
 
-          /* Explicitly style the header for printing */
           .print-header-modern {
             background: linear-gradient(to right, #1e293b, #334155) !important;
           }
-          .print-header-modern * { /* Target all text inside the header */
+          .print-header-modern * {
             color: white !important;
           }
-          
-          /* Explicitly style the total section for printing */
+
           .print-total-modern {
             background: linear-gradient(to right, #1e293b, #334155) !important;
           }
-           .print-total-modern * { /* Target all text inside the total section */
+          .print-total-modern * {
             color: white !important;
           }
         }
@@ -315,6 +328,7 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
       </Card>
 
       {/* Invoice Card */}
+      <div id="invoice-print-root">
       <Card id="invoice-viewer-content" className={`shadow-xl transition-all duration-500 ${isClassic ? 'font-serif' : 'font-sans'}`}>
         <CardHeader className={`transition-all duration-500 ${isClassic ? 'bg-white border-b-2 border-black' : `text-white ${isEstimate ? 'bg-gradient-to-r from-cyan-800 to-blue-900' : 'bg-gradient-to-r from-slate-800 to-slate-900'} print-header-modern`}`}>
           <div className="flex justify-between items-start">
@@ -418,7 +432,7 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
                 if (item.is_discount) return null;
                 return (
                   <React.Fragment key={index}>
-                    <div className="grid grid-cols-12 gap-4 p-4 border-b border-slate-200 items-start">
+                    <div className="grid grid-cols-12 gap-4 p-4 border-b border-slate-200 items-start print-no-break">
                       <div className="col-span-6">
                         <div className="flex gap-3">
                           {item.thumbnail_url && (
@@ -570,6 +584,8 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
           </div>
         </CardContent>
       </Card>
+
+      </div>{/* end invoice-print-root */}
 
       {/* Image Carousel */}
       <ImageCarousel

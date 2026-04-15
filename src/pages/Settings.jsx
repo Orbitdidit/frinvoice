@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { Invoice } from "@/entities/Invoice";
+import { Client } from "@/entities/Client";
 import { PricingPreset } from "@/entities/PricingPreset";
 import { User } from "@/entities/User";
 import {

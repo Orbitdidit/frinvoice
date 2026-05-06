@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import {
   FileText,
   Calendar,
-  DollarSign, // Renamed to UserIcon to avoid conflict with User entity
+  DollarSign,
   Mail,
+  Phone,
   ArrowLeft,
   Send,
   Download,
@@ -497,10 +498,27 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
               <Label className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Bill To</Label>
               <div className="mt-2 space-y-1">
                 <p className="font-bold text-slate-900 text-lg">{invoice.client_name}</p>
-                <p className="text-slate-600 flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  {invoice.client_email}
-                </p>
+                {invoice.client_company && invoice.client_company !== invoice.client_name && (
+                  <p className="text-slate-700 font-medium">{invoice.client_company}</p>
+                )}
+                {invoice.client_contact_person && (
+                  <p className="text-slate-600 text-sm">Attn: {invoice.client_contact_person}</p>
+                )}
+                {invoice.client_address && (
+                  <p className="text-slate-600 text-sm whitespace-pre-line">{invoice.client_address}</p>
+                )}
+                {invoice.client_email && (
+                  <p className="text-slate-600 flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    {invoice.client_email}
+                  </p>
+                )}
+                {invoice.client_phone && (
+                  <p className="text-slate-600 flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    {invoice.client_phone}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -510,13 +528,13 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
                 <div className="flex items-center md:justify-end gap-2">
                   <Calendar className="w-4 h-4 text-slate-600" />
                   <span className="text-slate-700 font-semibold">Issued:</span>
-                  <span>{format(new Date(invoice.invoice_date || invoice.created_date), 'MMM dd, yyyy')}</span>
+                  <span>{format(new Date((invoice.invoice_date || invoice.created_date) + 'T12:00:00'), 'MMM dd, yyyy')}</span>
                 </div>
                 {!isEstimate && (
                   <div className="flex items-center md:justify-end gap-2">
                     <Calendar className="w-4 h-4 text-slate-600" />
                     <span className="text-slate-700 font-semibold">Due Date:</span>
-                    <span>{format(new Date(invoice.due_date), 'MMM dd, yyyy')}</span>
+                    <span>{format(new Date(invoice.due_date + 'T12:00:00'), 'MMM dd, yyyy')}</span>
                   </div>
                 )}
               </div>

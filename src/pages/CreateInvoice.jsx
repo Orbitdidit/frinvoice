@@ -146,64 +146,81 @@ export default function CreateInvoice() {
     const invoiceNum = genInvoiceNumber();
 
     const prompt = `
-You are Frinvoice AI — an expert billing assistant for creative professionals in Houston, Texas.
-Convert the user request below into a single, complete invoice JSON object.
+You are Frinvoice AI — an elite billing assistant. Return a perfectly structured JSON invoice. Populate every field possible.
+
+TODAY'S DATE: ${todayStr}
+DEFAULT DUE DATE (Net 30): ${net30Str}
+DEFAULT INVOICE NUMBER: ${invoiceNum}
 
 USER REQUEST:
-"${inputText}"
+"""
+${inputText}
+"""
 
-━━━ HARD RULES ━━━
+=== CRITICAL PARSING RULES ===
 
-1. DATES (copy these EXACT strings — do NOT reformulate):
-   invoice_date = "${todayStr}"
-   due_date = "${net30Str}"
-   invoice_number = "${invoiceNum}"
+RULE 1 — STRUCTURED PROMPT DETECTION:
+If the user's request contains labeled sections like "FROM:", "VENDOR:", "BILL TO:", "INVOICE DETAILS:", "LINE ITEM:", "PURCHASE ORDER:", "PO #:", "NOTES:", or "Attention:", you MUST extract every value EXACTLY as written. Do not paraphrase. Do not round numbers. Do not change names. Do not generate new values when the user has provided their own.
 
-2. DOCUMENT TYPE
-   • Set document_type = "estimate" if the user says quote / estimate / bid / proposal.
-   • Otherwise set document_type = "invoice".
+RULE 2 — FROM/VENDOR is the user's OWN business — IGNORE for client fields:
+The vendor info comes from the user's saved Settings, not the prompt. NEVER place vendor info into client_name, client_email, client_phone, or client_address.
 
-3. CLIENT FIELDS — extract every field that appears in the request:
-   • client_name        → the business or person being billed
-   • client_company     → company name if different from client_name
-   • client_contact_person → the human contact name if mentioned
-   • client_email       → email address
-   • client_phone       → phone number (preserve formatting)
-   • client_address     → full address if given
+RULE 3 — BILL TO is the CLIENT:
+Extract the BILL TO section into client_* fields:
+- The organization being billed -> client_name AND client_company
+- The person in "Attention:", "Attn:", or "Contact:" -> client_contact_person
+- Any provided address -> client_address
+- Skip placeholders like "[Insert address]" or "[Use X address from PO]" — leave that field as empty string ""
 
-4. LINE ITEMS — break work into specific professional items:
-   • description: concise professional label (e.g. "Catering Services — Jambalaya Plates")
-   • detail: one sentence elaborating the scope
-   • quantity: numeric
-   • unit_price: numeric
-   • total: ALWAYS quantity × unit_price (positive for services, negative for discounts/deposits)
-   • is_discount: true ONLY for deposits, discounts, credits, payments already made
+RULE 4 — EXPLICIT VALUES OVERRIDE DEFAULTS (THIS IS CRITICAL):
+- If user provides "Invoice Number: ODF-ROAR-001" -> invoice_number = "ODF-ROAR-001". Do NOT use the default "${invoiceNum}".
+- If user provides "Invoice Date: 05/06/2026" -> invoice_date = "2026-05-06" (convert MM/DD/YYYY to YYYY-MM-DD). Do NOT use today's date.
+- If user provides "Net 30" terms -> calculate due_date as 30 days after the user-provided invoice_date. Do NOT use the default.
+- If user provides "Net 15" terms -> calculate due_date as 15 days after the user-provided invoice_date.
+- The defaults (${invoiceNum}, ${todayStr}, ${net30Str}) are ONLY fallbacks for when the user provided NOTHING explicit.
 
-5. RATES — use these Houston premium market rates when no price is specified:
-   • Creative / Graphic Design: $75–$150 / hr
-   • Video / Film Production: $150–$300 / hr
-   • Web / App Development: $100–$200 / hr
-   • Consulting / Strategy: $150–$250 / hr
-   • Installation / Labor: $75–$125 / hr
-   • Photography: $100–$200 / hr
+RULE 5 — PURCHASE ORDER PRESERVATION:
+If the prompt mentions a PO number, contract number, or reference number anywhere, the notes field MUST start with exactly: "Please reference Purchase Order # [PO_NUMBER] on all payment processing."
 
-6. DISCOUNTS & DEPOSITS
-   • Any deposit, down-payment, or partial payment already made → is_discount: true, total = negative amount
-   • Any explicit discount → is_discount: true, total = negative amount
+RULE 6 — LINE ITEMS:
+- description: Short professional label (60-80 chars max)
+- detail: Full scope using the user's exact wording when they provide detailed descriptions
+- unit_price: Use exact numeric amount the user provided. "$9,550.00" becomes 9550. NEVER round.
+- total: quantity x unit_price
+- is_discount: true ONLY for deposits, discounts, credits
 
-7. TOTALS — compute accurately:
-   • subtotal = sum of all non-discount line item totals
-   • discount_amount = sum of absolute values of all discount line item totals
-   • tax_rate = 0 unless user specifies tax
-   • tax_amount = (subtotal - discount_amount) × tax_rate / 100
-   • total_amount = subtotal - discount_amount + tax_amount
+RULE 7 — NOTES:
+- If user provided a "NOTES:" section, use their exact wording
+- If a PO is referenced, prepend the "Please reference Purchase Order #" line above their notes
+- If user provided "Payment Terms" (e.g., "Net 30 / Per TSU Purchase Order Terms"), preserve those exact terms in notes
+- If user provided no notes at all, write 2-3 lines of professional payment terms ending with a thank-you line
 
-8. NOTES — always populate with 2–3 lines of professional payment terms:
-   • Payment is due by ${net30Str}.
-   • A 1.5% monthly late fee applies to balances unpaid after 30 days.
-   • End with a brief thank-you line appropriate to the industry.
+=== STANDARD RULES (for unstructured/conversational prompts) ===
 
-9. OUTPUT — return ONLY the raw JSON object. No markdown, no backticks, no explanation.
+CLIENT FIELDS — extract or leave as empty string "":
+- client_name, client_company, client_contact_person, client_email, client_phone, client_address
+
+DOCUMENT TYPE:
+- "estimate" if user says quote/estimate/bid/proposal, else "invoice"
+
+RATES (only when no price given):
+- Creative/Design: $75-$150/hr
+- Video/Film: $150-$300/hr
+- Web/App dev: $100-$200/hr
+- Consulting: $150-$250/hr
+- AI/Tech consulting: $150-$300/hr
+- Installation: $75-$125/hr
+
+TAX:
+- tax_rate: 0 unless user explicitly states a tax rate
+
+TOTALS (always compute):
+- subtotal: Sum of non-discount line items
+- discount_amount: Absolute value of discount/deposit lines
+- tax_amount: (subtotal - discount_amount) x (tax_rate / 100)
+- total_amount: subtotal - discount_amount + tax_amount
+
+OUTPUT: Return ONLY valid JSON matching the schema. No markdown. No backticks. No explanation.
 `;
 
     const invoiceSchema = {
@@ -249,10 +266,10 @@ USER REQUEST:
         response_json_schema: invoiceSchema,
       });
 
-      // Force the pre-computed values — never let AI override them
-      raw.invoice_number = invoiceNum;
-      raw.invoice_date   = todayStr;
-      raw.due_date       = net30Str;
+      // Use AI-extracted values when present; fall back to JS-computed defaults only when missing
+      raw.invoice_number   = raw.invoice_number   || invoiceNum;
+      raw.invoice_date     = raw.invoice_date     || todayStr;
+      raw.due_date         = raw.due_date         || net30Str;
       raw.voice_transcript = inputText;
 
       const result = sanitiseAndRecalc(raw);

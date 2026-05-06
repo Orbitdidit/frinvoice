@@ -133,8 +133,96 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
     }
   };
 
-  const handleDownloadPdf = () => {
-    window.print();
+  const handleDownloadPdf = async () => {
+    const element = document.getElementById('invoice-print-root');
+    if (!element) {
+      toast.error('Could not find invoice content to export.');
+      return;
+    }
+
+    const toastId = toast.loading('Generating PDF...');
+
+    try {
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ]);
+
+      element.classList.add('pdf-export-mode');
+
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+      await new Promise((r) => setTimeout(r, 100));
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+        scrollX: 0,
+        scrollY: 0,
+      });
+
+      element.classList.remove('pdf-export-mode');
+
+      const pageWidth = 612;
+      const pageHeight = 792;
+      const margin = 36;
+      const contentWidth = pageWidth - margin * 2;
+      const contentHeight = pageHeight - margin * 2;
+
+      const ratio = contentWidth / canvas.width;
+      const scaledFullHeight = canvas.height * ratio;
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'letter',
+        compress: true,
+      });
+
+      if (scaledFullHeight <= contentHeight) {
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, scaledFullHeight, undefined, 'FAST');
+      } else {
+        const pageCanvasHeight = contentHeight / ratio;
+        let renderedHeight = 0;
+        let pageNum = 0;
+
+        while (renderedHeight < canvas.height) {
+          const sliceHeight = Math.min(pageCanvasHeight, canvas.height - renderedHeight);
+
+          const pageCanvas = document.createElement('canvas');
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = sliceHeight;
+          const ctx = pageCanvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+          ctx.drawImage(canvas, 0, renderedHeight, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
+
+          const sliceImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+          if (pageNum > 0) pdf.addPage();
+          pdf.addImage(sliceImgData, 'JPEG', margin, margin, contentWidth, sliceHeight * ratio, undefined, 'FAST');
+
+          renderedHeight += sliceHeight;
+          pageNum++;
+        }
+      }
+
+      const docType = isEstimate ? 'Estimate' : 'Invoice';
+      const fileName = `${docType}-${invoice.invoice_number || 'document'}.pdf`;
+      pdf.save(fileName);
+      toast.success('PDF downloaded successfully', { id: toastId });
+    } catch (err) {
+      console.error('PDF export failed:', err);
+      toast.error('PDF export failed. Try again.', { id: toastId });
+      const el = document.getElementById('invoice-print-root');
+      if (el) el.classList.remove('pdf-export-mode');
+    }
   };
 
   const getStatusColor = (status) => {
@@ -175,6 +263,29 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
       className="space-y-6 max-w-5xl mx-auto"
     >
       <style>{`
+        .pdf-export-mode,
+        .pdf-export-mode * {
+          color: #0f172a !important;
+        }
+        .pdf-export-mode {
+          background: #ffffff !important;
+          box-shadow: none !important;
+        }
+        .pdf-export-mode .print-header-modern,
+        .pdf-export-mode .print-total-modern {
+          background: linear-gradient(to right, #1e293b, #334155) !important;
+        }
+        .pdf-export-mode .print-header-modern *,
+        .pdf-export-mode .print-total-modern * {
+          color: #ffffff !important;
+        }
+        .pdf-export-mode input,
+        .pdf-export-mode textarea {
+          background: transparent !important;
+          border-color: #e2e8f0 !important;
+          color: #0f172a !important;
+        }
+
         @media print {
           @page {
             margin: 0.5in;

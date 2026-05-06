@@ -1,0 +1,199 @@
+{
+  "name": "Invoice",
+  "type": "object",
+  "properties": {
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "invoice",
+        "estimate"
+      ],
+      "default": "invoice",
+      "description": "The type of document, either an invoice or an estimate."
+    },
+    "invoice_number": {
+      "type": "string",
+      "description": "Unique invoice/estimate identifier"
+    },
+    "po_number": {
+      "type": "string",
+      "description": "Purchase Order number provided by the client"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client or company name"
+    },
+    "client_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Client contact email"
+    },
+    "client_phone": {
+      "type": "string",
+      "description": "Client phone number"
+    },
+    "client_company": {
+      "type": "string",
+      "description": "Client company name"
+    },
+    "client_contact_person": {
+      "type": "string",
+      "description": "Client contact person name"
+    },
+    "client_address": {
+      "type": "string",
+      "description": "Client billing address"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "viewed",
+        "paid",
+        "overdue",
+        "cancelled",
+        "accepted",
+        "declined"
+      ],
+      "default": "draft",
+      "description": "Current document status for invoices and estimates"
+    },
+    "invoice_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the document was issued"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Payment due date (for invoices)"
+    },
+    "subtotal": {
+      "type": "number",
+      "description": "Subtotal before discounts and taxes"
+    },
+    "discount_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Total discount amount"
+    },
+    "deposit_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Total deposit amount"
+    },
+    "tax_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Tax rate as percentage"
+    },
+    "tax_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Calculated tax amount"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Final total amount"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "credit_card",
+        "bank_transfer",
+        "paypal",
+        "other"
+      ],
+      "default": "pending"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "unpaid",
+        "pending",
+        "paid",
+        "refunded"
+      ],
+      "default": "unpaid"
+    },
+    "line_items": {
+      "type": "array",
+      "description": "Invoice/estimate line items",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "thumbnail_url": {
+            "type": "string"
+          },
+          "file_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "is_discount": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or terms"
+    },
+    "voice_transcript": {
+      "type": "string",
+      "description": "Original voice command transcript"
+    },
+    "files_released": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether digital files have been released to client"
+    },
+    "template": {
+      "type": "string",
+      "enum": [
+        "modern",
+        "classic"
+      ],
+      "default": "modern",
+      "description": "The visual template for the document"
+    },
+    "project_hero_image_url": {
+      "type": "string",
+      "description": "URL for a main project image to be displayed prominently"
+    }
+  },
+  "required": [
+    "client_name",
+    "line_items",
+    "document_type"
+  ],
+  "rls": {
+    "read": {},
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

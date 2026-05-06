@@ -180,8 +180,8 @@ RULE 4 — EXPLICIT VALUES OVERRIDE DEFAULTS (THIS IS CRITICAL):
 - If user provides "Net 15" terms -> calculate due_date as 15 days after the user-provided invoice_date.
 - The defaults (${invoiceNum}, ${todayStr}, ${net30Str}) are ONLY fallbacks for when the user provided NOTHING explicit.
 
-RULE 5 — PURCHASE ORDER PRESERVATION:
-If the prompt mentions a PO number, contract number, or reference number anywhere, the notes field MUST start with exactly: "Please reference Purchase Order # [PO_NUMBER] on all payment processing."
+RULE 5 — PURCHASE ORDER NUMBER:
+If the prompt mentions a PO number, Purchase Order number, or "PO #", extract it into the po_number field (e.g. po_number = "P0191570"). Do NOT place it in invoice_number. The notes field MUST also start with: "Please reference Purchase Order # [PO_NUMBER] on all payment processing."
 
 RULE 6 — LINE ITEMS:
 - description: Short professional label (60-80 chars max)
@@ -228,6 +228,7 @@ OUTPUT: Return ONLY valid JSON matching the schema. No markdown. No backticks. N
       type: "object",
       properties: {
         invoice_number:        { type: "string" },
+        po_number:             { type: "string" },
         document_type:         { type: "string" },
         client_name:           { type: "string" },
         client_company:        { type: "string" },

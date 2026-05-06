@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Invoice } from "@/entities/Invoice";
 import { Client } from "@/entities/Client";
-import { InvokeLLM } from "@/integrations/Core";
+import { base44 } from "@/api/base44Client";
 import {
   FileText,
   Wand2,
@@ -13,7 +13,6 @@ import {
   Camera
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,6 +27,61 @@ import VoiceSetupGuide from "../components/voice/VoiceSetupGuide";
 import VoiceRecorder from "../components/voice/VoiceRecorder";
 import VoiceTranscript from "../components/voice/VoiceTranscript";
 
+// ── helpers ──────────────────────────────────────────────────────────────────
+function getTodayStr() {
+  return new Date().toISOString().split("T")[0];
+}
+function getNet30Str() {
+  const d = new Date();
+  d.setDate(d.getDate() + 30);
+  return d.toISOString().split("T")[0];
+}
+function genInvoiceNumber() {
+  return `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, "0")}`;
+}
+
+/** Recompute all math from sanitised line items — never trust AI math */
+function sanitiseAndRecalc(raw) {
+  const data = { ...raw };
+
+  // Coerce line item numbers
+  data.line_items = (data.line_items || []).map((item) => {
+    const qty = Number(item.quantity) || 1;
+    const price = Number(item.unit_price) || 0;
+    const computedTotal = item.is_discount ? -Math.abs(Number(item.total) || price * qty) : qty * price;
+    return {
+      ...item,
+      quantity: qty,
+      unit_price: price,
+      total: computedTotal,
+      is_discount: !!item.is_discount,
+      file_urls: item.file_urls || [],
+    };
+  });
+
+  const subtotal = data.line_items.reduce(
+    (sum, item) => sum + (item.is_discount ? 0 : item.total),
+    0
+  );
+  const discountAmount = data.line_items.reduce(
+    (sum, item) => sum + (item.is_discount ? Math.abs(item.total) : 0),
+    0
+  );
+  const taxRate = Number(data.tax_rate) || 0;
+  const taxAmount = (subtotal - discountAmount) * (taxRate / 100);
+
+  data.subtotal = subtotal;
+  data.discount_amount = discountAmount;
+  data.tax_rate = taxRate;
+  data.tax_amount = taxAmount;
+  data.total_amount = subtotal - discountAmount + taxAmount;
+  data.template = data.template || "modern";
+  data.document_type = data.document_type || "invoice";
+
+  return data;
+}
+
+// ── main component ────────────────────────────────────────────────────────────
 export default function CreateInvoice() {
   const navigate = useNavigate();
   const [manualInput, setManualInput] = useState("");
@@ -40,51 +94,38 @@ export default function CreateInvoice() {
   const [isRecording, setIsRecording] = useState(false);
   const [isAiGenerated, setIsAiGenerated] = useState(false);
 
-  useEffect(() => {
-    loadClients();
-  }, []);
+  useEffect(() => { loadClients(); }, []);
 
   const loadClients = async () => {
     try {
       const clientData = await Client.list();
       setClients(clientData);
-    } catch (error) {
-      console.error("Error loading clients:", error);
+    } catch (e) {
+      console.error("Error loading clients:", e);
     }
   };
 
-  const createBlankInvoice = () => {
-    const today = new Date().toISOString().split('T')[0];
-
-    return {
-      invoice_number: `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-      client_name: "",
-      client_email: "",
-      invoice_date: today,
-      due_date: today,
-      line_items: [{
-          description: "",
-          detail: "",
-          quantity: 1,
-          unit_price: 0,
-          total: 0,
-          is_discount: false,
-          file_urls: []
-      }],
-      subtotal: 0,
-      tax_rate: 0,
-      tax_amount: 0,
-      discount_amount: 0,
-      deposit_amount: 0,
-      total_amount: 0,
-      notes: "",
-      template: "modern",
-      status: "draft"
-    };
-  };
+  const createBlankInvoice = () => ({
+    invoice_number: genInvoiceNumber(),
+    document_type: "invoice",
+    client_name: "",
+    client_email: "",
+    invoice_date: getTodayStr(),
+    due_date: getNet30Str(),
+    line_items: [{ description: "", detail: "", quantity: 1, unit_price: 0, total: 0, is_discount: false, file_urls: [] }],
+    subtotal: 0,
+    tax_rate: 0,
+    tax_amount: 0,
+    discount_amount: 0,
+    deposit_amount: 0,
+    total_amount: 0,
+    notes: "",
+    template: "modern",
+    status: "draft",
+  });
 
   const handleInputModeChange = (mode) => {
-    if (mode === 'editor') {
+    if (mode === "editor") {
       setIsAiGenerated(false);
       setInvoiceData(createBlankInvoice());
     } else {
@@ -93,101 +134,132 @@ export default function CreateInvoice() {
     }
   };
 
+  // ── UPGRADED processCommand ────────────────────────────────────────────────
   const processCommand = async (inputText) => {
     if (!inputText.trim()) return;
-
     setIsProcessing(true);
     setError(null);
 
-    try {
-      const prompt = `
-      You are Frinvoice AI, an expert financial assistant. Convert this request into a perfect, professional invoice.
+    // Pre-compute dates & invoice number in JS — AI copies them verbatim
+    const todayStr = getTodayStr();
+    const net30Str = getNet30Str();
+    const invoiceNum = genInvoiceNumber();
 
-      USER REQUEST: "${inputText}"
+    const prompt = `
+You are Frinvoice AI — an expert billing assistant for creative professionals in Houston, Texas.
+Convert the user request below into a single, complete invoice JSON object.
 
-      INSTRUCTIONS:
-      1. **Client Identification**: Extract Name, Email, Phone, Company. If missing, leave blank or infer from context if obvious.
-      2. **Line Items**: Break down the work into specific, professional line items.
-         - Example: Instead of "Website", use "Website Design & Development - Phase 1".
-         - Example: Instead of "Labor", use "Professional Services: 5 Hours".
-      3. **Pricing Strategy**: 
-         - If user gave a total, break it down logically.
-         - If no price given, use premium industry standard rates (e.g., $150/hr for dev, $100/hr for design).
-      4. **Discounts/Deposits**: 
-         - **CRITICAL**: Deposits are NEGATIVE line items. E.g., "Deposit Paid" with price -500.
-         - Set 'is_discount': true for these.
-      5. **Metadata**:
-         - Invoice Number: INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}
-         - Date: Today
-         - Due Date: Net 30 unless specified otherwise.
-      6. **Tone**: Use formal, business-appropriate language for all descriptions.
+USER REQUEST:
+"${inputText}"
 
-      OUTPUT: Only the JSON object matching the schema.
-      `;
+━━━ HARD RULES ━━━
 
-      const invoiceSchema = {
-        type: "object",
-        properties: {
-          invoice_number: { type: "string" },
-          client_name: { type: "string" },
-          client_email: { type: "string" },
-          client_phone: { type: "string" },
-          invoice_date: { type: "string", format: "date" },
-          due_date: { type: "string", format: "date" },
-          line_items: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                description: { type: "string" },
-                detail: { type: "string" },
-                quantity: { type: "number" },
-                unit_price: { type: "number" },
-                total: { type: "number" },
-                is_discount: { type: "boolean" }
-              }
-            }
+1. DATES (copy these EXACT strings — do NOT reformulate):
+   invoice_date = "${todayStr}"
+   due_date = "${net30Str}"
+   invoice_number = "${invoiceNum}"
+
+2. DOCUMENT TYPE
+   • Set document_type = "estimate" if the user says quote / estimate / bid / proposal.
+   • Otherwise set document_type = "invoice".
+
+3. CLIENT FIELDS — extract every field that appears in the request:
+   • client_name        → the business or person being billed
+   • client_company     → company name if different from client_name
+   • client_contact_person → the human contact name if mentioned
+   • client_email       → email address
+   • client_phone       → phone number (preserve formatting)
+   • client_address     → full address if given
+
+4. LINE ITEMS — break work into specific professional items:
+   • description: concise professional label (e.g. "Catering Services — Jambalaya Plates")
+   • detail: one sentence elaborating the scope
+   • quantity: numeric
+   • unit_price: numeric
+   • total: ALWAYS quantity × unit_price (positive for services, negative for discounts/deposits)
+   • is_discount: true ONLY for deposits, discounts, credits, payments already made
+
+5. RATES — use these Houston premium market rates when no price is specified:
+   • Creative / Graphic Design: $75–$150 / hr
+   • Video / Film Production: $150–$300 / hr
+   • Web / App Development: $100–$200 / hr
+   • Consulting / Strategy: $150–$250 / hr
+   • Installation / Labor: $75–$125 / hr
+   • Photography: $100–$200 / hr
+
+6. DISCOUNTS & DEPOSITS
+   • Any deposit, down-payment, or partial payment already made → is_discount: true, total = negative amount
+   • Any explicit discount → is_discount: true, total = negative amount
+
+7. TOTALS — compute accurately:
+   • subtotal = sum of all non-discount line item totals
+   • discount_amount = sum of absolute values of all discount line item totals
+   • tax_rate = 0 unless user specifies tax
+   • tax_amount = (subtotal - discount_amount) × tax_rate / 100
+   • total_amount = subtotal - discount_amount + tax_amount
+
+8. NOTES — always populate with 2–3 lines of professional payment terms:
+   • Payment is due by ${net30Str}.
+   • A 1.5% monthly late fee applies to balances unpaid after 30 days.
+   • End with a brief thank-you line appropriate to the industry.
+
+9. OUTPUT — return ONLY the raw JSON object. No markdown, no backticks, no explanation.
+`;
+
+    const invoiceSchema = {
+      type: "object",
+      properties: {
+        invoice_number:        { type: "string" },
+        document_type:         { type: "string" },
+        client_name:           { type: "string" },
+        client_company:        { type: "string" },
+        client_contact_person: { type: "string" },
+        client_email:          { type: "string" },
+        client_phone:          { type: "string" },
+        client_address:        { type: "string" },
+        invoice_date:          { type: "string" },
+        due_date:              { type: "string" },
+        line_items: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              description: { type: "string" },
+              detail:      { type: "string" },
+              quantity:    { type: "number" },
+              unit_price:  { type: "number" },
+              total:       { type: "number" },
+              is_discount: { type: "boolean" },
+            },
           },
-          subtotal: { type: "number" },
-          discount_amount: { type: "number" },
-          tax_rate: { type: "number" },
-          tax_amount: { type: "number" },
-          total_amount: { type: "number" },
-          notes: { type: "string" },
-          voice_transcript: { type: "string" }
-        }
-      };
+        },
+        subtotal:         { type: "number" },
+        discount_amount:  { type: "number" },
+        tax_rate:         { type: "number" },
+        tax_amount:       { type: "number" },
+        total_amount:     { type: "number" },
+        notes:            { type: "string" },
+        voice_transcript: { type: "string" },
+      },
+    };
 
-      const result = await InvokeLLM({
+    try {
+      const raw = await base44.integrations.Core.InvokeLLM({
         prompt,
-        response_json_schema: invoiceSchema
+        response_json_schema: invoiceSchema,
       });
 
-      result.voice_transcript = inputText;
-      result.template = "modern";
-      
-      const today = new Date().toISOString().split('T')[0];
-      result.invoice_date = result.invoice_date || today;
-      
-      if (!result.due_date) {
-        const dueDate = new Date();
-        dueDate.setDate(dueDate.getDate() + 30);
-        result.due_date = dueDate.toISOString().split('T')[0];
-      }
+      // Force the pre-computed values — never let AI override them
+      raw.invoice_number = invoiceNum;
+      raw.invoice_date   = todayStr;
+      raw.due_date       = net30Str;
+      raw.voice_transcript = inputText;
 
-      const subtotal = result.line_items.reduce((sum, item) => sum + (item.is_discount ? 0 : item.total), 0);
-      const discountAmount = Math.abs(result.line_items.reduce((sum, item) => sum + (item.is_discount ? item.total : 0), 0));
-      const taxRate = result.tax_rate || 0;
-      result.subtotal = subtotal;
-      result.discount_amount = discountAmount;
-      result.tax_amount = (subtotal - discountAmount) * (taxRate / 100);
-      result.total_amount = subtotal - discountAmount + result.tax_amount;
-
+      const result = sanitiseAndRecalc(raw);
       setIsAiGenerated(true);
       setInvoiceData(result);
-
-    } catch (error) {
-      console.error("Error processing command:", error);
+    } catch (e) {
+      console.error("Error processing command:", e);
       setError("Failed to process your request. Please try again.");
     } finally {
       setIsProcessing(false);
@@ -196,57 +268,42 @@ export default function CreateInvoice() {
 
   const handlePdfDataExtracted = (data) => {
     setError(null);
-
     if (!data || (Array.isArray(data) && data.length === 0)) {
-      setError("The AI could not extract any usable invoice data from the document. Please try a different file/image or enter the details manually.");
+      setError("The AI could not extract any usable invoice data from the document.");
       return;
     }
-
     const extractedData = Array.isArray(data) ? data[0] : data;
-
     if (!extractedData.line_items || extractedData.line_items.length === 0) {
-      setError("The AI could not identify any line items in the invoice. Please check the document's format or enter the details manually.");
+      setError("The AI could not identify any line items. Please check the file or enter manually.");
       return;
     }
-
-    const finalData = { ...extractedData };
-    finalData.template = "modern";
-    finalData.invoice_date = finalData.invoice_date || new Date().toISOString().split('T')[0];
-
-    finalData.line_items = finalData.line_items || [];
-
-    const subtotal = finalData.line_items.reduce((sum, item) => sum + (item.is_discount ? 0 : (item.total || 0)), 0);
-    const discountAmount = Math.abs(finalData.line_items.reduce((sum, item) => sum + (item.is_discount ? (item.total || 0) : 0), 0));
-    const taxRate = finalData.tax_rate || 0;
-    
-    finalData.subtotal = subtotal;
-    finalData.discount_amount = discountAmount;
-    finalData.tax_amount = (subtotal - discountAmount) * (taxRate / 100);
-    finalData.total_amount = subtotal - discountAmount + finalData.tax_amount;
-
+    const finalData = sanitiseAndRecalc({
+      ...extractedData,
+      invoice_date: extractedData.invoice_date || getTodayStr(),
+    });
     setIsAiGenerated(true);
     setInvoiceData(finalData);
   };
 
   const saveAndClose = async (dataToSave) => {
     if (!dataToSave) return;
-
     try {
       if (dataToSave.client_name) {
-          const existingClient = await Client.filter({ name: dataToSave.client_name });
-          if (existingClient.length === 0) {
-              await Client.create({
-                  name: dataToSave.client_name,
-                  email: dataToSave.client_email || ''
-              });
-              await loadClients();
-          }
+        const existing = await Client.filter({ name: dataToSave.client_name });
+        if (existing.length === 0) {
+          await Client.create({
+            name: dataToSave.client_name,
+            email: dataToSave.client_email || "",
+            phone: dataToSave.client_phone || "",
+            company: dataToSave.client_company || "",
+          });
+          await loadClients();
+        }
       }
-
       const newInvoice = await Invoice.create({ ...dataToSave, status: "draft" });
       navigate(createPageUrl(`InvoiceDetail?id=${newInvoice.id}`));
-    } catch (error) {
-      console.error("Error saving invoice:", error);
+    } catch (e) {
+      console.error("Error saving invoice:", e);
       setError("Failed to save invoice. Please try again.");
     }
   };
@@ -260,236 +317,255 @@ export default function CreateInvoice() {
     setIsAiGenerated(false);
   };
 
-  const handleProcessClick = () => {
-    processCommand(manualInput);
-  };
-
+  // ── RENDER ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 p-4 md:p-6">
-      <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-purple-600/10 rounded-3xl"></div>
-          <div className="relative bg-white/80 backdrop-blur-sm border border-purple-200/50 rounded-3xl p-8 md:p-12 text-center space-y-6 shadow-xl">
-            <div className="flex items-center justify-center gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform">
-                <Wand2 className="w-8 h-8 text-white" />
+    <div className="relative min-h-screen overflow-x-hidden" style={{ background: "#0A0A0F" }}>
+      {/* Ambient orbs */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-purple-600/20 blur-[120px]" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-cyan-500/15 blur-[120px]" />
+        <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] rounded-full bg-fuchsia-500/10 blur-[100px]" />
+      </div>
+
+      <div className="relative z-10 p-4 md:p-6">
+        <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
+
+          {/* ── Hero header ── */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative">
+            {/* Outer glow layer */}
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-purple-600/30 via-fuchsia-500/20 to-cyan-500/20 blur-xl" />
+            <div className="relative bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-3xl p-8 md:p-12 text-center space-y-4 shadow-2xl">
+              <div className="flex items-center justify-center gap-4">
+                {/* Logo with glow halo */}
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-cyan-400 blur-lg opacity-70" />
+                  <div className="relative w-16 h-16 bg-gradient-to-br from-purple-500 via-fuchsia-500 to-cyan-400 rounded-2xl flex items-center justify-center shadow-2xl">
+                    <Wand2 className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+                <div className="text-left">
+                  <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
+                    Create Invoice
+                  </h1>
+                  <p className="text-xs text-cyan-300/70 font-semibold tracking-widest uppercase mt-1">
+                    Powered by Frinvoice AI
+                  </p>
+                </div>
               </div>
-              <div className="text-left">
-                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  Create Invoice
-                </h1>
-                <p className="text-sm text-slate-500 font-medium">Powered by Frinvoice AI</p>
-              </div>
+              <p className="text-slate-300/80 text-lg max-w-2xl mx-auto leading-relaxed">
+                Generate professional invoices in seconds using AI text, voice commands, or upload receipts and documents
+              </p>
             </div>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              Generate professional invoices in seconds using AI text, voice commands, or upload receipts and documents
-            </p>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        <AnimatePresence mode="wait">
-          {invoiceData ? (
-            <motion.div
-              key="editor"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              <InvoiceEditor
-                invoiceData={invoiceData}
-                onSave={saveAndClose}
-                onCancel={resetSession}
-                isNew={isAiGenerated}
-                isEditing={true}
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="input"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <Card className="bg-gradient-to-br from-white to-purple-50 border-purple-200 shadow-xl">
-                <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border-b">
-                  <Tabs value={inputMode} onValueChange={handleInputModeChange} className="w-full md:w-auto">
-                    <TabsList className="grid w-full grid-cols-5 bg-slate-100">
-                      <TabsTrigger value="editor" className="flex items-center gap-2">
-                        <Edit className="w-4 h-4" />
-                        Editor
-                      </TabsTrigger>
-                      <TabsTrigger value="ai" className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4" />
-                        AI Text
-                      </TabsTrigger>
-                      <TabsTrigger value="voice" className="flex items-center gap-2">
-                        <Mic className="w-4 h-4" />
-                        Voice
-                      </TabsTrigger>
-                      <TabsTrigger value="screenshot" className="flex items-center gap-2">
-                        <Camera className="w-4 h-4" />
-                        📸
-                      </TabsTrigger>
-                      <TabsTrigger value="pdf" className="flex items-center gap-2">
-                        <FileUp className="w-4 h-4" />
-                        PDF
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </CardHeader>
+          <AnimatePresence mode="wait">
+            {invoiceData ? (
+              <motion.div
+                key="editor"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <InvoiceEditor
+                  invoiceData={invoiceData}
+                  onSave={saveAndClose}
+                  onCancel={resetSession}
+                  isNew={isAiGenerated}
+                  isEditing={true}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="input"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="space-y-4"
+              >
+                {/* Input card */}
+                <div className="bg-white/[0.04] backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                  {/* Tabs */}
+                  <div className="p-4 border-b border-white/10">
+                    <Tabs value={inputMode} onValueChange={handleInputModeChange} className="w-full">
+                      <TabsList className="grid w-full grid-cols-5 bg-black/40 border border-white/5 p-1 rounded-xl">
+                        {[
+                          { value: "editor",     icon: <Edit className="w-4 h-4" />,     label: "Editor" },
+                          { value: "ai",         icon: <Sparkles className="w-4 h-4" />, label: "AI Text" },
+                          { value: "voice",      icon: <Mic className="w-4 h-4" />,      label: "Voice" },
+                          { value: "screenshot", icon: <Camera className="w-4 h-4" />,   label: "📸" },
+                          { value: "pdf",        icon: <FileUp className="w-4 h-4" />,   label: "PDF" },
+                        ].map((tab) => (
+                          <TabsTrigger
+                            key={tab.value}
+                            value={tab.value}
+                            className="flex items-center gap-1.5 text-slate-400 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all"
+                          >
+                            {tab.icon}
+                            <span className="hidden sm:inline">{tab.label}</span>
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </Tabs>
+                  </div>
 
-                <CardContent className="p-6 space-y-6">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={inputMode}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 10 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {inputMode === 'ai' && (
-                        <div className="space-y-6">
-                          <ManualInput
-                            value={manualInput}
-                            onChange={setManualInput}
-                            isProcessing={isProcessing}
-                          />
-                          <div className="flex justify-center">
-                             <Button
-                                onClick={handleProcessClick}
-                                disabled={!manualInput || isProcessing}
-                                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl shadow-lg"
-                              >
-                                {isProcessing ? (
-                                  <><RefreshCw className="w-5 h-5 mr-2 animate-spin" />Processing...</>
-                                ) : (
-                                  <><Sparkles className="w-5 h-5 mr-2" />Generate Invoice with AI</>
-                                )}
-                              </Button>
+                  {/* Tab content */}
+                  <div className="p-6 space-y-6">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={inputMode}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {inputMode === "ai" && (
+                          <div className="space-y-6">
+                            <ManualInput
+                              value={manualInput}
+                              onChange={setManualInput}
+                              isProcessing={isProcessing}
+                            />
+                            <div className="flex justify-center">
+                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+                                <Button
+                                  onClick={() => processCommand(manualInput)}
+                                  disabled={!manualInput || isProcessing}
+                                  className="px-10 py-6 rounded-2xl text-base font-semibold tracking-wide bg-gradient-to-r from-purple-600 via-fuchsia-500 to-cyan-500 hover:from-purple-500 hover:via-fuchsia-400 hover:to-cyan-400 text-white shadow-2xl border-0"
+                                >
+                                  {isProcessing ? (
+                                    <><RefreshCw className="w-5 h-5 mr-2 animate-spin" />Processing...</>
+                                  ) : (
+                                    <><Sparkles className="w-5 h-5 mr-2" />Generate Invoice with AI</>
+                                  )}
+                                </Button>
+                              </motion.div>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {inputMode === 'voice' && (
-                        <div className="space-y-6">
-                          <VoiceSetupGuide />
-                          <VoiceRecorder
-                            onTranscriptChange={setTranscript}
-                            onRecordingChange={setIsRecording}
-                            isProcessing={isProcessing}
-                          />
-                           {(transcript && !isProcessing) && (
+                        {inputMode === "voice" && (
+                          <div className="space-y-6">
+                            <VoiceSetupGuide />
+                            <VoiceRecorder
+                              onTranscriptChange={setTranscript}
+                              onRecordingChange={setIsRecording}
+                              isProcessing={isProcessing}
+                            />
+                            {transcript && !isProcessing && (
                               <div className="flex flex-col items-center gap-4">
-                                  <VoiceTranscript transcript={transcript} isProcessing={isProcessing} />
+                                <VoiceTranscript transcript={transcript} isProcessing={isProcessing} />
+                                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
                                   <Button
                                     onClick={() => processCommand(transcript)}
                                     disabled={!transcript || isProcessing}
-                                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl shadow-lg"
+                                    className="px-10 py-6 rounded-2xl text-base font-semibold tracking-wide bg-gradient-to-r from-purple-600 via-fuchsia-500 to-cyan-500 hover:from-purple-500 hover:via-fuchsia-400 hover:to-cyan-400 text-white shadow-2xl border-0"
                                   >
-                                    {isProcessing ? (
-                                      <><RefreshCw className="w-5 h-5 mr-2 animate-spin" />Processing...</>
-                                    ) : (
-                                      <><Wand2 className="w-5 h-5 mr-2" />Generate from Voice</>
-                                    )}
+                                    <Wand2 className="w-5 h-5 mr-2" />Generate from Voice
                                   </Button>
+                                </motion.div>
                               </div>
-                          )}
+                            )}
+                          </div>
+                        )}
+
+                        {inputMode === "screenshot" && (
+                          <ScreenshotInvoiceUploader
+                            onDataExtracted={handlePdfDataExtracted}
+                            onProcessing={setIsProcessing}
+                          />
+                        )}
+
+                        {inputMode === "pdf" && (
+                          <PdfInvoiceUploader
+                            onDataExtracted={handlePdfDataExtracted}
+                            onProcessing={setIsProcessing}
+                          />
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+
+                    {/* Processing indicator */}
+                    {isProcessing && (
+                      <div className="flex flex-col items-center justify-center text-center py-4 gap-3">
+                        <div className="relative">
+                          <div className="absolute inset-0 rounded-full bg-cyan-400/40 blur-xl scale-150" />
+                          <RefreshCw className="relative w-10 h-10 animate-spin text-cyan-400" />
                         </div>
-                      )}
-                      
-                      {inputMode === 'screenshot' && (
-                         <ScreenshotInvoiceUploader 
-                           onDataExtracted={handlePdfDataExtracted} 
-                           onProcessing={setIsProcessing} 
-                         />
-                      )}
-
-                      {inputMode === 'pdf' && (
-                         <PdfInvoiceUploader 
-                           onDataExtracted={handlePdfDataExtracted} 
-                           onProcessing={setIsProcessing} 
-                         />
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
-                  
-                   {isProcessing && (
-                     <div className="flex flex-col items-center justify-center text-center p-4">
-                        <RefreshCw className="w-8 h-8 mr-2 animate-spin text-purple-600" />
-                        <p className="text-slate-700 font-semibold mt-4">Processing your request...</p>
-                        <p className="text-slate-500">Frinvoice AI is generating your invoice.</p>
-                     </div>
-                  )}
-                </CardContent>
-              </Card>
-              
-              <div className="mt-8 p-4 md:p-6 bg-slate-50 rounded-xl border">
-                <h3 className="font-semibold text-slate-800 mb-3">
-                  {inputMode === 'editor' && 'Manual Editor:'}
-                  {inputMode === 'ai' && 'AI Assistant Examples:'}
-                  {inputMode === 'voice' && 'Voice Commands:'}
-                  {inputMode === 'screenshot' && 'Screenshot to Invoice:'}
-                  {inputMode === 'pdf' && 'PDF Upload:'}
-                </h3>
-                <div className="space-y-2 text-sm text-slate-600">
-                  {inputMode === 'editor' && (
-                    <>
-                      <p>• Use the full-featured editor to build your invoice from scratch.</p>
-                      <p>• Add line items, upload images, set discounts, and more.</p>
-                      <p>• Perfect for maximum control over every detail.</p>
-                    </>
-                  )}
-                  {inputMode === 'ai' && (
-                    <>
-                      <p className="italic"><strong>Try:</strong> "Invoice ABC Corp for logo design, 5 hours at $100/hour"</p>
-                      <p className="italic"><strong>Or:</strong> "Create invoice for John Smith, website development, $2500"</p>
-                      <p className="italic"><strong>Or:</strong> "Bill Exotic Pop for LED wall installation, $88,000"</p>
-                    </>
-                  )}
-                  {inputMode === 'voice' && (
-                    <>
-                      <p className="italic"><strong>Say:</strong> "Create an invoice for ABC Company for website work"</p>
-                      <p className="italic"><strong>Or:</strong> "Bill John Smith for 5 hours of consulting at $150 per hour"</p>
-                      <p className="italic"><strong>Or:</strong> "Invoice for LED display installation, $50,000"</p>
-                    </>
-                  )}
-                  {inputMode === 'screenshot' && (
-                    <>
-                      <p>• Upload a screenshot or photo of any receipt, invoice, or quote</p>
-                      <p>• Frinvoice AI extracts all data instantly - no manual typing needed</p>
-                      <p>• Perfect for converting photos into professional invoices in seconds</p>
-                    </>
-                  )}
-                  {inputMode === 'pdf' && (
-                    <>
-                      <p>• Upload existing PDF invoices or quotes to convert them</p>
-                      <p>• AI extracts all relevant data automatically</p>
-                      <p>• Perfect for converting old invoices to the new format</p>
-                    </>
-                  )}
+                        <p className="text-white font-semibold text-lg">Processing your request…</p>
+                        <p className="text-cyan-300/70 text-sm">Frinvoice AI is generating your invoice.</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-            >
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                {/* Tips / examples panel */}
+                <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 md:p-6">
+                  <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-white mb-3">
+                    <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                    {inputMode === "editor"     && "Manual Editor"}
+                    {inputMode === "ai"         && "AI Assistant Examples"}
+                    {inputMode === "voice"      && "Voice Command Tips"}
+                    {inputMode === "screenshot" && "Screenshot to Invoice"}
+                    {inputMode === "pdf"        && "PDF Upload"}
+                  </h3>
+                  <div className="space-y-2 text-sm text-slate-300/80">
+                    {inputMode === "editor" && (
+                      <>
+                        <p>→ Use the full-featured editor to build your invoice from scratch.</p>
+                        <p>› Add line items, upload images, set discounts, and more.</p>
+                        <p>→ Perfect for maximum control over every detail.</p>
+                      </>
+                    )}
+                    {inputMode === "ai" && (
+                      <>
+                        <p>→ <em>"Invoice Bayou Bites for 50 plates of jambalaya at $18 each, 2 hrs on-site at $75/hr, $200 deposit paid."</em></p>
+                        <p>› <em>"Create an estimate for ABC Corp — logo design, 10 hours, contact is Sarah Lee sarah@abc.com"</em></p>
+                        <p>→ <em>"Bill Exotic Pop for LED wall installation $88,000 — 50% deposit already paid"</em></p>
+                      </>
+                    )}
+                    {inputMode === "voice" && (
+                      <>
+                        <p>🎤 <em>"Create an invoice for ABC Company for website work"</em></p>
+                        <p>🎤 <em>"Bill John Smith for 5 hours of consulting at $150 per hour"</em></p>
+                        <p>🎤 <em>"Invoice for LED display installation, $50,000"</em></p>
+                      </>
+                    )}
+                    {inputMode === "screenshot" && (
+                      <>
+                        <p>→ Upload a screenshot or photo of any receipt, invoice, or quote</p>
+                        <p>› Frinvoice AI extracts all data instantly — no manual typing needed</p>
+                        <p>→ Perfect for converting photos into professional invoices in seconds</p>
+                      </>
+                    )}
+                    {inputMode === "pdf" && (
+                      <>
+                        <p>→ Upload existing PDF invoices or quotes to convert them</p>
+                        <p>› AI extracts all relevant data automatically</p>
+                        <p>→ Perfect for converting old invoices to the new format</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Error */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+              >
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+        </div>
       </div>
     </div>
   );

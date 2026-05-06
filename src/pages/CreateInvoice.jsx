@@ -108,6 +108,7 @@ export default function CreateInvoice() {
 
   const createBlankInvoice = () => ({
     invoice_number: genInvoiceNumber(),
+    po_number: "",
     document_type: "invoice",
     client_name: "",
     client_email: "",
@@ -180,8 +181,20 @@ RULE 4 — EXPLICIT VALUES OVERRIDE DEFAULTS (THIS IS CRITICAL):
 - If user provides "Net 15" terms -> calculate due_date as 15 days after the user-provided invoice_date.
 - The defaults (${invoiceNum}, ${todayStr}, ${net30Str}) are ONLY fallbacks for when the user provided NOTHING explicit.
 
-RULE 5 — PURCHASE ORDER NUMBER:
-If the prompt mentions a PO number, Purchase Order number, or "PO #", extract it into the po_number field (e.g. po_number = "P0191570"). Do NOT place it in invoice_number. The notes field MUST also start with: "Please reference Purchase Order # [PO_NUMBER] on all payment processing."
+RULE 4b — PURCHASE ORDER vs INVOICE NUMBER (CRITICAL — these are different fields):
+- invoice_number: The seller's own reference number (e.g., "ODF-ROAR-001", "INV-2026-0042"). This is YOUR invoice number.
+- po_number: The BUYER's purchase order number (e.g., "P0191570", "PO-12345"). This is the CLIENT's reference number.
+- NEVER put a PO number into invoice_number. NEVER put an invoice number into po_number.
+- If the user provides "Invoice Number: ODF-ROAR-001" -> invoice_number = "ODF-ROAR-001"
+- If the user provides "PO #: P0191570" or "Purchase Order: P0191570" or "PO Number: P0191570" -> po_number = "P0191570"
+- If the invoice title says "Invoice for PO # P0191570" -> po_number = "P0191570", and invoice_number uses the user's provided value or the default
+- Both fields can be populated at the same time
+- If no PO number is mentioned -> po_number = ""
+
+RULE 5 — PURCHASE ORDER PRESERVATION:
+If the prompt mentions a PO number anywhere:
+1. Set po_number = that exact PO number (digits/letters only, no "PO #" prefix)
+2. The notes field MUST also start with: "Please reference Purchase Order # [PO_NUMBER] on all payment processing."
 
 RULE 6 — LINE ITEMS:
 - description: Short professional label (60-80 chars max)
@@ -230,6 +243,7 @@ OUTPUT: Return ONLY valid JSON matching the schema. No markdown. No backticks. N
         invoice_number:        { type: "string" },
         po_number:             { type: "string" },
         document_type:         { type: "string" },
+
         client_name:           { type: "string" },
         client_company:        { type: "string" },
         client_contact_person: { type: "string" },
@@ -272,6 +286,7 @@ OUTPUT: Return ONLY valid JSON matching the schema. No markdown. No backticks. N
       raw.invoice_number   = raw.invoice_number   || invoiceNum;
       raw.invoice_date     = raw.invoice_date     || todayStr;
       raw.due_date         = raw.due_date         || net30Str;
+      raw.po_number        = raw.po_number        || '';
       raw.voice_transcript = inputText;
 
       const result = sanitiseAndRecalc(raw);

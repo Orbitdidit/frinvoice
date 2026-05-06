@@ -470,9 +470,13 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
               )}
               <div>
                 <h2 className={`text-3xl md:text-4xl font-bold ${isClassic ? 'text-black' : 'text-white'}`}>{isEstimate ? 'ESTIMATE' : 'INVOICE'}</h2>
-                <p className={`mt-1 text-base font-semibold ${isClassic ? 'text-slate-600' : 'text-slate-300'}`}>Invoice #: {invoice.invoice_number}</p>
+                <p className={`mt-1 text-lg ${isClassic ? 'text-slate-600' : 'text-slate-300'}`}>
+                  #{invoice.invoice_number}
+                </p>
                 {invoice.po_number && (
-                  <p className={`text-sm font-medium ${isClassic ? 'text-slate-500' : 'text-slate-400'}`}>PO #: {invoice.po_number}</p>
+                  <p className={`mt-0.5 text-sm ${isClassic ? 'text-slate-500' : 'text-slate-400'}`}>
+                    PO#: {invoice.po_number}
+                  </p>
                 )}
                 {userCompany?.company_name && (
                   <p className={`text-lg font-semibold mt-2 ${isClassic ? 'text-slate-800' : 'text-slate-100'}`}>
@@ -528,6 +532,12 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
             <div className="md:text-right">
               <Label className="text-sm font-semibold text-slate-600 uppercase tracking-wide">{isEstimate ? 'Estimate Details' : 'Invoice Details'}</Label>
               <div className="mt-2 space-y-1">
+                {invoice.po_number && (
+                  <div className="flex items-center md:justify-end gap-2">
+                    <span className="text-slate-700 font-semibold">PO Number:</span>
+                    <span className="font-mono text-slate-800">{invoice.po_number}</span>
+                  </div>
+                )}
                 <div className="flex items-center md:justify-end gap-2">
                   <Calendar className="w-4 h-4 text-slate-600" />
                   <span className="text-slate-700 font-semibold">Issued:</span>

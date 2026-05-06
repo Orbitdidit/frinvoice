@@ -517,15 +517,29 @@ Client: "${editableData.client_name || ''}"`,
                 )}
               </div>
             </div>
-            <div className="text-right">
-              <p className={`text-sm ${isClassic ? 'text-slate-600' : 'text-slate-300'}`}>
-                {isClassic ? '' : (isEstimate ? 'Estimate Number' : 'Invoice Number')}
-              </p>
-              <Input
+            <div className="text-right space-y-2">
+              <div>
+                <p className={`text-xs font-semibold uppercase tracking-wider ${isClassic ? 'text-slate-500' : 'text-slate-300'}`}>
+                  Invoice Number
+                </p>
+                <Input
                   value={editableData.invoice_number}
                   onChange={(e) => handleFieldChange('invoice_number', e.target.value)}
-                  className={`mt-1 w-48 text-right font-bold text-2xl ${isClassic ? 'border-slate-400 bg-white text-black' : 'bg-white/20 border-white/30 text-white'}`}
+                  className={`mt-1 w-48 text-right font-bold text-xl ${isClassic ? 'border-slate-400 bg-white text-black' : 'bg-white/20 border-white/30 text-white placeholder:text-white/50'}`}
+                  placeholder="INV-2026-0001"
                 />
+              </div>
+              <div>
+                <p className={`text-xs font-semibold uppercase tracking-wider ${isClassic ? 'text-slate-500' : 'text-slate-300'}`}>
+                  PO Number (optional)
+                </p>
+                <Input
+                  value={editableData.po_number || ''}
+                  onChange={(e) => handleFieldChange('po_number', e.target.value)}
+                  className={`mt-1 w-48 text-right text-base ${isClassic ? 'border-slate-400 bg-white text-black' : 'bg-white/20 border-white/30 text-white placeholder:text-white/50'}`}
+                  placeholder="PO Number"
+                />
+              </div>
             </div>
           </div>
         </CardHeader>

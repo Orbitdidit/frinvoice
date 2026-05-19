@@ -109,6 +109,7 @@ export default function CreateInvoice() {
   const createBlankInvoice = () => ({
     invoice_number: genInvoiceNumber(),
     po_number: "",
+    po_number: "",
     document_type: "invoice",
     client_name: "",
     client_email: "",

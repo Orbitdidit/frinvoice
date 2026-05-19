@@ -441,44 +441,35 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
       {/* Invoice Card */}
       <div id="invoice-print-root">
       <Card id="invoice-viewer-content" className={`shadow-xl transition-all duration-500 ${isClassic ? 'font-serif' : 'font-sans'}`}>
-        <CardHeader className={`transition-all duration-500 ${isClassic ? 'bg-white border-b-2 border-black' : `text-white ${isEstimate ? 'bg-gradient-to-r from-cyan-800 to-blue-900' : 'bg-gradient-to-r from-slate-800 to-slate-900'} print-header-modern`}`}>
+        <CardHeader className={`transition-all duration-500 ${isClassic ? 'bg-white border-b-2 border-black' : `text-white ${isEstimate ? 'bg-gradient-to-r from-cyan-800 to-blue-900' : 'bg-gradient-to-r from-slate-800 to-slate-900'} print-header-modern`}`} style={{padding: '32px 40px'}}>
           <div className="flex justify-between items-start">
-            <div className="flex items-center gap-4">
-              {/* FIXED: Better logo display logic */}
+            <div className="flex items-center gap-5">
               {userCompany?.company_logo_url && (
                 <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-white p-2 flex-shrink-0 shadow-md">
                   <img
                     src={userCompany.company_logo_url}
                     alt={userCompany.company_name || "Company logo"}
                     className="w-full h-full object-contain"
-                    onError={(e) => {
-                      console.error("Logo failed to load:", userCompany.company_logo_url);
-                      e.target.style.display = 'none'; // Hide the broken image icon
-                    }}
-                    onLoad={() => {
-                      console.log("Logo loaded successfully:", userCompany.company_logo_url);
-                    }}
+                    onError={(e) => { e.target.style.display = 'none'; }}
                   />
                 </div>
               )}
-              {/* DEBUG: Show if no logo URL */}
-              {!userCompany?.company_logo_url && userCompany && (
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                  No Logo
-                </div>
-              )}
               <div>
-                <h2 className={`text-3xl md:text-4xl font-bold ${isClassic ? 'text-black' : 'text-white'}`}>{isEstimate ? 'ESTIMATE' : 'INVOICE'}</h2>
-                <p className={`mt-1 text-lg ${isClassic ? 'text-slate-600' : 'text-slate-300'}`}>
-                  #{invoice.invoice_number}
-                </p>
-                {invoice.po_number && (
-                  <p className={`mt-0.5 text-sm ${isClassic ? 'text-slate-500' : 'text-slate-400'}`}>
-                    PO#: {invoice.po_number}
+                <h2 style={{fontFamily: 'Inter, Arial, sans-serif', fontWeight: 800, fontSize: '2.25rem', letterSpacing: '-0.01em'}} className={isClassic ? 'text-black' : 'text-white'}>
+                  {isEstimate ? 'ESTIMATE' : 'INVOICE'}
+                </h2>
+                <div className="mt-2 space-y-1">
+                  <p style={{fontFamily: 'Inter, Arial, sans-serif', fontWeight: 500, fontSize: '0.9rem'}} className={isClassic ? 'text-slate-600' : 'text-slate-300'}>
+                    Invoice #: {invoice.invoice_number}
                   </p>
-                )}
+                  {invoice.po_number && (
+                    <p style={{fontFamily: 'Inter, Arial, sans-serif', fontWeight: 500, fontSize: '0.9rem'}} className={isClassic ? 'text-slate-500' : 'text-slate-400'}>
+                      PO #: {invoice.po_number}
+                    </p>
+                  )}
+                </div>
                 {userCompany?.company_name && (
-                  <p className={`text-lg font-semibold mt-2 ${isClassic ? 'text-slate-800' : 'text-slate-100'}`}>
+                  <p style={{fontFamily: 'Inter, Arial, sans-serif', fontWeight: 600, fontSize: '1rem', marginTop: '10px'}} className={isClassic ? 'text-slate-800' : 'text-slate-100'}>
                     {userCompany.company_name}
                   </p>
                 )}
@@ -487,7 +478,7 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
           </div>
         </CardHeader>
 
-        <CardContent className="p-3 md:p-8">
+        <CardContent style={{padding: '36px 40px'}}>
           {/* Project Showcase Image */}
           {invoice.project_hero_image_url && (
             <div className="mb-8 rounded-lg overflow-hidden shadow-lg">
@@ -499,60 +490,52 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-6 md:mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8" style={{fontFamily: 'Inter, Arial, sans-serif'}}>
+            {/* Bill To */}
             <div>
-              <Label className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Bill To</Label>
-              <div className="mt-2 space-y-1">
-                <p className="font-bold text-slate-900 text-lg">{invoice.client_name}</p>
+              <p style={{fontWeight: 600, fontSize: '0.7rem', letterSpacing: '0.07em', textTransform: 'uppercase', color: '#64748b', marginBottom: '10px'}}>Bill To</p>
+              <div style={{lineHeight: 1.65}}>
+                <p style={{fontWeight: 700, fontSize: '1rem', color: '#0f172a'}}>{invoice.client_name}</p>
                 {invoice.client_company && invoice.client_company !== invoice.client_name && (
-                  <p className="text-slate-700 font-medium">{invoice.client_company}</p>
+                  <p style={{fontWeight: 500, fontSize: '0.9rem', color: '#334155'}}>{invoice.client_company}</p>
                 )}
                 {invoice.client_contact_person && (
-                  <p className="text-slate-600 text-sm">Attn: {invoice.client_contact_person}</p>
+                  <p style={{fontWeight: 400, fontSize: '0.875rem', color: '#475569'}}>Attn: {invoice.client_contact_person}</p>
                 )}
                 {invoice.client_address && (
-                  <p className="text-slate-600 text-sm whitespace-pre-line">{invoice.client_address}</p>
+                  <p style={{fontWeight: 400, fontSize: '0.875rem', color: '#475569', whiteSpace: 'pre-line'}}>{invoice.client_address}</p>
                 )}
                 {invoice.client_email && (
-                  <p className="text-slate-600 flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    {invoice.client_email}
-                  </p>
+                  <p style={{fontWeight: 400, fontSize: '0.875rem', color: '#475569'}}>{invoice.client_email}</p>
                 )}
                 {invoice.client_phone && (
-                  <p className="text-slate-600 flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    {invoice.client_phone}
-                  </p>
+                  <p style={{fontWeight: 400, fontSize: '0.875rem', color: '#475569'}}>{invoice.client_phone}</p>
                 )}
               </div>
             </div>
 
+            {/* Invoice Details */}
             <div className="md:text-right">
-              <Label className="text-sm font-semibold text-slate-600 uppercase tracking-wide">{isEstimate ? 'Estimate Details' : 'Invoice Details'}</Label>
-              <div className="mt-2 space-y-1">
-                <div className="flex items-center md:justify-end gap-2">
-                  <Calendar className="w-4 h-4 text-slate-600" />
-                  <span className="text-slate-700 font-semibold">Issued:</span>
-                  <span>{format(new Date((invoice.invoice_date || invoice.created_date) + 'T12:00:00'), 'MMM dd, yyyy')}</span>
+              <p style={{fontWeight: 600, fontSize: '0.7rem', letterSpacing: '0.07em', textTransform: 'uppercase', color: '#64748b', marginBottom: '10px'}}>{isEstimate ? 'Estimate Details' : 'Invoice Details'}</p>
+              <div style={{lineHeight: 1.75}}>
+                <div className="flex md:justify-end" style={{gap: '6px'}}>
+                  <span style={{fontWeight: 600, fontSize: '0.875rem', color: '#374151'}}>Issued:</span>
+                  <span style={{fontWeight: 400, fontSize: '0.875rem', color: '#1e293b'}}>{format(new Date((invoice.invoice_date || invoice.created_date) + 'T12:00:00'), 'MMM dd, yyyy')}</span>
                 </div>
-                {!isEstimate && (
-                  <div className="flex items-center md:justify-end gap-2">
-                    <Calendar className="w-4 h-4 text-slate-600" />
-                    <span className="text-slate-700 font-semibold">Due Date:</span>
-                    <span>{format(new Date(invoice.due_date + 'T12:00:00'), 'MMM dd, yyyy')}</span>
+                {!isEstimate && invoice.due_date && (
+                  <div className="flex md:justify-end" style={{gap: '6px'}}>
+                    <span style={{fontWeight: 600, fontSize: '0.875rem', color: '#374151'}}>Due Date:</span>
+                    <span style={{fontWeight: 400, fontSize: '0.875rem', color: '#1e293b'}}>{format(new Date(invoice.due_date + 'T12:00:00'), 'MMM dd, yyyy')}</span>
                   </div>
                 )}
-                <div className="flex items-center md:justify-end gap-2">
-                  <FileText className="w-4 h-4 text-slate-600" />
-                  <span className="text-slate-700 font-semibold">Invoice #:</span>
-                  <span className="font-mono text-slate-800">{invoice.invoice_number}</span>
+                <div className="flex md:justify-end" style={{gap: '6px'}}>
+                  <span style={{fontWeight: 600, fontSize: '0.875rem', color: '#374151'}}>Invoice #:</span>
+                  <span style={{fontWeight: 500, fontSize: '0.875rem', color: '#1e293b', fontFamily: 'ui-monospace, monospace'}}>{invoice.invoice_number}</span>
                 </div>
                 {invoice.po_number && (
-                  <div className="flex items-center md:justify-end gap-2">
-                    <FileText className="w-4 h-4 text-slate-600" />
-                    <span className="text-slate-700 font-semibold">PO #:</span>
-                    <span className="font-mono text-slate-800">{invoice.po_number}</span>
+                  <div className="flex md:justify-end" style={{gap: '6px'}}>
+                    <span style={{fontWeight: 600, fontSize: '0.875rem', color: '#374151'}}>PO #:</span>
+                    <span style={{fontWeight: 500, fontSize: '0.875rem', color: '#1e293b', fontFamily: 'ui-monospace, monospace'}}>{invoice.po_number}</span>
                   </div>
                 )}
               </div>
@@ -560,9 +543,9 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
           </div>
 
           {/* Line Items Table */}
-          <div className="mb-6 md:mb-8">
+          <div className="mb-6" style={{fontFamily: 'Inter, Arial, sans-serif'}}>
             <div className="hidden md:block rounded-lg overflow-hidden border border-slate-200">
-              <div className={`grid grid-cols-12 gap-4 p-4 font-semibold text-sm items-center ${isClassic ? 'bg-slate-200 text-slate-800' : 'bg-slate-100 text-slate-700'}`}>
+              <div className={`grid grid-cols-12 gap-4 items-center ${isClassic ? 'bg-slate-200 text-slate-800' : 'bg-slate-100 text-slate-700'}`} style={{padding: '10px 20px', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase'}}>
                 <div className="col-span-6">Description</div>
                 <div className="col-span-2 text-center">Quantity</div>
                 <div className="col-span-2 text-right">Unit Price</div>
@@ -579,20 +562,12 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
                 if (item.is_discount) return null;
                 return (
                   <React.Fragment key={index}>
-                    <div className="grid grid-cols-12 gap-4 p-4 border-b border-slate-200 items-start print-no-break">
+                    <div className="grid grid-cols-12 gap-4 border-b border-slate-200 items-start print-no-break" style={{padding: '16px 20px'}}>
                       <div className="col-span-6">
                         <div className="flex gap-3">
-                          {item.thumbnail_url && (
-                             <div
-                               className="w-16 h-16 rounded-lg overflow-hidden bg-slate-100 border cursor-pointer flex-shrink-0 relative"
-                               onClick={() => openImageCarousel(item.file_urls || [item.thumbnail_url])}
-                             >
-                               <img src={item.thumbnail_url} alt="Item reference" className="w-full h-full object-cover" />
-                             </div>
-                          )}
                           <div>
-                            <p className="font-semibold text-slate-900">{item.description}</p>
-                            <p className="text-sm text-slate-600">{item.detail}</p>
+                            <p style={{fontWeight: 600, fontSize: '0.9rem', color: '#0f172a'}}>{item.description}</p>
+                            <p style={{fontWeight: 400, fontSize: '0.8rem', color: '#64748b', marginTop: '2px', lineHeight: 1.5}}>{item.detail}</p>
                             {/* Inline discount note if next item is a discount */}
                             {invoice.line_items[index + 1]?.is_discount && (() => {
                               const discountItem = invoice.line_items[index + 1];
@@ -607,9 +582,9 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
                           </div>
                         </div>
                       </div>
-                      <div className="col-span-2 text-center">{item.quantity}</div>
-                      <div className="col-span-2 text-right">${(item.unit_price || 0).toFixed(2)}</div>
-                      <div className="col-span-2 text-right font-bold">${(item.total || 0).toFixed(2)}</div>
+                      <div className="col-span-2 text-center" style={{fontWeight: 500, fontSize: '0.875rem', color: '#374151'}}>{item.quantity}</div>
+                      <div className="col-span-2 text-right" style={{fontWeight: 500, fontSize: '0.875rem', color: '#374151'}}>${(item.unit_price || 0).toFixed(2)}</div>
+                      <div className="col-span-2 text-right" style={{fontWeight: 700, fontSize: '0.9rem', color: '#0f172a'}}>${(item.total || 0).toFixed(2)}</div>
                     </div>
                   </React.Fragment>
                 );
@@ -684,11 +659,10 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
                   })()}
 
                   {/* Total */}
-                  <div className={`flex justify-between items-center py-4 px-4 rounded-lg transition-all duration-500 ${isClassic ? 'bg-slate-100 border-2 border-slate-300' : 'bg-slate-900 text-white print-total-modern shadow-lg'}`}>
-                    <span className={`text-xl font-bold ${isClassic ? 'text-black' : 'text-white'}`}>Total:</span>
-                    <span className={`text-2xl md:text-3xl font-bold flex items-center gap-1 ${isClassic ? 'text-black' : 'text-white'}`}>
-                      <DollarSign className="w-6 md:w-8 h-6 md:h-8" />
-                      {(invoice.total_amount || 0).toFixed(2)}
+                  <div className={`flex justify-between items-center rounded-lg print-total-modern ${isClassic ? 'bg-slate-100 border-2 border-slate-300' : 'bg-slate-900 shadow-lg'}`} style={{padding: '14px 20px'}}>
+                    <span style={{fontWeight: 700, fontSize: '1rem'}} className={isClassic ? 'text-black' : 'text-white'}>Total</span>
+                    <span style={{fontWeight: 700, fontSize: '1.6rem', letterSpacing: '-0.02em'}} className={isClassic ? 'text-black' : 'text-white'}>
+                      ${(invoice.total_amount || 0).toFixed(2)}
                     </span>
                   </div>
 
@@ -707,26 +681,22 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
             </div>
           </div>
 
-          {/* Notes & Payment Instructions - Moved below totals */}
-          <div className="mt-8 pt-8 border-t border-slate-200 grid md:grid-cols-2 gap-8">
+          {/* Notes & Payment Instructions */}
+          <div className="mt-8 pt-8 border-t border-slate-200 grid md:grid-cols-2 gap-6" style={{fontFamily: 'Inter, Arial, sans-serif'}}>
               {invoice.notes && (
-                <div className="p-4 bg-slate-50 rounded-lg">
-                  <Label className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2 block">Notes &amp; Terms</Label>
-                  <p className="text-slate-700 whitespace-pre-wrap">{invoice.notes}</p>
+                <div style={{padding: '20px 24px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
+                  <p style={{fontWeight: 600, fontSize: '0.7rem', letterSpacing: '0.07em', textTransform: 'uppercase', color: '#64748b', marginBottom: '10px'}}>Notes &amp; Terms</p>
+                  <p style={{fontWeight: 400, fontSize: '0.875rem', color: '#475569', lineHeight: 1.65, whiteSpace: 'pre-wrap'}}>{invoice.notes}</p>
                 </div>
               )}
-              {userCompany?.payment_details && !isEstimate && ( // Only show payment details for invoices
-                <Card className="bg-green-50 border-2 border-green-200 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-green-900 flex items-center gap-2">
-                      <Wallet className="w-5 h-5" />
-                      Payment Instructions
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-green-800 whitespace-pre-wrap text-base">
-                    {userCompany.payment_details}
-                  </CardContent>
-                </Card>
+              {userCompany?.payment_details && !isEstimate && (
+                <div style={{padding: '20px 24px', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0'}}>
+                  <p style={{fontWeight: 600, fontSize: '0.7rem', letterSpacing: '0.07em', textTransform: 'uppercase', color: '#15803d', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px'}}>
+                    <Wallet style={{width: '14px', height: '14px'}} />
+                    Payment Instructions
+                  </p>
+                  <p style={{fontWeight: 400, fontSize: '0.875rem', color: '#166534', lineHeight: 1.65, whiteSpace: 'pre-wrap'}}>{userCompany.payment_details}</p>
+                </div>
               )}
           </div>
         </CardContent>

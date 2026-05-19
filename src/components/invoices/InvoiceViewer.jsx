@@ -34,6 +34,8 @@ import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ImageCarousel from "./ImageCarousel";
 import { toast } from 'sonner';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, showEditButton = true, showPayButton = false }) {
   const navigate = useNavigate();
@@ -144,10 +146,7 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
     const toastId = toast.loading('Generating PDF...');
 
     try {
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import('html2canvas'),
-        import('jspdf'),
-      ]);
+
 
       element.classList.add('pdf-export-mode');
 
@@ -718,7 +717,7 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
           <div className="mt-8 pt-8 border-t border-slate-200 grid md:grid-cols-2 gap-8">
               {invoice.notes && (
                 <div className="p-4 bg-slate-50 rounded-lg">
-                  <Label className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2 block">Notes & Terms</Label>
+                  <Label className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2 block">Notes &amp; Terms</Label>
                   <p className="text-slate-700 whitespace-pre-wrap">{invoice.notes}</p>
                 </div>
               )}

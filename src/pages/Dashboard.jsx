@@ -10,46 +10,39 @@ import SendEmailModal from "@/components/invoices/SendEmailModal";
 
 const PIPELINE = [
   { key: "draft", label: "Draft", accent: "slate" },
-  { key: "sent", label: "Sent", accent: "blue" },
-  { key: "viewed", label: "Viewed", accent: "purple" },
-  { key: "paid", label: "Paid", accent: "green" },
+  { key: "sent", label: "Sent", accent: "ink" },
+  { key: "viewed", label: "Viewed", accent: "ink" },
+  { key: "paid", label: "Paid", accent: "money" },
 ];
 
 const ACCENTS = {
   slate: {
     bar: "bg-slate-400",
-    text: "text-slate-700",
-    amount: "text-slate-900",
+    text: "text-slate-600",
+    amount: "text-ink",
     sub: "text-slate-500",
-    ring: "border-slate-200",
+    ring: "border-ink",
   },
-  blue: {
-    bar: "bg-blue-500",
-    text: "text-blue-700",
-    amount: "text-blue-900",
-    sub: "text-blue-600",
-    ring: "border-blue-200",
+  ink: {
+    bar: "bg-ink",
+    text: "text-ink",
+    amount: "text-ink",
+    sub: "text-ink/60",
+    ring: "border-ink",
   },
-  purple: {
-    bar: "bg-purple-500",
-    text: "text-purple-700",
-    amount: "text-purple-900",
-    sub: "text-purple-600",
-    ring: "border-purple-200",
-  },
-  green: {
-    bar: "bg-green-500",
-    text: "text-green-700",
-    amount: "text-green-700",
-    sub: "text-green-600",
-    ring: "border-green-200",
+  money: {
+    bar: "bg-money",
+    text: "text-money",
+    amount: "text-money",
+    sub: "text-money",
+    ring: "border-ink",
   },
   red: {
-    bar: "bg-red-500",
-    text: "text-red-700",
-    amount: "text-red-700",
-    sub: "text-red-600",
-    ring: "border-red-200",
+    bar: "bg-stamp",
+    text: "text-stamp",
+    amount: "text-stamp",
+    sub: "text-stamp",
+    ring: "border-ink",
   },
 };
 

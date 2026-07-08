@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { CheckCircle, Clock, AlertCircle, Loader2, Printer, Download, Lock } from "lucide-react";
+import { CheckCircle, Clock, AlertCircle, Loader2, Printer, Download, Lock, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
 import PayNowButton from "@/components/payments/PayNowButton";
 
 const SKINS = {
@@ -75,6 +76,7 @@ export default function PublicInvoice() {
   const [companyInfo, setCompanyInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [lightboxImage, setLightboxImage] = useState(null);
   const [searchParams] = useSearchParams();
   const invoiceId = searchParams.get("id");
 
@@ -280,16 +282,41 @@ export default function PublicInvoice() {
                     item.is_discount ? "opacity-80" : ""
                   }`}
                 >
-                  <div className="min-w-0 flex-1">
-                    <p className={`font-semibold ${skin.text}`}>{item.description || "—"}</p>
-                    {item.detail && (
-                      <p className={`text-sm ${skin.muted} mt-0.5 whitespace-pre-line`}>{item.detail}</p>
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    {/* Thumbnail */}
+                    {!item.is_discount && item.file_urls && item.file_urls.length > 0 && (
+                      <div className="flex gap-1 flex-shrink-0">
+                        {item.file_urls.slice(0, 2).map((url, imgIdx) => (
+                          <button
+                            key={imgIdx}
+                            onClick={() => setLightboxImage({ urls: item.file_urls, index: imgIdx })}
+                            className={`block w-12 h-12 rounded-lg overflow-hidden border-2 ${skin.border} hover:opacity-80 transition-opacity cursor-pointer flex-shrink-0`}
+                          >
+                            <img
+                              src={url}
+                              alt={item.description || "Item image"}
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        ))}
+                        {item.file_urls.length > 2 && (
+                          <div className={`w-12 h-12 rounded-lg border-2 ${skin.border} flex items-center justify-center ${skin.muted} text-xs font-bold flex-shrink-0`}>
+                            +{item.file_urls.length - 2}
+                          </div>
+                        )}
+                      </div>
                     )}
-                    {!item.is_discount && item.quantity > 1 && (
-                      <p className={`text-xs ${skin.muted} mt-1`}>
-                        {item.quantity} × {formatMoney(item.unit_price)}
-                      </p>
-                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className={`font-semibold ${skin.text}`}>{item.description || "—"}</p>
+                      {item.detail && (
+                        <p className={`text-sm ${skin.muted} mt-0.5 whitespace-pre-line`}>{item.detail}</p>
+                      )}
+                      {!item.is_discount && item.quantity > 1 && (
+                        <p className={`text-xs ${skin.muted} mt-1`}>
+                          {item.quantity} × {formatMoney(item.unit_price)}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <p className={`font-mono font-bold ${item.is_discount ? "text-red-500" : skin.text} flex-shrink-0`}>
                     {item.is_discount ? "-" : ""}${formatMoney(Math.abs(item.total || 0))}
@@ -371,6 +398,58 @@ export default function PublicInvoice() {
           {companyInfo && <p>&copy; {new Date().getFullYear()} {companyInfo.company_name}. All rights reserved.</p>}
         </footer>
       </div>
+
+      {/* Image Lightbox */}
+      <AnimatePresence>
+        {lightboxImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+            onClick={() => setLightboxImage(null)}
+          >
+            <button
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"
+              onClick={(e) => { e.stopPropagation(); setLightboxImage(null); }}
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <motion.img
+              key={lightboxImage.index}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              src={lightboxImage.urls[lightboxImage.index]}
+              alt="Full size image"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+            {lightboxImage.urls.length > 1 && (
+              <>
+                <button
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xl"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightboxImage(prev => ({ ...prev, index: (prev.index - 1 + prev.urls.length) % prev.urls.length }));
+                  }}
+                >
+                  ‹
+                </button>
+                <button
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xl"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightboxImage(prev => ({ ...prev, index: (prev.index + 1) % prev.urls.length }));
+                  }}
+                >
+                  ›
+                </button>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

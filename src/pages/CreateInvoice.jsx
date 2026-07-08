@@ -149,6 +149,22 @@ export default function CreateInvoice() {
     const net30Str = getNet30Str();
     const invoiceNum = genInvoiceNumber();
 
+    // Fetch pricing presets so the AI can match them
+    let presets = [];
+    try {
+      presets = await PricingPreset.list();
+    } catch (e) {
+      console.error("Error loading presets:", e);
+    }
+
+    const presetList = presets.map(p => {
+      let info = `- "${p.name}": $${p.base_price} / ${p.unit_type}`;
+      if (p.item_dimension_width) {
+        info += ` (item size: ${p.item_dimension_width}${p.item_dimension_unit} x ${p.item_dimension_height}${p.item_dimension_unit})`;
+      }
+      return info;
+    }).join('\n');
+
     const prompt = `
 You are Frinvoice AI — an elite billing assistant. Return a perfectly structured JSON invoice. Populate every field possible.
 
@@ -229,6 +245,30 @@ RATES (only when no price given):
 
 TAX:
 - tax_rate: 0 unless user explicitly states a tax rate
+
+=== RATECALC PRESET MATCHING (CRITICAL) ===
+The user has the following pricing presets saved:
+${presetList}
+
+RULE: If the user's request mentions a preset name (even partially) AND target dimensions (e.g., "20ft x 10ft", "10 by 5 meters"), you MUST:
+1. Use that preset's exact name as the line item description
+2. Use that preset's base_price as the unit_price
+3. Calculate the quantity by figuring out how many items fit in the target area:
+   - Convert both the target dimensions and the item dimensions to the same unit (mm is a good common unit: 1ft=304.8mm, 1in=25.4mm, 1m=1000mm, 1cm=10mm)
+   - panels_per_row = ceil(target_width / item_width)  (round UP)
+   - rows = ceil(target_height / item_height)  (round UP)
+   - quantity = panels_per_row * rows
+4. Set the line item detail to: "Coverage: {target_W}{unit} x {target_H}{unit} -> {panels_per_row}/row x {rows} rows = {quantity} units"
+5. Set total = quantity * base_price
+
+Example: Preset "LED Panel $225, 640mm x 480mm" + user says "20ft x 10ft wall of LED panels"
+- Convert 20ft = 6096mm, 10ft = 3048mm
+- per_row = ceil(6096 / 640) = 10
+- rows = ceil(3048 / 480) = 7
+- quantity = 70
+- unit_price = 225, total = 15750
+
+If the user mentions a preset name but gives an explicit quantity instead of dimensions, just use the preset's base_price with that quantity.
 
 TOTALS (always compute):
 - subtotal: Sum of non-discount line items

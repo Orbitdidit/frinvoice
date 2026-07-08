@@ -25,6 +25,7 @@
         "per_piece",
         "per_sqft",
         "per_linear_ft",
+        "per_panel",
         "flat_rate"
       ],
       "description": "Pricing unit type"
@@ -36,6 +37,26 @@
     "description": {
       "type": "string",
       "description": "Preset description"
+    },
+    "item_dimension_width": {
+      "type": "number",
+      "description": "Width of a single item/unit (e.g. panel width)"
+    },
+    "item_dimension_height": {
+      "type": "number",
+      "description": "Height of a single item/unit (e.g. panel height)"
+    },
+    "item_dimension_unit": {
+      "type": "string",
+      "enum": [
+        "mm",
+        "cm",
+        "m",
+        "in",
+        "ft"
+      ],
+      "default": "mm",
+      "description": "Unit of measurement for item dimensions"
     },
     "multipliers": {
       "type": "object",

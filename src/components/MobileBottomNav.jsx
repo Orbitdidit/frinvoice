@@ -23,21 +23,18 @@ const createOptions = [
     description: "Describe in text with AI",
     icon: Keyboard,
     url: createPageUrl("CreateInvoice"),
-    color: "from-blue-500 to-cyan-500",
   },
   {
     title: "Scan / Photo",
     description: "Upload a photo or screenshot",
     icon: Camera,
     url: createPageUrl("CreateInvoice"),
-    color: "from-amber-500 to-orange-500",
   },
   {
     title: "Manual",
     description: "Build it line by line",
     icon: Edit3,
     url: createPageUrl("CreateInvoice"),
-    color: "from-emerald-500 to-green-500",
   },
 ];
 

@@ -54,6 +54,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import ClientForm from "../clients/ClientForm";
+import SkinPicker from "./SkinPicker";
 
 export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing: initialIsEditing = false, isNew = false }) {
   const [editableData, setEditableData] = useState(() => {
@@ -463,6 +464,8 @@ Client: "${editableData.client_name || ''}"`,
           Classic Style
         </Button>
       </div>
+
+      <SkinPicker value={editableData.skin || 'ledger'} onChange={(v) => handleFieldChange('skin', v)} />
 
       <div className="flex flex-col sm:flex-row justify-center gap-4">
         <Button

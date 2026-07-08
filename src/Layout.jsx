@@ -12,11 +12,6 @@ import {
   Settings,
   Zap,
   Bell,
-  Home,
-  Clock,
-  Menu,
-  X,
-  Bot,
   FileCheck,
   ArrowLeft,
   Moon,
@@ -40,6 +35,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 const navigationItems = [
   {
@@ -68,41 +64,6 @@ const navigationItems = [
     title: "Estimates",
     url: createPageUrl("Estimates"),
     icon: FileCheck,
-  },
-  {
-    title: "Clients",
-    url: createPageUrl("Clients"),
-    icon: Users,
-  },
-  {
-    title: "Settings",
-    url: createPageUrl("Settings"),
-    icon: Settings,
-  },
-];
-
-const bottomNavItems = [
-  {
-    title: "Home",
-    url: createPageUrl("Dashboard"),
-    icon: Home,
-  },
-  {
-    title: "Create",
-    url: createPageUrl("CreateInvoice"),
-    icon: FileText,
-    highlight: true,
-  },
-  {
-    title: "Voice",
-    url: createPageUrl("VoiceInvoice"),
-    icon: Mic,
-    highlight: true,
-  },
-  {
-    title: "Documents",
-    url: createPageUrl("Invoices"),
-    icon: FileText,
   },
   {
     title: "Clients",
@@ -272,66 +233,6 @@ function MobileHeader({ createPageUrl, currentPageName, darkMode, setDarkMode })
   );
 }
 
-function MobileBottomNavigation({ location, bottomNavItems, createPageUrl }) {
-  const navigate = useNavigate();
-
-  const getTabRoot = (itemTitle) => {
-    const rootPages = {
-      'Documents': createPageUrl('Invoices'),
-      'Clients': createPageUrl('Clients'),
-      'Settings': createPageUrl('Settings')
-    };
-    return rootPages[itemTitle];
-  };
-
-  const handleNavClick = (e, item) => {
-    const tabRoot = getTabRoot(item.title);
-    if (tabRoot && location.pathname !== item.url && location.pathname.includes(item.url.split('?')[0])) {
-      e.preventDefault();
-      navigate(tabRoot, { replace: false });
-    } else if (location.pathname === item.url) {
-      e.preventDefault();
-      navigate(item.url, { replace: true });
-    }
-  };
-
-  return (
-    <div 
-      className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 md:hidden z-50 select-none"
-      style={{ 
-        paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))'
-      }}
-    >
-      <div className="flex items-center justify-around px-2 py-2">
-        {bottomNavItems.map((item) => (
-          <Link
-            key={item.title}
-            to={item.url}
-            onClick={(e) => handleNavClick(e, item)}
-            className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all duration-200 ${
-              location.pathname === item.url
-                ? 'bg-gradient-to-t from-purple-50 to-blue-50 text-purple-700'
-                : 'text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            <item.icon className={`w-5 h-5 ${
-              location.pathname === item.url ? 'text-purple-600' : ''
-            }`} />
-            <span className={`text-xs font-medium ${
-              item.highlight && location.pathname !== item.url ? 'text-purple-600' : ''
-            }`}>
-              {item.title}
-            </span>
-            {item.highlight && location.pathname === item.url && (
-              <div className="absolute -top-1 right-2 w-2 h-2 bg-purple-500 rounded-full"></div>
-            )}
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -464,8 +365,8 @@ export default function Layout({ children, currentPageName }) {
         <main className="flex-1 flex flex-col min-w-0">
           <MobileHeader createPageUrl={createPageUrl} currentPageName={currentPageName} darkMode={darkMode} setDarkMode={setDarkMode} />
 
-          <div 
-            className="flex-1 overflow-auto pb-20 md:pb-0 relative" 
+          <div
+            className="flex-1 overflow-auto pb-28 md:pb-0 relative"
             style={{ overscrollBehavior: 'none' }}
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -487,7 +388,7 @@ export default function Layout({ children, currentPageName }) {
             </AnimatePresence>
           </div>
 
-          <MobileBottomNavigation location={location} bottomNavItems={bottomNavItems} createPageUrl={createPageUrl} />
+          <MobileBottomNav location={location} />
         </main>
       </div>
     </SidebarProvider>

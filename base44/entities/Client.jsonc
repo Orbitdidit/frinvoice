@@ -1,0 +1,70 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Client or company name"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Primary contact email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Contact phone number"
+    },
+    "company": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "address": {
+      "type": "string",
+      "description": "Billing address"
+    },
+    "total_invoices": {
+      "type": "number",
+      "default": 0,
+      "description": "Total number of invoices"
+    },
+    "total_revenue": {
+      "type": "number",
+      "default": 0,
+      "description": "Total revenue from this client"
+    },
+    "payment_terms": {
+      "type": "string",
+      "enum": [
+        "net_15",
+        "net_30",
+        "net_45",
+        "due_on_receipt"
+      ],
+      "default": "net_30",
+      "description": "Default payment terms"
+    },
+    "preferred_services": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Services frequently requested by this client"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Client notes and preferences"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

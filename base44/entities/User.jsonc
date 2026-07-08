@@ -1,0 +1,43 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "company_name": {
+      "type": "string",
+      "description": "User's company name"
+    },
+    "company_logo_url": {
+      "type": "string",
+      "description": "URL to the company logo image"
+    },
+    "business_address": {
+      "type": "string",
+      "description": "Business address for invoices"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Business phone number"
+    },
+    "website": {
+      "type": "string",
+      "description": "Company website"
+    },
+    "default_invoice_terms": {
+      "type": "string",
+      "description": "Default terms and conditions text for invoices"
+    },
+    "payment_details": {
+      "type": "string",
+      "description": "Instructions for clients on how to pay (e.g., PayPal, Venmo, Bank Details)"
+    }
+  },
+  "required": [
+    "company_name",
+    "company_logo_url",
+    "business_address",
+    "phone",
+    "website",
+    "default_invoice_terms",
+    "payment_details"
+  ]
+}

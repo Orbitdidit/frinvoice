@@ -1,0 +1,59 @@
+{
+  "name": "PricingPreset",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Preset name"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "design",
+        "video",
+        "print",
+        "installation",
+        "consultation",
+        "other"
+      ],
+      "description": "Service category"
+    },
+    "unit_type": {
+      "type": "string",
+      "enum": [
+        "per_hour",
+        "per_piece",
+        "per_sqft",
+        "per_linear_ft",
+        "flat_rate"
+      ],
+      "description": "Pricing unit type"
+    },
+    "base_price": {
+      "type": "number",
+      "description": "Base price per unit"
+    },
+    "description": {
+      "type": "string",
+      "description": "Preset description"
+    },
+    "multipliers": {
+      "type": "object",
+      "description": "Pricing multipliers for complexity levels"
+    }
+  },
+  "required": [
+    "name",
+    "category",
+    "unit_type",
+    "base_price"
+  ],
+  "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

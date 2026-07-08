@@ -51,6 +51,7 @@ export default function Settings() {
   const [showPresetForm, setShowPresetForm] = useState(false);
   const [editingPreset, setEditingPreset] = useState(null);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [isDeletingDrafts, setIsDeletingDrafts] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -124,6 +125,17 @@ export default function Settings() {
     } catch (error) {
       console.error("Error deleting account:", error);
       setIsDeletingAccount(false);
+    }
+  };
+
+  const handleDeleteAllDrafts = async () => {
+    setIsDeletingDrafts(true);
+    try {
+      await Invoice.deleteMany({ status: "draft" });
+    } catch (error) {
+      console.error("Error deleting draft invoices:", error);
+    } finally {
+      setIsDeletingDrafts(false);
     }
   };
 
@@ -373,6 +385,43 @@ export default function Settings() {
                     
                     <div className="pt-4 border-t border-red-200">
                       <h4 className="text-sm font-semibold text-red-900 mb-2">Danger Zone</h4>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="border-red-300 text-red-700 hover:bg-red-50"
+                            disabled={isDeletingDrafts}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            {isDeletingDrafts ? "Deleting..." : "Delete All Drafts"}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete all draft invoices?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete every invoice with "draft" status.
+                              Sent, paid, and other invoices are not affected. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleDeleteAllDrafts}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Yes, delete all drafts
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                      <p className="text-xs text-red-600 mt-2">
+                        ⚠️ Removes all draft invoices. Other statuses remain untouched.
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-red-200">
+                      <h4 className="text-sm font-semibold text-red-900 mb-2">Account</h4>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button 

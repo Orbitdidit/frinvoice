@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { SendEmail } from "@/integrations/Core";
 import { Invoice } from "@/entities/Invoice";
@@ -17,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Send, Loader2 } from "lucide-react";
 import { User } from "@/entities/User";
 
-export default function SendEmailModal({ isOpen, onClose, invoice, invoiceUrl }) {
+export default function SendEmailModal({ isOpen, onClose, invoice, invoiceUrl, presetSubject, presetBody }) {
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
@@ -41,8 +40,8 @@ export default function SendEmailModal({ isOpen, onClose, invoice, invoiceUrl })
     if (invoice && user) {
       const companyName = user.company_name || user.full_name;
       setTo(invoice.client_email || "");
-      setSubject(`Invoice ${invoice.invoice_number} from ${companyName}`);
-      setBody(`Hello ${invoice.client_name || 'there'},
+      setSubject(presetSubject || `Invoice ${invoice.invoice_number} from ${companyName}`);
+      setBody(presetBody || `Hello ${invoice.client_name || 'there'},
 
 Here is your invoice ${invoice.invoice_number} for $${invoice.total_amount.toFixed(2)}.
 
@@ -54,7 +53,7 @@ Thank you for your business!
 Best,
 ${companyName}`);
     }
-  }, [invoice, invoiceUrl, user, isOpen]);
+  }, [invoice, invoiceUrl, user, isOpen, presetSubject, presetBody]);
 
   const handleSendEmail = async () => {
     if (!to || !subject || !body) {

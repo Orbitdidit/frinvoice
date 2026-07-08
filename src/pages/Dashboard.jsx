@@ -1,31 +1,78 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Invoice } from "@/entities/Invoice";
-import { Client } from "@/entities/Client";
-import { User } from "@/entities/User"; // Import User
-import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
+import { User } from "@/entities/User";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { 
-  Mic, 
-  TrendingUp, 
-  FileText, 
-  Users, 
-  DollarSign,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Plus,
-  ArrowRight
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileText, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import SendEmailModal from "@/components/invoices/SendEmailModal";
+
+const PIPELINE = [
+  { key: "draft", label: "Draft", accent: "slate" },
+  { key: "sent", label: "Sent", accent: "blue" },
+  { key: "viewed", label: "Viewed", accent: "purple" },
+  { key: "paid", label: "Paid", accent: "green" },
+];
+
+const ACCENTS = {
+  slate: {
+    bar: "bg-slate-400",
+    text: "text-slate-700",
+    amount: "text-slate-900",
+    sub: "text-slate-500",
+    ring: "border-slate-200",
+  },
+  blue: {
+    bar: "bg-blue-500",
+    text: "text-blue-700",
+    amount: "text-blue-900",
+    sub: "text-blue-600",
+    ring: "border-blue-200",
+  },
+  purple: {
+    bar: "bg-purple-500",
+    text: "text-purple-700",
+    amount: "text-purple-900",
+    sub: "text-purple-600",
+    ring: "border-purple-200",
+  },
+  green: {
+    bar: "bg-green-500",
+    text: "text-green-700",
+    amount: "text-green-700",
+    sub: "text-green-600",
+    ring: "border-green-200",
+  },
+  red: {
+    bar: "bg-red-500",
+    text: "text-red-700",
+    amount: "text-red-700",
+    sub: "text-red-600",
+    ring: "border-red-200",
+  },
+};
+
+const STAMP_STYLES = {
+  draft: "border-slate-400 text-slate-500",
+  sent: "border-blue-500 text-blue-600",
+  viewed: "border-purple-500 text-purple-600",
+  paid: "border-green-600 text-green-700",
+  overdue: "border-red-600 text-red-600",
+  cancelled: "border-slate-400 text-slate-400",
+  accepted: "border-emerald-600 text-emerald-700",
+  declined: "border-rose-600 text-rose-600",
+};
+
+function formatMoney(n) {
+  return (Number(n) || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 export default function Dashboard() {
   const [invoices, setInvoices] = useState([]);
-  const [clients, setClients] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const [followUpInvoice, setFollowUpInvoice] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadData();
@@ -33,13 +80,9 @@ export default function Dashboard() {
 
   const loadData = async () => {
     try {
-      const user = await User.me(); // Get current user
-      const [invoiceData, clientData] = await Promise.all([
-        Invoice.filter({ created_by: user.email }, "-created_date", 10), // Filter by user
-        Client.filter({ created_by: user.email }, "-created_date", 5)   // Filter by user
-      ]);
+      const user = await User.me();
+      const invoiceData = await Invoice.filter({ created_by: user.email }, "-created_date");
       setInvoices(invoiceData);
-      setClients(clientData);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
     } finally {
@@ -47,264 +90,216 @@ export default function Dashboard() {
     }
   };
 
-  // FIXED REVENUE CALCULATION - Only count PAID invoices
-  const totalRevenue = invoices
-    .filter(inv => inv.status === 'paid' || inv.payment_status === 'paid')
-    .reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
-    
-  const paidInvoices = invoices.filter(inv => inv.status === 'paid' || inv.payment_status === 'paid').length;
-  const pendingInvoices = invoices.filter(inv => inv.status === 'sent').length;
-  const overdueInvoices = invoices.filter(inv => inv.status === 'overdue').length;
+  const stats = useMemo(() => {
+    const by = (status) => invoices.filter((i) => i.status === status);
+    const sum = (list) => list.reduce((s, i) => s + (Number(i.total_amount) || 0), 0);
+    const draft = by("draft");
+    const sent = by("sent");
+    const viewed = by("viewed");
+    const paid = by("paid");
+    const overdue = by("overdue");
+    return {
+      draft: { count: draft.length, total: sum(draft) },
+      sent: { count: sent.length, total: sum(sent) },
+      viewed: { count: viewed.length, total: sum(viewed) },
+      paid: { count: paid.length, total: sum(paid) },
+      overdue: { count: overdue.length, total: sum(overdue) },
+    };
+  }, [invoices]);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'paid': return 'bg-green-100 text-green-800';
-      case 'sent': return 'bg-blue-100 text-blue-800';
-      case 'viewed': return 'bg-purple-100 text-purple-800';
-      case 'overdue': return 'bg-red-100 text-red-800';
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const recentInvoices = invoices.slice(0, 8);
+
+  const handleViewInvoice = (id) => navigate(createPageUrl(`InvoiceDetail?id=${id}`));
+
+  const openFollowUp = (invoice) => {
+    const companyName = "our team";
+    const presetSubject = `Friendly follow-up: Invoice ${invoice.invoice_number}`;
+    const presetBody = `Hi ${invoice.client_name || "there"},
+
+Just a friendly nudge regarding invoice ${invoice.invoice_number} for $${formatMoney(invoice.total_amount)}.
+
+If you've already sent payment, thank you — please disregard this note. Otherwise, you can view and pay the invoice here:
+${window.location.origin}${createPageUrl(`PublicInvoice?id=${invoice.id}`)}
+
+Happy to answer any questions.
+
+Best,
+${companyName}`;
+    setFollowUpInvoice({ invoice, presetSubject, presetBody });
   };
 
-  const handleViewClientInvoices = (clientName) => {
-    navigate(createPageUrl(`Invoices?client=${encodeURIComponent(clientName)}`));
-  };
-
-  const handleViewInvoice = (invoiceId) => {
-    navigate(createPageUrl(`InvoiceDetail?id=${invoiceId}`));
+  const projectDescription = (inv) => {
+    const first = inv.line_items?.[0];
+    return first?.description || first?.detail || inv.notes?.split("\n")[0] || "—";
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 dark:from-slate-900 dark:to-slate-800 p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Hero Section */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-4"
-        >
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            Welcome to INVIO
-          </h1>
-          <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-            Create professional invoices instantly with our intelligent AI assistant and voice features.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to={createPageUrl("CreateInvoice")}>
-              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                <FileText className="w-5 h-5 mr-2" />
-                Create New Invoice
+    <div className="min-h-screen bg-stone-100 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex items-end justify-between flex-wrap gap-4">
+          <div>
+            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-500">Money Pipeline</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
+          </div>
+          <Link to={createPageUrl("CreateInvoice")}>
+            <Button className="bg-slate-900 hover:bg-slate-800 text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              New Invoice
+            </Button>
+          </Link>
+        </div>
+
+        {/* Stat columns */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          {PIPELINE.map((col, idx) => {
+            const s = stats[col.key];
+            const a = ACCENTS[col.accent];
+            return (
+              <motion.div
+                key={col.key}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                className={`relative bg-white rounded-xl border ${a.ring} p-4 md:p-5 overflow-hidden`}
+              >
+                <div className={`absolute top-0 left-0 h-full w-1 ${a.bar}`} />
+                <p className={`text-[10px] md:text-xs font-bold tracking-[0.15em] uppercase ${a.text}`}>{col.label}</p>
+                <p className={`mt-2 text-xl md:text-3xl font-bold tabular-nums ${a.amount}`}>
+                  ${formatMoney(s.total)}
+                </p>
+                <p className={`text-xs ${a.sub}`}>{s.count} {s.count === 1 ? "invoice" : "invoices"}</p>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Overdue card (conditional) */}
+        {stats.overdue.count > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`relative bg-white rounded-xl border ${ACCENTS.red.ring} p-4 md:p-5 overflow-hidden`}
+          >
+            <div className={`absolute top-0 left-0 h-full w-1 ${ACCENTS.red.bar}`} />
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] md:text-xs font-bold tracking-[0.15em] uppercase text-red-700">Overdue</p>
+                <p className="mt-2 text-xl md:text-3xl font-bold tabular-nums text-red-700">
+                  ${formatMoney(stats.overdue.total)}
+                </p>
+                <p className="text-xs text-red-600">{stats.overdue.count} overdue {stats.overdue.count === 1 ? "invoice" : "invoices"}</p>
+              </div>
+              <Button variant="outline" className="border-red-300 text-red-700 hover:bg-red-50" onClick={() => navigate(createPageUrl("Invoices"))}>
+                Review
               </Button>
-            </Link>
-            <Link to={createPageUrl("VoiceInvoice")}>
-              <Button variant="outline" className="border-purple-200 hover:bg-purple-50 px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                <Mic className="w-5 h-5 mr-2" />
-                Voice Invoice (Testing)
-              </Button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Recent invoices */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold tracking-[0.15em] uppercase text-slate-600">Recent Invoices</h2>
+            <Link to={createPageUrl("Invoices")} className="text-xs font-semibold text-slate-500 hover:text-slate-800">
+              View all →
             </Link>
           </div>
-        </motion.div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-300">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">Total Revenue</CardTitle>
-                <DollarSign className="w-4 h-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-800 dark:text-green-300">${totalRevenue.toFixed(2)}</div>
-                <p className="text-xs text-green-600 dark:text-green-400 flex items-center mt-1">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  All time earnings
-                </p>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800 hover:shadow-lg transition-all duration-300">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-400">Total Invoices</CardTitle>
-                <FileText className="w-4 h-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-800 dark:text-blue-300">{invoices.length}</div>
-                <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center mt-1">
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  {paidInvoices} paid
-                </p>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800 hover:shadow-lg transition-all duration-300">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-400">Active Clients</CardTitle>
-                <Users className="w-4 h-4 text-purple-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-purple-800 dark:text-purple-300">{clients.length}</div>
-                <p className="text-xs text-purple-600 dark:text-purple-400">Registered clients</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border-orange-200 dark:border-orange-800 hover:shadow-lg transition-all duration-300">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-orange-700 dark:text-orange-400">Pending</CardTitle>
-                <Clock className="w-4 h-4 text-orange-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-800 dark:text-orange-300">{pendingInvoices}</div>
-                <p className="text-xs text-orange-600 dark:text-orange-400">Awaiting payment</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-
-        {/* Quick Actions */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ delay: 0.5 }}
-          className="grid md:grid-cols-2 gap-6"
-        >
-          <Card className="bg-gradient-to-br from-purple-600 to-blue-600 dark:from-purple-700 dark:to-blue-700 text-white border-0 hover:shadow-xl transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold flex items-center gap-3">
-                <FileText className="w-6 h-6" />
-                Invoice Creator
-              </CardTitle>
-              <p className="text-purple-100">
-                Create professional invoices quickly with our intelligent form system and AI assistance.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <Link to={createPageUrl("CreateInvoice")}>
-                <Button variant="secondary" className="w-full bg-white/20 hover:bg-white/30 text-white border-white/20">
-                  Create New Invoice
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-green-500 to-emerald-600 dark:from-green-600 dark:to-emerald-700 text-white border-0 hover:shadow-xl transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold flex items-center gap-3">
-                <Mic className="w-6 h-6" />
-                Voice Features
-              </CardTitle>
-              <p className="text-green-100">
-                Use voice commands to create invoices naturally with our advanced AI voice recognition.
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Link to={createPageUrl("VoiceInvoice")}>
-                <Button variant="secondary" className="w-full bg-white/20 hover:bg-white/30 text-white border-white/20">
-                  <Mic className="w-4 h-4 mr-2" />
-                  Voice Invoice Creator
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Recent Activity */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }}>
-            <Card className="hover:shadow-lg transition-all duration-300 bg-white dark:bg-slate-800">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">Recent Invoices</CardTitle>
-                <Link to={createPageUrl("Invoices")}>
-                  <Button variant="ghost" size="sm">View All</Button>
-                </Link>
-              </CardHeader>
-              <CardContent>
-                {invoices.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-                    <FileText className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-                    <p className="font-medium">No invoices yet</p>
-                    <p className="text-sm">Create your first invoice with voice commands!</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {invoices.slice(0, 5).map((invoice) => (
-                      <div 
-                        key={invoice.id} 
-                        className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
-                        onClick={() => handleViewInvoice(invoice.id)}
-                      >
-                        <div>
-                          <p className="font-medium text-slate-800 dark:text-slate-100">{invoice.client_name}</p>
-                          <p className="text-sm text-slate-500 dark:text-slate-400">#{invoice.invoice_number}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-slate-800 dark:text-slate-100">${invoice.total_amount?.toFixed(2)}</p>
-                          <Badge className={getStatusColor(invoice.status)}>
-                            {invoice.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7 }}>
-            <Card className="hover:shadow-lg transition-all duration-300 bg-white dark:bg-slate-800">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">Top Clients</CardTitle>
-                <Link to={createPageUrl("Clients")}>
-                  <Button variant="ghost" size="sm">View All</Button>
-                </Link>
-              </CardHeader>
-              <CardContent>
-                {clients.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-                    <Users className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-                    <p className="font-medium">No clients yet</p>
-                    <p className="text-sm">Add clients to get started!</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {clients.slice(0, 5).map((client) => (
-                      <div 
-                        key={client.id} 
-                        className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors cursor-pointer"
-                        onClick={() => handleViewClientInvoices(client.name)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-blue-400 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-semibold text-sm">
-                              {client.name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-medium text-slate-800 dark:text-slate-100">{client.name}</p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">{client.email}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-slate-800 dark:text-slate-100">${client.total_revenue?.toFixed(2) || '0.00'}</p>
-                          <p className="text-sm text-slate-500 dark:text-slate-400">{client.total_invoices || 0} invoices</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
+          {isLoading ? (
+            <div className="space-y-2">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-20 bg-white rounded-xl border border-slate-200 animate-pulse" />
+              ))}
+            </div>
+          ) : recentInvoices.length === 0 ? (
+            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center">
+              <FileText className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+              <p className="font-semibold text-slate-700">No invoices yet</p>
+              <p className="text-sm text-slate-500 mt-1">Create your first invoice to start the pipeline.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {recentInvoices.map((inv) => (
+                <InvoiceRow
+                  key={inv.id}
+                  invoice={inv}
+                  onView={() => handleViewInvoice(inv.id)}
+                  onFollowUp={() => openFollowUp(inv)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Follow-up email modal */}
+      {followUpInvoice && (
+        <SendEmailModal
+          isOpen={true}
+          onClose={() => setFollowUpInvoice(null)}
+          invoice={followUpInvoice.invoice}
+          invoiceUrl={`${window.location.origin}${createPageUrl(`PublicInvoice?id=${followUpInvoice.invoice.id}`)}`}
+          presetSubject={followUpInvoice.presetSubject}
+          presetBody={followUpInvoice.presetBody}
+        />
+      )}
     </div>
+  );
+}
+
+function InvoiceRow({ invoice, onView, onFollowUp }) {
+  const isViewed = invoice.status === "viewed";
+  return (
+    <div
+      onClick={onView}
+      className="group bg-white rounded-xl border border-slate-200 p-3 md:p-4 flex items-center gap-3 md:gap-4 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer"
+    >
+      {/* Stamp */}
+      <div className="flex-shrink-0 w-16 md:w-20 flex justify-center">
+        <StampBadge status={invoice.status} pulse={isViewed} />
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-mono text-xs md:text-sm font-semibold text-slate-500">
+            #{invoice.invoice_number || "—"}
+          </span>
+          {isViewed && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onFollowUp();
+              }}
+              className="text-[10px] md:text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors"
+            >
+              Follow up
+            </button>
+          )}
+        </div>
+        <p className="font-semibold text-slate-900 truncate">{invoice.client_name || "—"}</p>
+        <p className="text-xs text-slate-500 truncate">{invoice.line_items?.[0]?.description || invoice.notes?.split("\n")[0] || "—"}</p>
+      </div>
+
+      {/* Amount */}
+      <div className="text-right flex-shrink-0">
+        <p className="font-mono text-base md:text-lg font-semibold text-slate-900 tabular-nums">
+          ${formatMoney(invoice.total_amount)}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function StampBadge({ status, pulse }) {
+  const cls = STAMP_STYLES[status] || STAMP_STYLES.draft;
+  return (
+    <span
+      className={`inline-flex items-center justify-center px-2 py-1 border-2 ${cls} text-[10px] md:text-xs font-bold tracking-[0.12em] uppercase rounded-md ${pulse ? "animate-pulse" : ""}`}
+      style={{ transform: "rotate(-4deg)" }}
+    >
+      {status}
+    </span>
   );
 }

@@ -2,40 +2,30 @@ import { useState, useRef, useEffect } from "react";
 import { Invoice } from "@/entities/Invoice";
 import { Client } from "@/entities/Client";
 import { InvokeLLM } from "@/integrations/Core";
-import {
-  Mic,
-  Wand2,
-  Keyboard,
-  MessageSquare,
-  RefreshCw,
-  FileUp,
-  Zap,
-  Camera // Added Camera icon
-} from "lucide-react";
+import { Mic, Wand2, Keyboard, RefreshCw, FileUp, Zap, Camera, Send, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
-import VoiceRecorder from "../components/voice/VoiceRecorder";
+import ThermalMicButton from "../components/voice/ThermalMicButton";
+import ThermalReceipt from "../components/invoices/ThermalReceipt";
 import InvoiceEditor from "../components/invoices/InvoiceEditor";
-import VoiceTranscript from "../components/voice/VoiceTranscript";
 import ManualInput from "../components/voice/ManualInput";
 import SendConfirmationModal from "../components/invoices/SendConfirmationModal";
 import VoiceConversation from "../components/voice/VoiceConversation";
 import VoiceSetupGuide from "../components/voice/VoiceSetupGuide";
 import PdfInvoiceUploader from "../components/invoices/PdfInvoiceUploader";
-import ScreenshotInvoiceUploader from "../components/invoices/ScreenshotInvoiceUploader"; // Added ScreenshotInvoiceUploader
+import ScreenshotInvoiceUploader from "../components/invoices/ScreenshotInvoiceUploader";
 
 const speak = (text) => {
-  if ('speechSynthesis' in window) {
+  if ("speechSynthesis" in window) {
     const utterance = new SpeechSynthesisUtterance(text);
     window.speechSynthesis.speak(utterance);
   } else {
-    console.log('Text-to-speech not supported in this browser.');
+    console.log("Text-to-speech not supported in this browser.");
   }
 };
 
@@ -52,6 +42,7 @@ export default function VoiceInvoice() {
   const [showSendModal, setShowSendModal] = useState(false);
   const wasRecording = useRef(false);
   const [showVoiceConversation, setShowVoiceConversation] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
 
   useEffect(() => {
     loadClients();
@@ -147,11 +138,11 @@ Return the invoice data in the exact JSON structure specified.
 
       result.voice_transcript = inputText;
       result.template = "modern";
-      
+
       // Ensure invoice_date defaults to today
       const today = new Date().toISOString().split('T')[0];
       result.invoice_date = result.invoice_date || today;
-      
+
       // Ensure due_date is set (30 days from today if not specified)
       if (!result.due_date) {
         const dueDate = new Date();
@@ -178,24 +169,21 @@ Return the invoice data in the exact JSON structure specified.
       setIsProcessing(false);
     }
   };
-  
+
   const handlePdfDataExtracted = (data) => {
-    console.log('Data extracted:', data); // Changed log message to be more generic
-    
     setError(null);
 
     if (!data) {
-      setError("No data could be extracted. Please try a different file/image or enter details manually."); // Generic error message
+      setError("No data could be extracted. Please try a different file/image or enter details manually.");
       return;
     }
 
-    // Ensure we have the basic structure and default values
     const finalData = {
       invoice_number: data.invoice_number || `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
       client_name: data.client_name || 'Client Name',
       client_email: data.client_email || '',
       invoice_date: data.invoice_date || new Date().toISOString().split('T')[0],
-      due_date: data.due_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+      due_date: data.due_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       line_items: data.line_items || [],
       subtotal: data.subtotal || 0,
       tax_rate: data.tax_rate || 0,
@@ -206,13 +194,11 @@ Return the invoice data in the exact JSON structure specified.
       template: "modern"
     };
 
-    // Validate line items
     if (finalData.line_items.length === 0) {
-      setError("No line items found. Please add items manually or try a different file/image."); // Generic error message
+      setError("No line items found. Please add items manually or try a different file/image.");
       return;
     }
 
-    // Recalculate totals to ensure consistency
     const subtotal = finalData.line_items.reduce((sum, item) => sum + (item.total || 0), 0);
     const taxAmount = subtotal * (finalData.tax_rate / 100);
     const totalAmount = subtotal + taxAmount - (finalData.discount_amount || 0);
@@ -221,24 +207,23 @@ Return the invoice data in the exact JSON structure specified.
     finalData.tax_amount = taxAmount;
     finalData.total_amount = totalAmount;
 
-    console.log('Final processed data:', finalData);
     setInvoiceData(finalData);
-    speak(`I've extracted the data. Please review the invoice.`); // Generic speak message
+    speak(`I've extracted the data. Please review the invoice.`);
   };
-  
+
   const saveInvoiceAsDraft = async () => {
     if (!invoiceData) return;
 
     try {
       if (invoiceData.client_name) {
-          const existingClient = await Client.filter({ name: invoiceData.client_name });
-          if (existingClient.length === 0) {
-              await Client.create({
-                  name: invoiceData.client_name,
-                  email: invoiceData.client_email || ''
-              });
-              await loadClients();
-          }
+        const existingClient = await Client.filter({ name: invoiceData.client_name });
+        if (existingClient.length === 0) {
+          await Client.create({
+            name: invoiceData.client_name,
+            email: invoiceData.client_email || ''
+          });
+          await loadClients();
+        }
       }
 
       const newInvoice = await Invoice.create({ ...invoiceData, status: "draft" });
@@ -247,11 +232,6 @@ Return the invoice data in the exact JSON structure specified.
       console.error("Error saving invoice:", error);
       setError("Failed to save invoice. Please try again.");
     }
-  };
-  
-  const saveAndClose = async () => {
-    await saveInvoiceAsDraft();
-    resetSession();
   };
 
   const resetSession = () => {
@@ -262,7 +242,8 @@ Return the invoice data in the exact JSON structure specified.
     setError(null);
     setShowSendModal(false);
     setShowVoiceConversation(false);
-    setInputMode("voice"); // Reset to voice as default
+    setShowEditor(false);
+    setInputMode("voice");
   };
 
   const getCurrentInput = () => {
@@ -275,187 +256,146 @@ Return the invoice data in the exact JSON structure specified.
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-purple-900/20 p-3 md:p-6">
-      <div className="max-w-4xl mx-auto space-y-4 md:space-y-8">
+    <div className="min-h-screen bg-stone-100 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-2 md:space-y-4"
-        >
-          <div className="flex items-center justify-center gap-2 md:gap-3">
-            <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg md:rounded-xl flex items-center justify-center">
-              <Wand2 className="w-4 h-4 md:w-6 md:h-6 text-white" />
-            </div>
-            <h1 className="text-xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">AI Invoice Creator</h1>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-500">Thermal Print</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Voice Invoice</h1>
           </div>
-          <p className="text-sm md:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto px-2">
-            Create invoices by voice, typing, or uploading files
-          </p>
-        </motion.div>
-
-        {/* Main Input Area - Show if no invoice data */}
-        {!invoiceData && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+          <Button
+            variant="outline"
+            onClick={() => setShowVoiceConversation(true)}
+            className="text-sm"
+            size="sm"
           >
-            <Card className="bg-gradient-to-br from-white to-purple-50 dark:from-slate-800 dark:to-purple-900/20 border-purple-200 dark:border-purple-800 shadow-xl">
-              <CardHeader className="p-3 md:p-6 border-b dark:border-slate-700">
-                <Tabs value={inputMode} onValueChange={setInputMode} className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 bg-slate-100 dark:bg-slate-700 h-auto">
-                    <TabsTrigger value="voice" className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-2 px-2 text-xs md:text-sm">
-                      <Mic className="w-4 h-4" />
-                      <span className="hidden sm:inline">Voice</span>
-                      <span className="sm:hidden">🎤</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="screenshot" className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-2 px-2 text-xs md:text-sm">
-                      <Camera className="w-4 h-4" />
-                      <span className="hidden sm:inline">Photo</span>
-                      <span className="sm:hidden">📸</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="manual" className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-2 px-2 text-xs md:text-sm">
-                      <Keyboard className="w-4 h-4" />
-                      <span className="hidden sm:inline">Type</span>
-                      <span className="sm:hidden">⌨️</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="pdf" className="flex flex-col md:flex-row items-center gap-1 md:gap-2 py-2 px-2 text-xs md:text-sm">
-                      <FileUp className="w-4 h-4" />
-                      <span className="hidden sm:inline">PDF</span>
-                      <span className="sm:hidden">📄</span>
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowVoiceConversation(true)}
-                  className="bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 mt-3 w-full md:w-auto text-sm"
-                  size="sm"
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  AI Chat
-                </Button>
-              </CardHeader>
+            <Zap className="w-4 h-4 mr-2" />
+            AI Chat
+          </Button>
+        </div>
 
-              <CardContent className="p-3 md:p-6 space-y-4 md:space-y-6">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={inputMode}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {inputMode === 'voice' && (
-                      <div className="space-y-4 md:space-y-6">
-                        <VoiceRecorder
-                          onTranscriptChange={setTranscript}
-                          onRecordingChange={setIsRecording}
-                          isProcessing={isProcessing}
-                        />
-                         {(transcript && !isProcessing) && (
-                            <div className="flex flex-col items-center gap-3 md:gap-4">
-                                <VoiceTranscript transcript={transcript} isProcessing={isProcessing} />
-                                <Button
-                                  onClick={handleProcessClick}
-                                  disabled={!transcript || isProcessing}
-                                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 md:px-8 py-2 md:py-3 rounded-xl shadow-lg w-full md:w-auto text-sm md:text-base"
-                                >
-                                  {isProcessing ? (
-                                    <><RefreshCw className="w-4 h-4 md:w-5 md:h-5 mr-2 animate-spin" />Processing...</>
-                                  ) : (
-                                    <><Wand2 className="w-4 h-4 md:w-5 md:h-5 mr-2" />Generate Invoice</>
-                                  )}
-                                </Button>
-                            </div>
-                        )}
-                      </div>
-                    )}
+        {/* Two-column layout: mic + receipt */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Left: Mic + transcript + input modes */}
+          <div className="bg-white rounded-xl border-2 border-[#17150f] p-4 md:p-6 shadow-[4px_4px_0_#17150f]">
+            <Tabs value={inputMode} onValueChange={setInputMode} className="w-full mb-6">
+              <TabsList className="grid w-full grid-cols-4 bg-stone-100">
+                <TabsTrigger value="voice" className="flex items-center gap-1.5 text-xs">
+                  <Mic className="w-4 h-4" />
+                  <span className="hidden sm:inline">Voice</span>
+                </TabsTrigger>
+                <TabsTrigger value="screenshot" className="flex items-center gap-1.5 text-xs">
+                  <Camera className="w-4 h-4" />
+                  <span className="hidden sm:inline">Photo</span>
+                </TabsTrigger>
+                <TabsTrigger value="manual" className="flex items-center gap-1.5 text-xs">
+                  <Keyboard className="w-4 h-4" />
+                  <span className="hidden sm:inline">Type</span>
+                </TabsTrigger>
+                <TabsTrigger value="pdf" className="flex items-center gap-1.5 text-xs">
+                  <FileUp className="w-4 h-4" />
+                  <span className="hidden sm:inline">PDF</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-                    {inputMode === 'manual' && (
-                      <div className="space-y-4 md:space-y-6">
-                        <ManualInput
-                          value={manualInput}
-                          onChange={setManualInput}
-                          isProcessing={isProcessing}
-                        />
-                        <div className="flex justify-center">
-                           <Button
-                              onClick={handleProcessClick}
-                              disabled={!manualInput || isProcessing}
-                              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 md:px-8 py-2 md:py-3 rounded-xl shadow-lg w-full md:w-auto text-sm md:text-base"
-                            >
-                              {isProcessing ? (
-                                <><RefreshCw className="w-4 h-4 md:w-5 md:h-5 mr-2 animate-spin" />Processing...</>
-                              ) : (
-                                <><Wand2 className="w-4 h-4 md:w-5 md:h-5 mr-2" />Generate Invoice</>
-                              )}
-                            </Button>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={inputMode}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.2 }}
+              >
+                {inputMode === "voice" && (
+                  <div className="space-y-6">
+                    <VoiceSetupGuide />
+                    <ThermalMicButton
+                      onTranscriptChange={setTranscript}
+                      onRecordingChange={setIsRecording}
+                      isProcessing={isProcessing}
+                    />
+                    {transcript && !isProcessing && (
+                      <div className="space-y-3">
+                        <div className="bg-stone-50 border border-[#17150f]/20 rounded-lg p-3">
+                          <p className="text-[10px] font-semibold tracking-[0.15em] uppercase text-slate-500 mb-1">Transcript</p>
+                          <p className="font-mono text-sm text-[#17150f] whitespace-pre-wrap">{transcript}</p>
                         </div>
+                        <Button
+                          onClick={handleProcessClick}
+                          disabled={!transcript || isProcessing}
+                          className="w-full bg-[#17150f] hover:bg-black text-white"
+                        >
+                          <Wand2 className="w-4 h-4 mr-2" />
+                          Generate Invoice
+                        </Button>
                       </div>
                     )}
-                    
-                    {/* Added Screenshot Input Mode */}
-                    {inputMode === 'screenshot' && (
-                       <ScreenshotInvoiceUploader 
-                         onDataExtracted={handlePdfDataExtracted} 
-                         onProcessing={setIsProcessing} 
-                       />
-                    )}
-
-                    {/* PDF Input Mode */}
-                    {inputMode === 'pdf' && (
-                       <PdfInvoiceUploader 
-                         onDataExtracted={handlePdfDataExtracted} 
-                         onProcessing={setIsProcessing} 
-                       />
-                    )}
-                  </motion.div>
-                </AnimatePresence>
-                
-                 {isProcessing && (
-                   <div className="flex flex-col items-center justify-center text-center p-4">
-                      <RefreshCw className="w-8 h-8 animate-spin text-purple-600" />
-                      <p className="text-slate-700 dark:text-slate-300 font-semibold mt-4 text-sm md:text-base">Processing your request...</p>
-                      <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm">Generating your invoice.</p>
-                   </div>
+                  </div>
                 )}
-              </CardContent>
-            </Card>
-            
-            {/* Examples - hidden on mobile, shown on desktop */}
-            <div className="hidden md:block mt-8 p-4 md:p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
-              <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                Examples:
-              </h3>
-              <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-                <p className="italic flex items-start gap-2">
-                  <Mic className="w-4 h-4 mt-0.5 text-purple-600 flex-shrink-0" />
-                  <span><strong>Voice:</strong> "Create an invoice for John Smith for website work, 10 hours at 75 dollars per hour"</span>
-                </p>
-                <p className="italic flex items-start gap-2">
-                  <Camera className="w-4 h-4 mt-0.5 text-orange-600 flex-shrink-0" />
-                  <span><strong>Photo:</strong> Upload an image of an invoice or receipt</span>
-                </p>
-                <p className="italic flex items-start gap-2">
-                  <FileUp className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
-                  <span><strong>PDF:</strong> Any PDF quotation or invoice to convert</span>
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
 
-        {/* Error Display */}
+                {inputMode === "manual" && (
+                  <div className="space-y-4">
+                    <ManualInput
+                      value={manualInput}
+                      onChange={setManualInput}
+                      isProcessing={isProcessing}
+                    />
+                    <Button
+                      onClick={handleProcessClick}
+                      disabled={!manualInput || isProcessing}
+                      className="w-full bg-[#17150f] hover:bg-black text-white"
+                    >
+                      <Wand2 className="w-4 h-4 mr-2" />
+                      Generate Invoice
+                    </Button>
+                  </div>
+                )}
+
+                {inputMode === "screenshot" && (
+                  <ScreenshotInvoiceUploader
+                    onDataExtracted={handlePdfDataExtracted}
+                    onProcessing={setIsProcessing}
+                  />
+                )}
+
+                {inputMode === "pdf" && (
+                  <PdfInvoiceUploader
+                    onDataExtracted={handlePdfDataExtracted}
+                    onProcessing={setIsProcessing}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {isProcessing && (
+              <div className="flex items-center justify-center gap-2 mt-6 py-4">
+                <RefreshCw className="w-5 h-5 animate-spin text-slate-600" />
+                <p className="text-sm font-semibold text-slate-700">Printing receipt...</p>
+              </div>
+            )}
+          </div>
+
+          {/* Right: Thermal receipt preview + action buttons */}
+          <div className="space-y-4">
+            <ThermalReceipt invoiceData={invoiceData} isProcessing={isProcessing} />
+
+            {/* Action buttons revealed after total prints */}
+            {invoiceData && !isProcessing && (
+              <ReceiptActions
+                invoiceData={invoiceData}
+                onSend={() => setShowSendModal(true)}
+                onEdit={() => setShowEditor(true)}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Error */}
         <AnimatePresence>
           {error && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-            >
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
@@ -463,17 +403,13 @@ Return the invoice data in the exact JSON structure specified.
           )}
         </AnimatePresence>
 
-        {/* Invoice Preview & Editor */}
+        {/* Invoice Editor (revealed when editing) */}
         <AnimatePresence>
-          {invoiceData && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
+          {invoiceData && showEditor && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
               <InvoiceEditor
                 invoiceData={invoiceData}
-                onSave={saveAndClose}
+                onSave={saveInvoiceAsDraft}
                 onCancel={resetSession}
                 isNew={true}
               />
@@ -489,20 +425,50 @@ Return the invoice data in the exact JSON structure specified.
                 setInvoiceData(data);
                 setShowVoiceConversation(false);
               }}
-              onClose={() => {
-                setShowVoiceConversation(false);
-              }}
+              onClose={() => setShowVoiceConversation(false)}
             />
           )}
         </AnimatePresence>
 
-        <SendConfirmationModal 
-            isOpen={showSendModal}
-            onClose={() => setShowSendModal(false)}
-            invoiceData={invoiceData}
-            onSaveDraft={saveInvoiceAsDraft}
+        <SendConfirmationModal
+          isOpen={showSendModal}
+          onClose={() => setShowSendModal(false)}
+          invoiceData={invoiceData}
+          onSaveDraft={saveInvoiceAsDraft}
         />
       </div>
     </div>
+  );
+}
+
+function ReceiptActions({ invoiceData, onSend, onEdit }) {
+  // Reveal after the receipt has finished printing (client + items + total)
+  const lineCount = 1 + (invoiceData.line_items?.length || 0);
+  const revealDelay = lineCount * 300 + 500;
+
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShown(true), revealDelay);
+    return () => clearTimeout(t);
+  }, [revealDelay]);
+
+  if (!shown) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex gap-3"
+    >
+      <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white">
+        <Send className="w-4 h-4 mr-2" />
+        Send + Pay Link
+      </Button>
+      <Button variant="outline" className="flex-1 border-[#17150f] text-[#17150f] hover:bg-stone-100" onClick={onEdit}>
+        <Edit className="w-4 h-4 mr-2" />
+        Edit
+      </Button>
+    </motion.div>
   );
 }

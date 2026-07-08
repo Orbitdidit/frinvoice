@@ -180,16 +180,6 @@
       "default": "modern",
       "description": "The visual template for the document"
     },
-    "skin": {
-      "type": "string",
-      "enum": [
-        "ledger",
-        "neon",
-        "luxe"
-      ],
-      "default": "ledger",
-      "description": "Client-facing public invoice skin: ledger (warm paper), neon (dark cyan glow), luxe (dark charcoal + gold)"
-    },
     "project_hero_image_url": {
       "type": "string",
       "description": "URL for a main project image to be displayed prominently"

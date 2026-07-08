@@ -19,7 +19,8 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  Trash
+  Trash,
+  Ruler
 } from "lucide-react";
 import { PaymentConfig } from "@/entities/PaymentConfig";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -221,7 +222,7 @@ export default function Settings() {
                       RateCalc Pricing Presets
                     </CardTitle>
                     <p className="text-slate-600 mt-1">
-                      Set up pricing templates with optional item dimensions for auto-fit calculations
+                      Set up pricing templates with optional item dimensions for auto-calculating quantities from target areas
                     </p>
                   </div>
                   <Button
@@ -237,9 +238,9 @@ export default function Settings() {
                   {presets.length === 0 ? (
                     <div className="text-center py-12">
                       <Calculator className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                      <h3 className="text-lg font-semibold text-slate-600 mb-2">No RateCalc presets yet</h3>
+                      <h3 className="text-lg font-semibold text-slate-600 mb-2">No pricing presets yet</h3>
                       <p className="text-slate-500 mb-6">
-                        Create presets with item dimensions to auto-calculate quantities from target areas
+                        Create presets to speed up your voice invoicing with pre-configured pricing
                       </p>
                       <Button
                         onClick={() => setShowPresetForm(true)}
@@ -301,10 +302,10 @@ export default function Settings() {
                                   </span>
                                 </div>
 
-                                {preset.item_width && preset.item_height && (
-                                  <div className="flex items-center gap-1.5 text-xs text-violet-600 bg-violet-50 px-2 py-1 rounded-md">
-                                    <Calculator className="w-3 h-3" />
-                                    {preset.item_width}{preset.item_dimension_unit} × {preset.item_height}{preset.item_dimension_unit}
+                                {preset.item_dimension_width && (
+                                  <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 rounded px-2 py-1">
+                                    <Ruler className="w-3 h-3" />
+                                    {preset.item_dimension_width}{preset.item_dimension_unit} × {preset.item_dimension_height}{preset.item_dimension_unit}
                                   </div>
                                 )}
                               </div>
@@ -324,22 +325,19 @@ export default function Settings() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <Card className="bg-gradient-to-r from-violet-50 to-indigo-50 border-violet-200">
+              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
                 <CardHeader>
-                  <CardTitle className="text-violet-900">🧮 How RateCalc Works</CardTitle>
+                  <CardTitle className="text-blue-900">💡 How SmartCalc™ Works</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <p className="text-violet-800">
-                    <strong>Example:</strong> Preset "LED Panel" at $225 each with item dims 640mm × 480mm.
+                  <p className="text-blue-800">
+                    <strong>Voice Command Example:</strong> "Calculate price for full print and installation on a 50 ft by 5 ft wall."
                   </p>
-                  <p className="text-violet-700">
-                    <strong>Voice Command:</strong> "Invoice for LED panels on a 20ft × 10ft wall."
+                  <p className="text-blue-700">
+                    <strong>INVIO Response:</strong> "The estimated total is approximately $3,750 (250 sq ft × $15/sq ft)."
                   </p>
-                  <p className="text-violet-700">
-                    <strong>RateCalc:</strong> Converts 640mm×480mm to inches, calculates ~60 panels fit (rounding up per row/column), generates line item: 60 × $225 = $13,500.
-                  </p>
-                  <p className="text-sm text-violet-600">
-                    Add item dimensions to per_panel/per_piece/per_sqft presets to enable auto-fit. In the invoice editor, use the RateCalc button to pick a preset and enter either a quantity or target dimensions.
+                  <p className="text-sm text-blue-600">
+                    Set up presets for your most common services to get instant, accurate pricing during client consultations.
                   </p>
                 </CardContent>
               </Card>
@@ -521,15 +519,23 @@ function PresetForm({ preset, onSave, onCancel }) {
     unit_type: "per_hour",
     base_price: 0,
     description: "",
-    item_width: null,
-    item_height: null,
+    item_dimension_width: null,
+    item_dimension_height: null,
     item_dimension_unit: "mm"
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    // Clean up dimension fields if not per_panel
+    const dataToSave = { ...formData };
+    if (formData.unit_type !== "per_panel") {
+      dataToSave.item_dimension_width = null;
+      dataToSave.item_dimension_height = null;
+    }
+    onSave(dataToSave);
   };
+
+  const isPerPanel = formData.unit_type === "per_panel";
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -595,7 +601,7 @@ function PresetForm({ preset, onSave, onCancel }) {
                       <SelectItem value="per_piece">Per Piece</SelectItem>
                       <SelectItem value="per_sqft">Per Sq Ft</SelectItem>
                       <SelectItem value="per_linear_ft">Per Linear Ft</SelectItem>
-                      <SelectItem value="per_panel">Per Panel</SelectItem>
+                      <SelectItem value="per_panel">Per Panel (with dimensions)</SelectItem>
                       <SelectItem value="flat_rate">Flat Rate</SelectItem>
                     </SelectContent>
                   </Select>
@@ -624,46 +630,51 @@ function PresetForm({ preset, onSave, onCancel }) {
                 />
               </div>
 
-              {(formData.unit_type === "per_panel" || formData.unit_type === "per_piece" || formData.unit_type === "per_sqft") && (
-                <div className="space-y-3 p-4 bg-violet-50 rounded-xl border border-violet-200">
-                  <Label className="text-sm font-semibold text-violet-900 flex items-center gap-1.5">
-                    <Calculator className="w-4 h-4" />
-                    Item Dimensions (for RateCalc auto-fit)
-                  </Label>
-                  <p className="text-xs text-violet-600">
-                    When set, RateCalc can calculate how many units fit into a target area.
+              {isPerPanel && (
+                <div className="space-y-3 p-4 rounded-lg bg-blue-50 border border-blue-200">
+                  <div className="flex items-center gap-2">
+                    <Ruler className="w-4 h-4 text-blue-600" />
+                    <p className="text-sm font-semibold text-blue-900">Item Dimensions</p>
+                  </div>
+                  <p className="text-xs text-blue-600">
+                    Enter the physical size of a single panel/unit. RateCalc uses this to calculate how many fit in a target area.
                   </p>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="space-y-1">
-                      <Label className="text-xs text-slate-600">Width</Label>
+                      <Label className="text-xs">Width</Label>
                       <Input
                         type="number"
                         step="0.1"
-                        value={formData.item_width || ""}
-                        onChange={(e) => setFormData({...formData, item_width: parseFloat(e.target.value) || null})}
+                        min="0"
+                        value={formData.item_dimension_width || ""}
+                        onChange={(e) => setFormData({...formData, item_dimension_width: parseFloat(e.target.value) || null})}
                         placeholder="640"
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-slate-600">Height</Label>
+                      <Label className="text-xs">Height</Label>
                       <Input
                         type="number"
                         step="0.1"
-                        value={formData.item_height || ""}
-                        onChange={(e) => setFormData({...formData, item_height: parseFloat(e.target.value) || null})}
+                        min="0"
+                        value={formData.item_dimension_height || ""}
+                        onChange={(e) => setFormData({...formData, item_dimension_height: parseFloat(e.target.value) || null})}
                         placeholder="480"
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-slate-600">Unit</Label>
+                      <Label className="text-xs">Unit</Label>
                       <Select
                         value={formData.item_dimension_unit || "mm"}
                         onValueChange={(value) => setFormData({...formData, item_dimension_unit: value})}
                       >
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="mm">mm</SelectItem>
                           <SelectItem value="cm">cm</SelectItem>
+                          <SelectItem value="m">m</SelectItem>
                           <SelectItem value="in">in</SelectItem>
                           <SelectItem value="ft">ft</SelectItem>
                         </SelectContent>

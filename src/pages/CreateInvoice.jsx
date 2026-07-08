@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Invoice } from "@/entities/Invoice";
 import { Client } from "@/entities/Client";
+import { PricingPreset } from "@/entities/PricingPreset";
 import { base44 } from "@/api/base44Client";
 import {
   FileText,

@@ -6,12 +6,25 @@ module.exports = {
   	extend: {
   		borderRadius: {
   			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			md: 'calc(var(--radius) + 1px)',
+  			sm: 'calc(var(--radius) + 2px)'
+  		},
+  		fontFamily: {
+  			heading: ['Archivo', 'system-ui', 'sans-serif'],
+  			body: ['Archivo', 'system-ui', 'sans-serif'],
+  			sans: ['Archivo', 'system-ui', 'sans-serif'],
+  			mono: ['IBM Plex Mono', 'monospace'],
   		},
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
+  			paper: '#f4f0e6',
+  			ink: '#17150f',
+  			money: {
+  				DEFAULT: 'hsl(var(--money))',
+  				foreground: 'hsl(var(--money-foreground))',
+  			},
+  			stamp: 'hsl(var(--stamp))',
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
@@ -61,22 +74,19 @@ module.exports = {
   				ring: 'hsl(var(--sidebar-ring))'
   			}
   		},
+  		boxShadow: {
+  			hard: '4px 4px 0 #17150f',
+  			'hard-sm': '3px 3px 0 #17150f',
+  			'hard-lg': '6px 6px 0 #17150f',
+  		},
   		keyframes: {
   			'accordion-down': {
-  				from: {
-  					height: '0'
-  				},
-  				to: {
-  					height: 'var(--radix-accordion-content-height)'
-  				}
+  				from: { height: '0' },
+  				to: { height: 'var(--radix-accordion-content-height)' }
   			},
   			'accordion-up': {
-  				from: {
-  					height: 'var(--radix-accordion-content-height)'
-  				},
-  				to: {
-  					height: '0'
-  				}
+  				from: { height: 'var(--radix-accordion-content-height)' },
+  				to: { height: '0' }
   			}
   		},
   		animation: {

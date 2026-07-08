@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Invoice } from "@/entities/Invoice";
 import { Client } from "@/entities/Client";
+import { PricingPreset } from "@/entities/PricingPreset";
+import { calculateFit } from "@/lib/rateCalc";
 import { InvokeLLM } from "@/integrations/Core";
 import { Mic, Wand2, Keyboard, RefreshCw, FileUp, Zap, Camera, Send, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,6 +40,7 @@ export default function VoiceInvoice() {
   const [invoiceData, setInvoiceData] = useState(null);
   const [error, setError] = useState(null);
   const [clients, setClients] = useState([]);
+  const [presets, setPresets] = useState([]);
   const [inputMode, setInputMode] = useState("voice");
   const [showSendModal, setShowSendModal] = useState(false);
   const wasRecording = useRef(false);
@@ -46,6 +49,7 @@ export default function VoiceInvoice() {
 
   useEffect(() => {
     loadClients();
+    loadPresets();
   }, []);
 
   useEffect(() => {
@@ -62,6 +66,15 @@ export default function VoiceInvoice() {
       setClients(clientData);
     } catch (error) {
       console.error("Error loading clients:", error);
+    }
+  };
+
+  const loadPresets = async () => {
+    try {
+      const presetData = await PricingPreset.list("-created_date", 100);
+      setPresets(presetData);
+    } catch (error) {
+      console.error("Error loading presets:", error);
     }
   };
 
@@ -84,6 +97,11 @@ Your task is to extract and structure this information into a comprehensive invo
 3. Calculating appropriate pricing (use reasonable market rates if not specified).
 4. Identifying any discounts OR deposits mentioned. Treat deposits as a form of discount.
 5. Generating a professional invoice number.
+
+=== RATECALC PRESETS ===
+The user has the following saved pricing presets. If the user's request mentions a preset name (or close match) AND provides target dimensions (e.g., "20ft x 10ft", "50 ft by 5 ft"), set that line item's "ratecalc" field with { "preset_id": "<preset id>", "target_width": <number>, "target_height": <number>, "target_unit": "ft" }. Do NOT calculate the quantity yourself — the system auto-calculates from the preset's item dimensions. Set description to the preset name and unit_price to its base_price.
+
+${presets.length > 0 ? presets.map(p => `- ID: ${p.id} | Name: "${p.name}" | Base Price: $${p.base_price} | Unit: ${p.unit_type}${p.item_width ? ` | Item Dims: ${p.item_width}${p.item_dimension_unit} × ${p.item_height}${p.item_dimension_unit}` : ""}`).join('\n') : '(No presets saved)'}
 
 Rules:
 - If pricing isn't specified, use reasonable industry standard rates.
@@ -117,7 +135,16 @@ Return the invoice data in the exact JSON structure specified.
                 quantity: { type: "number" },
                 unit_price: { type: "number" },
                 total: { type: "number" },
-                is_discount: { type: "boolean" }
+                is_discount: { type: "boolean" },
+                ratecalc: {
+                  type: "object",
+                  properties: {
+                    preset_id:     { type: "string" },
+                    target_width:  { type: "number" },
+                    target_height: { type: "number" },
+                    target_unit:   { type: "string" }
+                  }
+                }
               }
             }
           },
@@ -138,6 +165,22 @@ Return the invoice data in the exact JSON structure specified.
 
       result.voice_transcript = inputText;
       result.template = "modern";
+
+      // Apply RateCalc: auto-calculate quantity from preset item dimensions
+      if (result.line_items && presets.length > 0) {
+        result.line_items = result.line_items.map((item) => {
+          if (item.ratecalc && item.ratecalc.preset_id) {
+            const preset = presets.find(p => p.id === item.ratecalc.preset_id);
+            if (preset && preset.item_width && preset.item_height) {
+              const fit = calculateFit(preset, item.ratecalc.target_width, item.ratecalc.target_height, item.ratecalc.target_unit || "ft");
+              if (fit) {
+                return { ...item, quantity: fit.count, unit_price: preset.base_price, detail: fit.detail };
+              }
+            }
+          }
+          return item;
+        });
+      }
 
       // Ensure invoice_date defaults to today
       const today = new Date().toISOString().split('T')[0];

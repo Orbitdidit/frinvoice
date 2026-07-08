@@ -101,19 +101,18 @@ function DesktopSidebar({ location, navigationItems, createPageUrl }) {
   }, [location.pathname]); // Refetch when navigation occurs
 
   return (
-    <Sidebar className="border-r border-slate-200/60 bg-white/80 backdrop-blur-xl hidden md:flex">
-      <SidebarHeader className="border-b border-slate-200/60 p-6">
+    <Sidebar className="border-r-2 border-ink bg-white hidden md:flex">
+      <SidebarHeader className="border-b-2 border-ink p-6">
         <Link to={createPageUrl("Dashboard")} className="block">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Zap className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-ink rounded-md flex items-center justify-center shadow-hard-sm">
+                <Zap className="w-6 h-6 text-paper" />
               </div>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
             </div>
             <div>
-              <h2 className="font-bold text-xl text-slate-900 tracking-tight">Frinvoice</h2>
-              <p className="text-xs text-slate-500 font-medium">Smart Invoice Management</p>
+              <h2 className="font-heading font-extrabold text-xl text-ink tracking-tight">Frinvoice</h2>
+              <p className="text-xs text-slate-500 font-mono font-medium uppercase tracking-wider">Smart Invoicing</p>
             </div>
           </div>
         </Link>
@@ -127,19 +126,17 @@ function DesktopSidebar({ location, navigationItems, createPageUrl }) {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    className={`group relative hover:bg-slate-50 transition-all duration-200 rounded-xl mb-1 ${
+                    className={`group relative transition-all duration-200 rounded-md mb-1 border-2 ${
                       location.pathname === item.url
-                        ? 'bg-gradient-to-r from-purple-50 to-blue-50 text-purple-700 shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900'
-                    } ${item.highlight ? 'ring-2 ring-purple-100' : ''}`}
+                        ? 'bg-ink text-paper border-ink shadow-hard-sm'
+                        : 'text-ink border-transparent hover:bg-paper'
+                    }`}
                   >
                     <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
-                      <item.icon className={`w-5 h-5 transition-colors ${
-                        location.pathname === item.url ? 'text-purple-600' : ''
-                      }`} />
-                      <span className="font-medium">{item.title}</span>
+                      <item.icon className="w-5 h-5" />
+                      <span className="font-heading font-semibold">{item.title}</span>
                       {item.highlight && (
-                        <Badge className="ml-auto bg-purple-100 text-purple-700 text-xs px-2 py-1">
+                        <Badge variant="money" className="ml-auto text-xs px-2 py-1 font-mono">
                           NEW
                         </Badge>
                       )}
@@ -152,21 +149,21 @@ function DesktopSidebar({ location, navigationItems, createPageUrl }) {
         </SidebarGroup>
 
         <SidebarGroup className="mt-8">
-          <SidebarGroupLabel className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-4 mb-3">
+          <SidebarGroupLabel className="text-xs font-mono font-semibold text-slate-500 uppercase tracking-wider px-4 mb-3">
             Quick Stats
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <div className="px-4 space-y-4">
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-100">
+              <div className="rounded-md p-3 border-2 border-ink bg-money/10">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-700">Revenue</span>
-                  <span className="text-lg font-bold text-green-600">${stats.revenue.toFixed(2)}</span>
+                  <span className="text-sm font-mono font-medium text-ink">Revenue</span>
+                  <span className="text-lg font-mono font-bold text-money">${stats.revenue.toFixed(2)}</span>
                 </div>
               </div>
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-3 border border-purple-100">
+              <div className="rounded-md p-3 border-2 border-ink bg-paper">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-700">Invoices</span>
-                  <span className="text-lg font-bold text-purple-600">{stats.invoices}</span>
+                  <span className="text-sm font-mono font-medium text-ink">Invoices</span>
+                  <span className="text-lg font-mono font-bold text-ink">{stats.invoices}</span>
                 </div>
               </div>
             </div>
@@ -174,10 +171,10 @@ function DesktopSidebar({ location, navigationItems, createPageUrl }) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-slate-200/60 p-4">
+      <SidebarFooter className="border-t-2 border-ink p-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-slate-200 to-slate-300 rounded-xl flex items-center justify-center">
-            <span className="text-slate-700 font-semibold text-sm">U</span>
+          <div className="w-10 h-10 bg-ink rounded-md flex items-center justify-center">
+            <span className="text-paper font-heading font-bold text-sm">U</span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-slate-900 text-sm truncate">User</p>
@@ -197,7 +194,7 @@ function MobileHeader({ createPageUrl, currentPageName, darkMode, setDarkMode })
 
   return (
     <header 
-    className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-700/60 px-6 md:hidden select-none"
+    className="bg-white dark:bg-slate-900 border-b-2 border-ink px-6 md:hidden select-none"
       style={{ 
         paddingTop: 'max(1rem, env(safe-area-inset-top))',
         paddingBottom: '1rem'
@@ -217,10 +214,10 @@ function MobileHeader({ createPageUrl, currentPageName, darkMode, setDarkMode })
           <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors duration-200" />
         )}
         <Link to={createPageUrl("Dashboard")} className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 bg-ink rounded-md flex items-center justify-center">
+            <Zap className="w-4 h-4 text-paper" />
           </div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Frinvoice</h1>
+          <h1 className="text-xl font-heading font-extrabold text-ink dark:text-white">Frinvoice</h1>
         </Link>
         <button
           onClick={() => setDarkMode(d => !d)}
@@ -323,27 +320,13 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      <div className="min-h-screen flex w-full bg-money-paper">
         <style>{`
           :root {
-            --primary: #8B5CF6;
-            --primary-dark: #7C3AED;
-            --accent: #10B981;
-            --background: #FAFBFC;
-            --surface: #FFFFFF;
-            --text-primary: #0B1426;
-            --text-secondary: #64748B;
-            --border: #E2E8F0;
-          }
-          
-          @media (prefers-color-scheme: dark) {
-            :root {
-              --background: #0F172A;
-              --surface: #1E293B;
-              --text-primary: #F1F5F9;
-              --text-secondary: #94A3B8;
-              --border: #334155;
-            }
+            --paper: #f4f0e6;
+            --ink: #17150f;
+            --money: #1f7a3d;
+            --stamp: #c8372d;
           }
           
           /* Disable text selection on UI elements */

@@ -28,17 +28,21 @@ import {
   Building,
   Copy,
   BookmarkPlus,
-  Wand2
+  Wand2,
+  Calculator,
+  Camera,
+  Sparkles as SparklesIcon
 } from "lucide-react";
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import LineItemImageUpload from "./LineItemImageUpload";
 import ImageCarousel from "./ImageCarousel";
+import RateCalcSheet from "./RateCalcSheet";
 import { User as UserEntity } from "@/entities/User";
 import { Client } from "@/entities/Client";
 import { PricingPreset } from "@/entities/PricingPreset";
-import { UploadFile, InvokeLLM } from "@/integrations/Core";
+import { UploadFile, InvokeLLM, GenerateImage } from "@/integrations/Core";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { MobileSelect, SelectItem } from "@/components/ui/mobile-select";
 import {
@@ -78,6 +82,9 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
   const [clients, setClients] = useState([]);
   const [clientSearchOpen, setClientSearchOpen] = useState(false);
   const [showClientForm, setShowClientForm] = useState(false);
+  const [rateCalcOpen, setRateCalcOpen] = useState(false);
+  const [imageUploadOpen, setImageUploadOpen] = useState({}); // { [itemIndex]: boolean }
+  const [aiImageLoading, setAiImageLoading] = useState({}); // { [itemIndex]: boolean }
 
   useEffect(() => {
     setEditableData(prev => {
@@ -327,6 +334,44 @@ Client: "${editableData.client_name || ''}"`,
       toast.success("✅ Saved as preset!");
     } catch (error) {
       console.error("Error saving preset:", error);
+    }
+  };
+
+  const handleRateCalcAdd = (newItem) => {
+    const itemWithId = {
+      ...newItem,
+      id: `item-${Date.now()}`,
+    };
+    const newData = recalculateTotals([...editableData.line_items, itemWithId], editableData);
+    setEditableData(newData);
+  };
+
+  const toggleImageUpload = (index) => {
+    setImageUploadOpen(prev => ({ ...prev, [index]: !prev[index] }));
+  };
+
+  const handleAiGenerateImage = async (index) => {
+    const item = editableData.line_items[index];
+    if (!item.description || item.description.trim().length < 2) {
+      toast.error("Add a description first");
+      return;
+    }
+    setAiImageLoading(prev => ({ ...prev, [index]: true }));
+    try {
+      const result = await GenerateImage({
+        prompt: `A clean, simple, professional icon/illustration for an invoice line item. Subject: "${item.description}". Minimal style, flat design, centered, white background, no text.`,
+      });
+      if (result?.url) {
+        const currentUrls = item.file_urls || [];
+        const updated = [...currentUrls, result.url];
+        handleLineItemImagesChange(index, updated);
+        toast.success("✨ AI generated an image for this item");
+      }
+    } catch (e) {
+      console.error("AI image generation failed:", e);
+      toast.error("AI image generation failed");
+    } finally {
+      setAiImageLoading(prev => ({ ...prev, [index]: false }));
     }
   };
 
@@ -772,7 +817,16 @@ Client: "${editableData.client_name || ''}"`,
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <Label className="text-lg font-semibold text-slate-800">Line Items</Label>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRateCalcOpen(true)}
+                  className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                >
+                  <Calculator className="w-4 h-4 mr-1" />
+                  RateCalc
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -838,6 +892,29 @@ Client: "${editableData.client_name || ''}"`,
                                         disabled={item._aiLoading}
                                       >
                                         {item._aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                                      </Button>
+                                    )}
+                                    {!item.is_discount && (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => toggleImageUpload(index)}
+                                        title="Attach / Replace Images"
+                                        className={`flex-shrink-0 ${(item.file_urls?.length > 0) || imageUploadOpen[index] ? 'text-blue-500 bg-blue-50' : 'text-slate-500 hover:text-blue-700 hover:bg-blue-50'}`}
+                                      >
+                                        <Camera className="w-4 h-4" />
+                                      </Button>
+                                    )}
+                                    {!item.is_discount && (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleAiGenerateImage(index)}
+                                        title="Ask AI: Generate an illustration"
+                                        className="text-amber-500 hover:text-amber-700 hover:bg-amber-50 flex-shrink-0"
+                                        disabled={aiImageLoading[index]}
+                                      >
+                                        {aiImageLoading[index] ? <Loader2 className="w-4 h-4 animate-spin" /> : <SparklesIcon className="w-4 h-4" />}
                                       </Button>
                                     )}
                                     <Button
@@ -909,7 +986,7 @@ Client: "${editableData.client_name || ''}"`,
                                     </div>
                                   </div>
 
-                                  {!item.is_discount && (
+                                  {!item.is_discount && ((item.file_urls?.length > 0) || imageUploadOpen[index]) && (
                                     <LineItemImageUpload
                                       images={item.file_urls || []}
                                       onImagesChange={(urls) => handleLineItemImagesChange(index, urls)}
@@ -1047,6 +1124,13 @@ Client: "${editableData.client_name || ''}"`,
           onCancel={() => setShowClientForm(false)}
         />
       )}
+
+      {/* RateCalc Sheet */}
+      <RateCalcSheet
+        open={rateCalcOpen}
+        onOpenChange={setRateCalcOpen}
+        onAddLineItem={handleRateCalcAdd}
+      />
     </motion.div>
   );
 }

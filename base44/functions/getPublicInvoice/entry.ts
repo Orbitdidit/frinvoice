@@ -60,6 +60,17 @@ Deno.serve(async (req) => {
             });
         }
 
+        // 4b. Mark as "viewed" when a client opens the public page (only from sent state,
+        // never downgrade paid/overdue/cancelled).
+        if (invoice.status === "sent") {
+            try {
+                await admin.entities.Invoice.update(invoice.id, { status: "viewed" });
+                invoice.status = "viewed";
+            } catch (e) {
+                console.error("Failed to mark invoice viewed:", e.message);
+            }
+        }
+
         // 5. Fetch Creator Info
         let creator = {};
         if (invoice.created_by) {

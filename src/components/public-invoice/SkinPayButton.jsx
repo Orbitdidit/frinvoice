@@ -5,8 +5,9 @@ import { createCheckoutSession } from "@/functions/createCheckoutSession";
 /**
  * Skin-styled "Pay Securely" button wired to the existing Stripe checkout function.
  * `style` and `mutedColor` are provided per-skin so each skin gets its exact treatment.
+ * `compact` renders a single full-width button (used in the mobile sticky bar).
  */
-export default function SkinPayButton({ invoice, isPaid, style, mutedColor }) {
+export default function SkinPayButton({ invoice, isPaid, style, mutedColor, compact = false }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePay = async () => {
@@ -30,6 +31,16 @@ export default function SkinPayButton({ invoice, isPaid, style, mutedColor }) {
   };
 
   if (isPaid) {
+    if (compact) {
+      return (
+        <div
+          className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-md font-bold tracking-wide"
+          style={{ border: `1px solid ${mutedColor}`, color: mutedColor }}
+        >
+          ✓ Payment received — thank you
+        </div>
+      );
+    }
     return (
       <div className="flex flex-col items-center gap-3">
         <div
@@ -39,6 +50,29 @@ export default function SkinPayButton({ invoice, isPaid, style, mutedColor }) {
           ✓ Payment received — thank you
         </div>
       </div>
+    );
+  }
+
+  if (compact) {
+    return (
+      <button
+        onClick={handlePay}
+        disabled={isLoading}
+        className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-md font-bold text-base tracking-[0.06em] uppercase transition-transform active:translate-y-0.5 disabled:opacity-70"
+        style={style}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Processing…
+          </>
+        ) : (
+          <>
+            <Lock className="w-4 h-4" />
+            Pay {invoice.total_amount ? `$${Number(invoice.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "Securely"}
+          </>
+        )}
+      </button>
     );
   }
 

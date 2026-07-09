@@ -5,11 +5,12 @@ import { User } from "@/entities/User";
 import InvoiceViewer from "../components/invoices/InvoiceViewer";
 import SendEmailModal from "../components/invoices/SendEmailModal";
 import ClientInvoiceView from "../components/invoices/ClientInvoiceView";
-import { Loader2, Send, Copy, Share, CheckCircle, ExternalLink } from "lucide-react";
+import { Loader2, Send, Copy, CheckCircle, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { createPageUrl } from "@/utils";
+import { toast } from "@/components/ui/use-toast";
 
 export default function InvoiceDetail() {
   const [searchParams] = useSearchParams();
@@ -65,16 +66,17 @@ export default function InvoiceDetail() {
     return `${window.location.origin}${createPageUrl(`PublicInvoice?id=${invoiceId}`)}`;
   };
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(getPublicInvoiceUrl());
+  const handleCopyLink = async () => {
+    await navigator.clipboard.writeText(getPublicInvoiceUrl());
     setLinkCopied(true);
+    toast({ title: "Link copied — send it and get paid 💸" });
     setTimeout(() => setLinkCopied(false), 2000);
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-10 h-10 animate-spin text-purple-600" />
+      <div className="flex items-center justify-center min-h-screen bg-money-paper">
+        <Loader2 className="w-10 h-10 animate-spin text-money" />
       </div>
     );
   }
@@ -101,7 +103,7 @@ export default function InvoiceDetail() {
 
   // If user IS logged in, show the business owner view
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-4 md:p-6 space-y-6">
+    <div className="min-h-screen bg-money-paper p-4 md:p-6 space-y-6">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Send & Share Section - ONLY for logged-in users */}
         {isLoggedIn && (

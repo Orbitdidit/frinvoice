@@ -45,8 +45,10 @@ export default function SendEmailModal({ isOpen, onClose, invoice, invoiceUrl, p
 
 Here is your invoice ${invoice.invoice_number} for $${invoice.total_amount.toFixed(2)}.
 
-You can view the invoice online at the link below:
+You can view and pay this invoice online at the link below:
 ${invoiceUrl}
+
+It only takes a moment — no account or login required.
 
 Thank you for your business!
 

@@ -23,7 +23,7 @@ const PIPELINE = [
     key: "sent",
     label: "Sent",
     // mustard header bar, ink text
-    headerBar: "bg-[#d9a441] text-ink",
+    headerBar: "bg-mustard text-ink",
     cardBg: "bg-card",
     amount: "text-ink",
     sub: "text-ink/60",
@@ -32,7 +32,7 @@ const PIPELINE = [
     key: "viewed",
     label: "Viewed",
     // cobalt header bar, white text
-    headerBar: "bg-[#2456d6] text-white",
+    headerBar: "bg-cobalt text-white",
     cardBg: "bg-card",
     amount: "text-ink",
     sub: "text-ink/60",
@@ -40,8 +40,8 @@ const PIPELINE = [
   {
     key: "paid",
     label: "Paid",
-    // fully color-blocked money green
-    headerBar: "bg-money/0 text-white",
+    // fully color-blocked money green: solid green card, darker-green header bar, all white text
+    headerBar: "bg-green-dark text-white border-b-2 border-green-dark",
     cardBg: "bg-money",
     amount: "text-white",
     sub: "text-white/80",

@@ -18,12 +18,24 @@ module.exports = {
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
-  			paper: '#f4f0e6',
-  			ink: '#17150f',
+  			paper: 'var(--paper)',
+  			ink: {
+  				DEFAULT: 'var(--ink)',
+  				soft: 'var(--ink-soft)',
+  			},
   			money: {
   				DEFAULT: 'hsl(var(--money))',
   				foreground: 'hsl(var(--money-foreground))',
   			},
+  			green: {
+  				DEFAULT: 'var(--green)',
+  				dark: 'var(--green-dark)',
+  			},
+  			mustard: 'var(--mustard)',
+  			cobalt: 'var(--cobalt)',
+  			red: 'var(--red)',
+  			orange: 'var(--orange)',
+  			highlight: 'var(--highlight)',
   			stamp: 'hsl(var(--stamp))',
   			signal: 'hsl(var(--signal))',
   			card: {

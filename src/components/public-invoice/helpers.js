@@ -41,3 +41,28 @@ export function splitLineItem(item) {
 export function isPaidStatus(invoice) {
   return invoice.status === "paid" || invoice.payment_status === "paid";
 }
+
+/**
+ * Per-skin theming for the shared mobile sticky pay bar.
+ * bar = sticky bar background/border, style = the pay button treatment, muted = secondary text.
+ */
+export const SKIN_PAY_THEME = {
+  ledger: {
+    bar: "#fffdf7",
+    barBorder: "#e6e0d0",
+    muted: "#8a8372",
+    style: { background: "#1f7a3d", color: "#fff" },
+  },
+  neon: {
+    bar: "#0d0f16",
+    barBorder: "#1b1f2c",
+    muted: "#7c8496",
+    style: { background: "#3ee6ff", color: "#07080c", boxShadow: "0 0 24px rgba(62,230,255,.4)" },
+  },
+  luxe: {
+    bar: "#1c1916",
+    barBorder: "#2a2620",
+    muted: "#928a7b",
+    style: { background: "#c9a860", color: "#141210" },
+  },
+};

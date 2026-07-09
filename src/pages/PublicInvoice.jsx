@@ -5,12 +5,32 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import LedgerSkin from "@/components/public-invoice/LedgerSkin";
 import NeonSkin from "@/components/public-invoice/NeonSkin";
 import LuxeSkin from "@/components/public-invoice/LuxeSkin";
+import SkinPayButton from "@/components/public-invoice/SkinPayButton";
+import { SKIN_PAY_THEME, isPaidStatus } from "@/components/public-invoice/helpers";
 
 const SKIN_COMPONENTS = {
   ledger: LedgerSkin,
   neon: NeonSkin,
   luxe: LuxeSkin,
 };
+
+/* Clean print output on white, regardless of skin. */
+const PRINT_CSS = `
+  @media print {
+    @page { margin: 14mm; }
+    html, body { background: #fff !important; }
+    .invoice-public-root, .invoice-public-root * {
+      background: #fff !important;
+      color: #17150f !important;
+      box-shadow: none !important;
+      text-shadow: none !important;
+      border-color: #d9d4c7 !important;
+    }
+    .invoice-public-root img { filter: none !important; }
+    /* Hide interactive chrome: pay button, sticky bar, secure notice */
+    .no-print { display: none !important; }
+  }
+`;
 
 export default function PublicInvoice() {
   const [invoice, setInvoice] = useState(null);
@@ -77,6 +97,32 @@ export default function PublicInvoice() {
 
   const skinKey = invoice.skin || "ledger";
   const SkinComponent = SKIN_COMPONENTS[skinKey] || LedgerSkin;
+  const theme = SKIN_PAY_THEME[skinKey] || SKIN_PAY_THEME.ledger;
+  const isPaid = isPaidStatus(invoice);
 
-  return <SkinComponent invoice={invoice} companyInfo={companyInfo} />;
+  return (
+    <div className="invoice-public-root relative">
+      <style>{PRINT_CSS}</style>
+
+      {/* On mobile, add bottom padding so the sticky pay bar never covers content. */}
+      <div className={isPaid ? "" : "pb-24 md:pb-0"}>
+        <SkinComponent invoice={invoice} companyInfo={companyInfo} />
+      </div>
+
+      {/* Mobile sticky pay bar — full-width, safe-area padded, hidden on desktop & print. */}
+      {!isPaid && (
+        <div
+          className="no-print fixed bottom-0 left-0 right-0 z-40 md:hidden border-t px-4 pt-3"
+          style={{
+            background: theme.bar,
+            borderColor: theme.barBorder,
+            paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+            boxShadow: "0 -8px 24px rgba(0,0,0,.18)",
+          }}
+        >
+          <SkinPayButton invoice={invoice} isPaid={isPaid} style={theme.style} mutedColor={theme.muted} compact />
+        </div>
+      )}
+    </div>
+  );
 }

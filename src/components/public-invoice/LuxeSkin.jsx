@@ -155,8 +155,8 @@ export default function LuxeSkin({ invoice, companyInfo }) {
           </div>
         </div>
 
-        {/* (6) Pay button */}
-        <div style={{ marginTop: 40 }}>
+        {/* (6) Pay button — inline on desktop; on mobile the sticky bar handles it */}
+        <div className="no-print hidden md:block" style={{ marginTop: 40 }}>
           <SkinPayButton
             invoice={invoice}
             isPaid={isPaid}

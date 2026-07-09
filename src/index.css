@@ -4,6 +4,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   LOCKED PALETTE — single source of truth for the whole app.
+   Only these color tokens may be used anywhere (public invoice
+   skins are the sole exception — they own their own palettes).
+   ============================================================ */
+:root {
+  --paper: #f4f0e6;
+  --card: #ffffff;
+  --ink: #17150f;
+  --ink-soft: #6d6656;
+  --green: #1f7a3d;
+  --green-dark: #175c2e;
+  --mustard: #d9a441;
+  --cobalt: #2456d6;
+  --red: #c8372d;
+  --orange: #ff5a1f;
+  --highlight: #f5e9c8;
+}
+
 @layer base {
   :root {
     --background: 40 47% 93%;

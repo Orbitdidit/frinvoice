@@ -137,12 +137,12 @@ export default function Invoices() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'paid': return 'bg-green-100 text-green-800 border-green-200';
-      case 'sent': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'viewed': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'overdue': return 'bg-red-100 text-red-800 border-red-200';
-      case 'draft': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'paid': return 'bg-money text-white border-green-dark';
+      case 'sent': return 'bg-mustard text-ink border-ink';
+      case 'viewed': return 'bg-cobalt text-white border-ink';
+      case 'overdue': return 'bg-red text-white border-ink';
+      case 'draft': return 'bg-paper text-ink border-ink';
+      default: return 'bg-paper text-ink border-ink';
     }
   };
 
@@ -158,11 +158,11 @@ export default function Invoices() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-6" ref={containerRef}>
+    <div className="min-h-screen bg-money-paper p-6" ref={containerRef}>
       {isPullRefreshing && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 md:hidden">
-          <div className="bg-white rounded-full shadow-lg p-3 animate-bounce">
-            <RefreshCw className="w-5 h-5 text-purple-600 animate-spin" />
+          <div className="bg-card rounded-full shadow-hard-sm border-2 border-ink p-3 animate-bounce">
+            <RefreshCw className="w-5 h-5 text-money animate-spin" />
           </div>
         </div>
       )}
@@ -189,31 +189,29 @@ export default function Invoices() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 hover:shadow-lg transition-all duration-300">
+            <Card className="card-hard card-hard-hover bg-money">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-green-700">Total Revenue</p>
-                    {/* Using stats.totalRevenue */}
-                    <p className="text-2xl font-bold text-green-800">${stats.totalRevenue.toFixed(2)}</p>
+                    <p className="text-sm font-mono font-medium text-white/80">Total Revenue</p>
+                    <p className="text-2xl font-amount text-white">${stats.totalRevenue.toFixed(2)}</p>
                   </div>
-                  <DollarSign className="w-8 h-8 text-green-600" />
+                  <DollarSign className="w-8 h-8 text-white" />
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:shadow-lg transition-all duration-300">
+            <Card className="card-hard card-hard-hover bg-card">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-blue-700">Paid Amount</p>
-                    {/* Using stats.paidAmount */}
-                    <p className="text-2xl font-bold text-blue-800">${stats.paidAmount.toFixed(2)}</p>
+                    <p className="text-sm font-mono font-medium text-ink-soft">Paid Amount</p>
+                    <p className="text-2xl font-amount text-ink">${stats.paidAmount.toFixed(2)}</p>
                   </div>
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <CheckCircle className="w-5 h-5 text-blue-600" /> {/* Changed icon to CheckCircle */}
+                  <div className="w-8 h-8 bg-money rounded-md flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 text-white" />
                   </div>
                 </div>
               </CardContent>
@@ -221,16 +219,15 @@ export default function Invoices() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200 hover:shadow-lg transition-all duration-300">
+            <Card className="card-hard card-hard-hover bg-card">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-orange-700">Pending Amount</p>
-                    {/* Using stats.pendingAmount */}
-                    <p className="text-2xl font-bold text-orange-800">${stats.pendingAmount.toFixed(2)}</p>
+                    <p className="text-sm font-mono font-medium text-ink-soft">Pending Amount</p>
+                    <p className="text-2xl font-amount text-ink">${stats.pendingAmount.toFixed(2)}</p>
                   </div>
-                  <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-orange-600" /> {/* Changed icon to Clock */}
+                  <div className="w-8 h-8 bg-mustard rounded-md flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-ink" />
                   </div>
                 </div>
               </CardContent>
@@ -248,7 +245,7 @@ export default function Invoices() {
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-ink-soft" />
                   <Input
                     placeholder="Search by client name or invoice number..."
                     value={searchTerm}
@@ -258,7 +255,7 @@ export default function Invoices() {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-slate-500" />
+                  <Filter className="w-4 h-4 text-ink-soft" />
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-40">
                       <SelectValue placeholder="Filter by status" />
@@ -315,7 +312,7 @@ export default function Invoices() {
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-slate-50">
+                      <TableRow className="bg-paper">
                         <TableHead className="font-semibold">Invoice #</TableHead>
                         <TableHead className="font-semibold">Client</TableHead>
                         <TableHead className="font-semibold">Amount</TableHead>
@@ -332,7 +329,7 @@ export default function Invoices() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
-                          className="hover:bg-slate-50 transition-colors cursor-pointer"
+                          className="hover:bg-paper transition-colors cursor-pointer"
                           onClick={() => handleViewInvoice(invoice.id)}
                         >
                           <TableCell>
@@ -340,7 +337,7 @@ export default function Invoices() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <UserIcon className="w-4 h-4 text-slate-400" /> {/* Using UserIcon */}
+                              <UserIcon className="w-4 h-4 text-ink-soft" />
                               <span>{invoice.client_name}</span>
                             </div>
                           </TableCell>
@@ -353,11 +350,11 @@ export default function Invoices() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4 text-slate-400" />
+                              <Calendar className="w-4 h-4 text-ink-soft" />
                               {format(new Date(invoice.due_date), 'MMM dd, yyyy')}
                             </div>
                           </TableCell>
-                          <TableCell className="text-slate-600">
+                          <TableCell className="text-ink-soft">
                             {format(new Date(invoice.created_date), 'MMM dd, yyyy')}
                           </TableCell>
                           <TableCell>

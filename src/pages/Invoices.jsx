@@ -174,12 +174,12 @@ export default function Invoices() {
           className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
         >
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Invoice Management</h1>
-            <p className="text-slate-600 mt-1">Manage and track all your invoices</p>
+            <h1 className="title-underline font-poster text-ink text-[42px] md:text-[48px] leading-none">Invoices</h1>
+            <p className="text-ink/60 font-mono text-sm mt-3">Manage and track all your invoices</p>
           </div>
           
           <Link to={createPageUrl("CreateInvoice")}>
-            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg">
+            <Button variant="signal">
               <Plus className="w-5 h-5 mr-2" />
               Create New Invoice
             </Button>
@@ -286,27 +286,25 @@ export default function Invoices() {
         >
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
+              <CardTitle className="section-header text-sm text-ink">
                 Invoices ({filteredInvoices.length})
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               {filteredInvoices.length === 0 && !isLoading ? (
                 <div className="text-center py-12">
-                  <FileText className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                  <h3 className="text-lg font-semibold text-slate-600 mb-2">
-                    {invoices.length === 0 ? "No invoices yet" : "No invoices match your filters"}
-                  </h3>
-                  <p className="text-slate-500 mb-6">
-                    {invoices.length === 0 
-                      ? "Create your first invoice now!" 
-                      : "Try adjusting your search or filter criteria"
+                  <p className="font-mono text-ink text-lg">
+                    {invoices.length === 0 ? "🧾 nothing printing yet" : "🔍 no matches on that filter"}
+                  </p>
+                  <p className="font-mono text-ink/60 mt-2 mb-6">
+                    {invoices.length === 0
+                      ? "go make some money — create your first invoice."
+                      : "try adjusting your search or filter."
                     }
                   </p>
                   {invoices.length === 0 && (
                     <Link to={createPageUrl("CreateInvoice")}>
-                      <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                      <Button variant="signal">
                         <Plus className="w-4 h-4 mr-2" />
                         Create First Invoice
                       </Button>
@@ -337,7 +335,9 @@ export default function Invoices() {
                           className="hover:bg-slate-50 transition-colors cursor-pointer"
                           onClick={() => handleViewInvoice(invoice.id)}
                         >
-                          <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                          <TableCell>
+                            <span className="highlighter font-mono font-bold text-ink">{invoice.invoice_number}</span>
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <UserIcon className="w-4 h-4 text-slate-400" /> {/* Using UserIcon */}

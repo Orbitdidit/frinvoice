@@ -128,9 +128,9 @@ function DesktopSidebar({ location, navigationItems, createPageUrl }) {
                       <item.icon className="w-5 h-5" />
                       <span className="font-heading font-semibold">{item.title}</span>
                       {item.highlight && (
-                        <Badge variant="money" className="ml-auto text-xs px-2 py-1 font-mono">
+                        <span className="ml-auto text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded bg-signal text-white border border-ink">
                           NEW
-                        </Badge>
+                        </span>
                       )}
                     </Link>
                   </SidebarMenuButton>
@@ -146,16 +146,16 @@ function DesktopSidebar({ location, navigationItems, createPageUrl }) {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <div className="px-4 space-y-4">
-              <div className="rounded-md p-3 border-2 border-ink bg-money/10">
+              <div className="rounded-md p-3 border-2 border-ink bg-card shadow-hard-sm border-l-[6px] border-l-money">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-mono font-medium text-ink">Revenue</span>
-                  <span className="text-lg font-mono font-bold text-money">${stats.revenue.toFixed(2)}</span>
+                  <span className="font-amount text-lg text-money">${stats.revenue.toFixed(2)}</span>
                 </div>
               </div>
-              <div className="rounded-md p-3 border-2 border-ink bg-paper">
+              <div className="rounded-md p-3 border-2 border-ink bg-card shadow-hard-sm border-l-[6px] border-l-[#2456d6]">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-mono font-medium text-ink">Invoices</span>
-                  <span className="text-lg font-mono font-bold text-ink">{stats.invoices}</span>
+                  <span className="font-amount text-lg text-ink">{stats.invoices}</span>
                 </div>
               </div>
             </div>

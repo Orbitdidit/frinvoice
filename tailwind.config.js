@@ -25,6 +25,7 @@ module.exports = {
   				foreground: 'hsl(var(--money-foreground))',
   			},
   			stamp: 'hsl(var(--stamp))',
+  			signal: 'hsl(var(--signal))',
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'

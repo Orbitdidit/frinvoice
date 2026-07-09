@@ -125,10 +125,10 @@ ${companyName}`;
         <div className="flex items-end justify-between flex-wrap gap-4">
           <div>
             <p className="text-[11px] eyebrow text-money">Money Pipeline</p>
-            <h1 className="font-poster text-ink text-[42px] md:text-[48px] leading-none mt-1">Dashboard</h1>
+            <h1 className="title-underline font-poster text-ink text-[42px] md:text-[48px] leading-none mt-1">Dashboard</h1>
           </div>
           <Link to={createPageUrl("CreateInvoice")}>
-            <Button>
+            <Button variant="signal">
               <Plus className="w-4 h-4 mr-2" />
               New Invoice
             </Button>
@@ -186,7 +186,7 @@ ${companyName}`;
         {/* Recent invoices */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[11px] eyebrow text-ink">Recent Invoices</h2>
+            <h2 className="section-header text-sm text-ink">Recent Invoices</h2>
             <Link to={createPageUrl("Invoices")} className="text-xs font-mono font-semibold text-money hover:text-ink">
               View all →
             </Link>
@@ -199,10 +199,9 @@ ${companyName}`;
               ))}
             </div>
           ) : recentInvoices.length === 0 ? (
-            <div className="bg-card rounded-md border-2 border-ink shadow-hard p-10 text-center">
-              <FileText className="w-10 h-10 mx-auto mb-3 text-ink/30" />
-              <p className="font-heading font-bold text-ink">No invoices yet</p>
-              <p className="text-sm font-mono text-ink/60 mt-1">Create your first invoice to start the pipeline.</p>
+            <div className="card-hard bg-card p-10 text-center">
+              <p className="font-mono text-ink text-lg">🧾 nothing printing yet</p>
+              <p className="text-sm font-mono text-ink/60 mt-2">go make some money — create your first invoice.</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -239,7 +238,7 @@ function InvoiceRow({ invoice, onView, onFollowUp }) {
   return (
     <div
       onClick={onView}
-      className="group card-hard bg-card p-3 md:p-4 flex items-center gap-3 md:gap-4 cursor-pointer"
+      className="group card-hard card-hard-hover bg-card p-3 md:p-4 flex items-center gap-3 md:gap-4 cursor-pointer"
     >
       {/* Stamp */}
       <div className="flex-shrink-0 w-16 md:w-20 flex justify-center">
@@ -249,7 +248,7 @@ function InvoiceRow({ invoice, onView, onFollowUp }) {
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-mono text-xs md:text-sm font-semibold text-ink/60">
+          <span className="highlighter font-mono text-xs md:text-sm font-bold text-ink">
             #{invoice.invoice_number || "—"}
           </span>
           {isViewed && (
@@ -264,13 +263,13 @@ function InvoiceRow({ invoice, onView, onFollowUp }) {
             </button>
           )}
         </div>
-        <p className="font-heading font-black text-[17px] text-ink truncate tracking-[-0.02em]">{invoice.client_name || "—"}</p>
+        <p className="font-heading font-bold text-ink truncate">{invoice.client_name || "—"}</p>
         <p className="text-xs font-mono text-ink/50 truncate">{invoice.line_items?.[0]?.description || invoice.notes?.split("\n")[0] || "—"}</p>
       </div>
 
       {/* Amount */}
       <div className="text-right flex-shrink-0">
-        <p className="font-amount text-[20px] text-ink tabular-nums">
+        <p className="font-mono text-base md:text-lg font-bold text-ink tabular-nums">
           ${formatMoney(invoice.total_amount)}
         </p>
       </div>

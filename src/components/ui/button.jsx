@@ -19,6 +19,8 @@ const buttonVariants = cva(
           "bg-paper text-ink border-ink shadow-hard-sm hover:bg-paper/80",
         money:
           "bg-money text-white border-ink shadow-hard hover:bg-money/90",
+        signal:
+          "bg-signal text-white font-bold border-ink shadow-hard hover:bg-signal/90",
         ghost: "border-transparent shadow-none hover:bg-paper text-ink",
         link: "text-ink border-transparent shadow-none underline-offset-4 hover:underline",
       },

@@ -197,16 +197,23 @@ ${companyName}`;
                   <div
                     key={col.key}
                     className="card-hard anim-rise overflow-hidden"
-                    style={{ background: col.fullBlock ? "#1f7a3d" : "var(--cream)", animationDelay: `${idx * 80}ms` }}
+                    style={
+                      col.fullBlock
+                        ? { background: "#1f7a3d", border: "2px solid #17150f", boxShadow: "4px 4px 0 #17150f", animationDelay: `${idx * 80}ms` }
+                        : { background: "var(--cream)", animationDelay: `${idx * 80}ms` }
+                    }
                   >
-                    <div className={`px-4 py-2 ${col.headerBar} ${col.fullBlock ? "" : "border-b-2 border-ink"}`}>
-                      <p className="text-[11px] font-mono font-bold tracking-[0.15em] uppercase">{col.label}</p>
+                    <div
+                      className={`px-4 py-2 ${col.headerBar} ${col.fullBlock ? "" : "border-b-2 border-ink"}`}
+                      style={col.fullBlock ? { background: "#1f7a3d", color: "#ffffff" } : undefined}
+                    >
+                      <p className="text-[11px] font-mono font-bold tracking-[0.15em] uppercase" style={col.fullBlock ? { color: "#ffffff" } : undefined}>{col.label}</p>
                     </div>
-                    <div className="p-4 md:p-5">
-                      <p className={`font-amount tabular-nums text-[28px] md:text-[32px] leading-none ${col.amount}`}>
+                    <div className="p-4 md:p-5" style={col.fullBlock ? { background: "#1f7a3d" } : undefined}>
+                      <p className={`font-amount tabular-nums text-[28px] md:text-[32px] leading-none ${col.amount}`} style={col.fullBlock ? { color: "#ffffff" } : undefined}>
                         <CountUpMoney value={s.total} />
                       </p>
-                      <p className={`text-xs font-mono mt-1 ${col.sub}`}>{s.count} {s.count === 1 ? "invoice" : "invoices"}</p>
+                      <p className={`text-xs font-mono mt-1 ${col.sub}`} style={col.fullBlock ? { color: "#ffffff" } : undefined}>{s.count} {s.count === 1 ? "invoice" : "invoices"}</p>
                     </div>
                   </div>
                 );

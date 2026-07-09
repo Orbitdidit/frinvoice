@@ -4,7 +4,8 @@ import { Client } from "@/entities/Client";
 import { PricingPreset } from "@/entities/PricingPreset";
 import { calculateFit } from "@/lib/rateCalc";
 import { InvokeLLM } from "@/integrations/Core";
-import { Zap, Send, Edit } from "lucide-react";
+import { Zap, Send, Edit, Eye } from "lucide-react";
+import { User as UserEntity } from "@/entities/User";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +16,7 @@ import ThermalReceipt from "../components/invoices/ThermalReceipt";
 import InvoiceEditor from "../components/invoices/InvoiceEditor";
 import SendConfirmationModal from "../components/invoices/SendConfirmationModal";
 import VoiceDebugPanel from "../components/voice/VoiceDebugPanel";
+import ShowpiecePreview from "../components/invoices/ShowpiecePreview";
 
 const EXAMPLE_COMMANDS = [
   "Invoice ABC Corp for website design, $2,500",
@@ -42,6 +44,8 @@ export default function VoiceInvoice() {
   const [presets, setPresets] = useState([]);
   const [showSendModal, setShowSendModal] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [companyInfo, setCompanyInfo] = useState(null);
 
   // Debug mode — tap the INVOX THERMAL header 5x to reveal
   const [showDebug, setShowDebug] = useState(false);
@@ -52,6 +56,7 @@ export default function VoiceInvoice() {
   useEffect(() => {
     loadClients();
     loadPresets();
+    UserEntity.me().then(setCompanyInfo).catch(() => {});
   }, []);
 
   const handleHeaderTap = () => {
@@ -278,6 +283,7 @@ Return the invoice data in the exact JSON structure specified. Double-check: cou
     setError(null);
     setShowSendModal(false);
     setShowEditor(false);
+    setShowPreview(false);
   };
 
   return (
@@ -334,6 +340,7 @@ Return the invoice data in the exact JSON structure specified. Double-check: cou
             {invoiceData && !isProcessing && (
               <ReceiptActions
                 invoiceData={invoiceData}
+                onPreview={() => setShowPreview(true)}
                 onSend={() => setShowSendModal(true)}
                 onEdit={() => setShowEditor(true)}
               />
@@ -390,11 +397,19 @@ Return the invoice data in the exact JSON structure specified. Double-check: cou
           onSaveDraft={saveInvoiceAsDraft}
         />
       </div>
+
+      {showPreview && invoiceData && (
+        <ShowpiecePreview
+          invoiceData={invoiceData}
+          companyInfo={companyInfo}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </div>
   );
 }
 
-function ReceiptActions({ invoiceData, onSend, onEdit }) {
+function ReceiptActions({ invoiceData, onPreview, onSend, onEdit }) {
   // Reveal after the receipt has finished printing (client + items + total)
   const lineCount = 1 + (invoiceData.line_items?.length || 0);
   const revealDelay = lineCount * 300 + 500;
@@ -412,16 +427,22 @@ function ReceiptActions({ invoiceData, onSend, onEdit }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex gap-3 max-w-sm mx-auto md:mx-0"
+      className="space-y-3 max-w-sm mx-auto md:mx-0"
     >
-      <Button variant="money" className="flex-1" onClick={onSend}>
-        <Send className="w-4 h-4 mr-2" />
-        Send + Pay Link
+      <Button variant="signal" className="w-full" onClick={onPreview}>
+        <Eye className="w-4 h-4 mr-2" />
+        Preview Showpiece
       </Button>
-      <Button variant="outline" className="flex-1" onClick={onEdit}>
-        <Edit className="w-4 h-4 mr-2" />
-        Edit
-      </Button>
+      <div className="flex gap-3">
+        <Button variant="money" className="flex-1" onClick={onSend}>
+          <Send className="w-4 h-4 mr-2" />
+          Send + Pay Link
+        </Button>
+        <Button variant="outline" className="flex-1" onClick={onEdit}>
+          <Edit className="w-4 h-4 mr-2" />
+          Edit
+        </Button>
+      </div>
     </motion.div>
   );
 }

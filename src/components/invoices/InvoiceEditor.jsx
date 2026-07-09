@@ -32,6 +32,7 @@ import {
   Calculator,
   Camera,
   ExternalLink,
+  Eye,
   Sparkles as SparklesIcon
 } from "lucide-react";
 import { toast } from 'sonner';
@@ -60,6 +61,7 @@ import {
 } from "@/components/ui/popover";
 import ClientForm from "../clients/ClientForm";
 import SkinPicker from "./SkinPicker";
+import ShowpiecePreview from "./ShowpiecePreview";
 
 export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing: initialIsEditing = false, isNew = false }) {
   const [editableData, setEditableData] = useState(() => {
@@ -86,6 +88,7 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
   const [rateCalcOpen, setRateCalcOpen] = useState(false);
   const [imageUploadOpen, setImageUploadOpen] = useState({}); // { [itemIndex]: boolean }
   const [aiImageLoading, setAiImageLoading] = useState({}); // { [itemIndex]: boolean }
+  const [showShowpiece, setShowShowpiece] = useState(false);
 
   useEffect(() => {
     setEditableData(prev => {
@@ -585,6 +588,16 @@ Client: "${editableData.client_name || ''}"`,
                 ))}
               </div>
             </div>
+          )}
+
+          {(editableData.skin || 'ledger') === 'neon' && (
+            <Button
+              onClick={() => setShowShowpiece(true)}
+              className="w-full bg-[#3ee6ff] text-[#07080c] font-bold hover:bg-[#5eebff]"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Preview showpiece
+            </Button>
           )}
 
           {invoiceData?.id && (
@@ -1217,6 +1230,15 @@ Client: "${editableData.client_name || ''}"`,
         onOpenChange={setRateCalcOpen}
         onAddLineItem={handleRateCalcAdd}
       />
+
+      {/* Full-screen Neon showpiece preview */}
+      {showShowpiece && (
+        <ShowpiecePreview
+          invoiceData={editableData}
+          companyInfo={userCompany}
+          onClose={() => setShowShowpiece(false)}
+        />
+      )}
     </motion.div>
   );
 }

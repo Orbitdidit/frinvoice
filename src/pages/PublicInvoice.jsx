@@ -3,14 +3,14 @@ import { useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { AlertCircle, Loader2 } from "lucide-react";
 import LedgerSkin from "@/components/public-invoice/LedgerSkin";
-import NeonSkin from "@/components/public-invoice/NeonSkin";
 import LuxeSkin from "@/components/public-invoice/LuxeSkin";
+import ShowpieceNeon from "@/components/invoices/ShowpieceNeon";
 import SkinPayButton from "@/components/public-invoice/SkinPayButton";
 import { SKIN_PAY_THEME, isPaidStatus } from "@/components/public-invoice/helpers";
 
 const SKIN_COMPONENTS = {
   ledger: LedgerSkin,
-  neon: NeonSkin,
+  neon: ShowpieceNeon,
   luxe: LuxeSkin,
 };
 
@@ -99,18 +99,20 @@ export default function PublicInvoice() {
   const SkinComponent = SKIN_COMPONENTS[skinKey] || LedgerSkin;
   const theme = SKIN_PAY_THEME[skinKey] || SKIN_PAY_THEME.ledger;
   const isPaid = isPaidStatus(invoice);
+  // The Neon showpiece renders its own full-width pay button, so it doesn't need the shared sticky bar.
+  const showStickyBar = skinKey !== "neon";
 
   return (
     <div className="invoice-public-root relative">
       <style>{PRINT_CSS}</style>
 
       {/* On mobile, add bottom padding so the sticky pay bar never covers content. */}
-      <div className={isPaid ? "" : "pb-24 md:pb-0"}>
+      <div className={isPaid || !showStickyBar ? "" : "pb-24 md:pb-0"}>
         <SkinComponent invoice={invoice} companyInfo={companyInfo} />
       </div>
 
       {/* Mobile sticky pay bar — full-width, safe-area padded, hidden on desktop & print. */}
-      {!isPaid && (
+      {showStickyBar && !isPaid && (
         <div
           className="no-print fixed bottom-0 left-0 right-0 z-40 md:hidden border-t px-4 pt-3"
           style={{

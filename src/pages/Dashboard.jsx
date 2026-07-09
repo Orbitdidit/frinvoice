@@ -264,13 +264,13 @@ function InvoiceRow({ invoice, onView, onFollowUp }) {
             </button>
           )}
         </div>
-        <p className="font-heading font-bold text-ink truncate">{invoice.client_name || "—"}</p>
+        <p className="font-heading font-black text-[17px] text-ink truncate tracking-[-0.02em]">{invoice.client_name || "—"}</p>
         <p className="text-xs font-mono text-ink/50 truncate">{invoice.line_items?.[0]?.description || invoice.notes?.split("\n")[0] || "—"}</p>
       </div>
 
       {/* Amount */}
       <div className="text-right flex-shrink-0">
-        <p className="font-mono text-base md:text-lg font-bold text-ink tabular-nums">
+        <p className="font-amount text-[20px] text-ink tabular-nums">
           ${formatMoney(invoice.total_amount)}
         </p>
       </div>

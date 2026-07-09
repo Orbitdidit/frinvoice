@@ -28,6 +28,7 @@
     --money: 137 59% 30%;
     --money-foreground: 0 0% 100%;
     --stamp: 5 63% 48%;
+    --signal: 16 100% 56%;
     --chart-1: 137 59% 30%;
     --chart-2: 5 63% 48%;
     --chart-3: 45 21% 7%;
@@ -66,6 +67,7 @@
     --money: 137 59% 35%;
     --money-foreground: 0 0% 100%;
     --stamp: 5 63% 52%;
+    --signal: 16 100% 56%;
   }
 }
 
@@ -163,5 +165,41 @@
   }
   .stamp-pulse {
     animation: stamp-pulse 2s ease-in-out infinite;
+  }
+  /* Signature underline under page titles */
+  .title-underline::after {
+    content: "";
+    display: block;
+    width: 60px;
+    height: 8px;
+    margin-top: 10px;
+    background-color: #1f7a3d;
+    border-radius: 2px;
+  }
+  /* Highlighter swipe for invoice numbers */
+  .highlighter {
+    background-color: #f5e9c8;
+    padding: 1px 6px;
+    border-radius: 2px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+  /* Section header with money-green dot */
+  .section-header {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-header::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background-color: #1f7a3d;
+    flex-shrink: 0;
   }
 }

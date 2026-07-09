@@ -4,13 +4,13 @@ import { base44 } from "@/api/base44Client";
 import { AlertCircle, Loader2 } from "lucide-react";
 import LedgerSkin from "@/components/public-invoice/LedgerSkin";
 import LuxeSkin from "@/components/public-invoice/LuxeSkin";
-import ShowpieceNeon from "@/components/invoices/ShowpieceNeon";
+import ShowpieceNeon from "@/components/showpiece/ShowpieceNeon";
 import SkinPayButton from "@/components/public-invoice/SkinPayButton";
 import { SKIN_PAY_THEME, isPaidStatus } from "@/components/public-invoice/helpers";
+import { createCheckoutSession } from "@/functions/createCheckoutSession";
 
 const SKIN_COMPONENTS = {
   ledger: LedgerSkin,
-  neon: ShowpieceNeon,
   luxe: LuxeSkin,
 };
 
@@ -96,11 +96,35 @@ export default function PublicInvoice() {
   }
 
   const skinKey = invoice.skin || "ledger";
+  const isPaid = isPaidStatus(invoice);
+
+  // Neon renders as the ENTIRE page — no app chrome, wrapper padding, or shell background.
+  if (skinKey === "neon") {
+    const handleStripeCheckout = async () => {
+      try {
+        const response = await createCheckoutSession({
+          invoice_id: invoice.id,
+          return_url: window.location.origin,
+        });
+        if (response.data && response.data.url) {
+          window.location.href = response.data.url;
+        } else {
+          throw new Error(response.data?.error || "Failed to create checkout session");
+        }
+      } catch (err) {
+        console.error("Payment initiation failed:", err);
+        alert(`Failed to initiate payment: ${err.message}`);
+      }
+    };
+
+    return (
+      <ShowpieceNeon invoice={invoice} business={companyInfo} onPay={handleStripeCheckout} />
+    );
+  }
+
   const SkinComponent = SKIN_COMPONENTS[skinKey] || LedgerSkin;
   const theme = SKIN_PAY_THEME[skinKey] || SKIN_PAY_THEME.ledger;
-  const isPaid = isPaidStatus(invoice);
-  // The Neon showpiece renders its own full-width pay button, so it doesn't need the shared sticky bar.
-  const showStickyBar = skinKey !== "neon";
+  const showStickyBar = true;
 
   return (
     <div className="invoice-public-root relative">

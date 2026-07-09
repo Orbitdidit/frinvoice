@@ -61,7 +61,7 @@ import {
 } from "@/components/ui/popover";
 import ClientForm from "../clients/ClientForm";
 import SkinPicker from "./SkinPicker";
-import ShowpiecePreview from "./ShowpiecePreview";
+import ShowpieceOverlay from "./ShowpieceOverlay";
 
 export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing: initialIsEditing = false, isNew = false }) {
   const [editableData, setEditableData] = useState(() => {
@@ -590,15 +590,14 @@ Client: "${editableData.client_name || ''}"`,
             </div>
           )}
 
-          {(editableData.skin || 'ledger') === 'neon' && (
-            <Button
-              onClick={() => setShowShowpiece(true)}
-              className="w-full bg-[#3ee6ff] text-[#07080c] font-bold hover:bg-[#5eebff]"
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              Preview showpiece
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            onClick={() => setShowShowpiece(true)}
+            className="w-full font-mono uppercase tracking-[0.12em] shadow-hard"
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Preview Showpiece
+          </Button>
 
           {invoiceData?.id && (
             <Button variant="outline" onClick={handlePreviewAsClient} className="w-full">
@@ -1233,9 +1232,9 @@ Client: "${editableData.client_name || ''}"`,
 
       {/* Full-screen Neon showpiece preview */}
       {showShowpiece && (
-        <ShowpiecePreview
-          invoiceData={editableData}
-          companyInfo={userCompany}
+        <ShowpieceOverlay
+          invoice={editableData}
+          business={userCompany}
           onClose={() => setShowShowpiece(false)}
         />
       )}

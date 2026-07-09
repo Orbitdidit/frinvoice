@@ -94,7 +94,7 @@ export default function MobileBottomNav({ location }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSheetOpen(false)}
-              className="fixed inset-0 z-40 md:hidden bg-black/50 backdrop-blur-sm"
+              className="fixed inset-0 z-40 md:hidden bg-ink/50"
             />
             <motion.div
               initial={{ y: "100%" }}
@@ -105,7 +105,7 @@ export default function MobileBottomNav({ location }) {
               style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
             >
               <div className="flex items-center justify-between px-5 pt-4 pb-2">
-                <div className="mx-auto h-1.5 w-12 rounded-full bg-slate-300 absolute left-1/2 -translate-x-1/2 top-2" />
+                <div className="mx-auto h-1.5 w-12 rounded-full bg-ink/30 absolute left-1/2 -translate-x-1/2 top-2" />
                 <h3 className="text-lg font-heading font-extrabold text-ink dark:text-white mt-2">Create Invoice</h3>
                 <button
                   onClick={() => setSheetOpen(false)}

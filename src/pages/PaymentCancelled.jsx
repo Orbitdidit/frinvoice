@@ -10,22 +10,23 @@ export default function PaymentCancelled() {
   const invoiceId = searchParams.get('invoice_id') || searchParams.get('invoiceId');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-red-100 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-money-paper flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
       >
-        <Card className="w-full max-w-md text-center shadow-lg">
-          <CardHeader>
-            <AlertTriangle className="w-16 h-16 mx-auto text-amber-500" />
-            <CardTitle className="text-3xl font-bold mt-4">Payment Not Completed</CardTitle>
-          </CardHeader>
-          <CardContent className="p-8 space-y-6">
-            <p className="text-slate-600">
+        <div className="bg-card text-center rounded-md border-2 border-ink shadow-hard-lg overflow-hidden">
+          <div className="p-8 pb-0">
+            <AlertTriangle className="w-16 h-16 mx-auto text-stamp" />
+            <h1 className="text-3xl font-heading font-extrabold text-ink mt-4">Payment Not Completed</h1>
+          </div>
+          <div className="p-8 space-y-6">
+            <p className="text-ink font-heading">
               Your payment process was cancelled. You have not been charged.
             </p>
-            <p className="text-slate-500 text-sm">
+            <p className="text-ink/60 font-mono text-sm">
               If this was a mistake, you can go back and try again.
             </p>
             <Link to={createPageUrl(`PublicInvoice?id=${invoiceId}`)}>
@@ -34,8 +35,8 @@ export default function PaymentCancelled() {
                 Return to Invoice
               </Button>
             </Link>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </motion.div>
     </div>
   );

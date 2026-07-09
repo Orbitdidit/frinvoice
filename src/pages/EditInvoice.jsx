@@ -68,33 +68,30 @@ export default function EditInvoice() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-        <Loader2 className="w-10 h-10 animate-spin text-purple-600" />
+      <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-money-paper">
+        <Loader2 className="w-10 h-10 animate-spin text-money" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-6">
-        <Card className="border-red-500 bg-red-50">
-          <CardHeader>
-            <CardTitle className="text-red-800">Error</CardTitle>
-          </CardHeader>
-          <CardContent className="text-red-700">
-            {error}
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-money-paper p-6">
+        <div className="max-w-5xl mx-auto rounded-md border-2 border-stamp bg-stamp/10 p-6">
+          <h2 className="font-heading font-bold text-stamp mb-2">Error</h2>
+          <p className="font-mono text-sm text-ink">{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 p-4 md:p-6">
+    <div className="min-h-screen bg-money-paper p-4 md:p-6">
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Edit Invoice</h1>
-          <p className="text-slate-600 mt-1">Make changes to your invoice below</p>
+          <p className="text-xs font-mono font-semibold tracking-[0.2em] uppercase text-money">Edit</p>
+          <h1 className="text-2xl md:text-3xl font-heading font-extrabold text-ink">Edit Invoice</h1>
+          <p className="text-ink/60 font-mono text-sm mt-1">Make changes to your invoice below</p>
         </div>
         
         {invoice && (

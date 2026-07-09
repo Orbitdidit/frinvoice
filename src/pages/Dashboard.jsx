@@ -7,6 +7,7 @@ import { FileText, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import SendEmailModal from "@/components/invoices/SendEmailModal";
+import StampBadge from "@/components/StampBadge";
 
 const PIPELINE = [
   { key: "draft", label: "Draft", accent: "slate" },
@@ -44,17 +45,6 @@ const ACCENTS = {
     sub: "text-stamp",
     ring: "border-ink",
   },
-};
-
-const STAMP_STYLES = {
-  draft: "border-slate-400 text-slate-500",
-  sent: "border-blue-500 text-blue-600",
-  viewed: "border-purple-500 text-purple-600",
-  paid: "border-green-600 text-green-700",
-  overdue: "border-red-600 text-red-600",
-  cancelled: "border-slate-400 text-slate-400",
-  accepted: "border-emerald-600 text-emerald-700",
-  declined: "border-rose-600 text-rose-600",
 };
 
 function formatMoney(n) {
@@ -127,16 +117,16 @@ ${companyName}`;
   };
 
   return (
-    <div className="min-h-screen bg-stone-100 p-4 md:p-8">
+    <div className="min-h-screen bg-money-paper p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-end justify-between flex-wrap gap-4">
           <div>
-            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-500">Money Pipeline</p>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
+            <p className="text-xs font-mono font-semibold tracking-[0.2em] uppercase text-money">Money Pipeline</p>
+            <h1 className="text-3xl md:text-4xl font-heading font-extrabold text-ink tracking-tight">Dashboard</h1>
           </div>
           <Link to={createPageUrl("CreateInvoice")}>
-            <Button className="bg-slate-900 hover:bg-slate-800 text-white">
+            <Button>
               <Plus className="w-4 h-4 mr-2" />
               New Invoice
             </Button>
@@ -154,14 +144,14 @@ ${companyName}`;
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className={`relative bg-white rounded-xl border ${a.ring} p-4 md:p-5 overflow-hidden`}
+                className={`relative bg-card rounded-md border-2 ${a.ring} shadow-hard p-4 md:p-5 overflow-hidden`}
               >
-                <div className={`absolute top-0 left-0 h-full w-1 ${a.bar}`} />
-                <p className={`text-[10px] md:text-xs font-bold tracking-[0.15em] uppercase ${a.text}`}>{col.label}</p>
-                <p className={`mt-2 text-xl md:text-3xl font-bold tabular-nums ${a.amount}`}>
+                <div className={`absolute top-0 left-0 h-full w-1.5 ${a.bar}`} />
+                <p className={`text-[10px] md:text-xs font-mono font-bold tracking-[0.15em] uppercase ${a.text}`}>{col.label}</p>
+                <p className={`mt-2 text-xl md:text-3xl font-mono font-bold tabular-nums ${a.amount}`}>
                   ${formatMoney(s.total)}
                 </p>
-                <p className={`text-xs ${a.sub}`}>{s.count} {s.count === 1 ? "invoice" : "invoices"}</p>
+                <p className={`text-xs font-mono ${a.sub}`}>{s.count} {s.count === 1 ? "invoice" : "invoices"}</p>
               </motion.div>
             );
           })}
@@ -172,18 +162,18 @@ ${companyName}`;
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`relative bg-white rounded-xl border ${ACCENTS.red.ring} p-4 md:p-5 overflow-hidden`}
+            className={`relative bg-card rounded-md border-2 ${ACCENTS.red.ring} shadow-hard p-4 md:p-5 overflow-hidden`}
           >
-            <div className={`absolute top-0 left-0 h-full w-1 ${ACCENTS.red.bar}`} />
+            <div className={`absolute top-0 left-0 h-full w-1.5 ${ACCENTS.red.bar}`} />
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] md:text-xs font-bold tracking-[0.15em] uppercase text-red-700">Overdue</p>
-                <p className="mt-2 text-xl md:text-3xl font-bold tabular-nums text-red-700">
+                <p className="text-[10px] md:text-xs font-mono font-bold tracking-[0.15em] uppercase text-stamp">Overdue</p>
+                <p className="mt-2 text-xl md:text-3xl font-mono font-bold tabular-nums text-stamp">
                   ${formatMoney(stats.overdue.total)}
                 </p>
-                <p className="text-xs text-red-600">{stats.overdue.count} overdue {stats.overdue.count === 1 ? "invoice" : "invoices"}</p>
+                <p className="text-xs font-mono text-stamp">{stats.overdue.count} overdue {stats.overdue.count === 1 ? "invoice" : "invoices"}</p>
               </div>
-              <Button variant="outline" className="border-red-300 text-red-700 hover:bg-red-50" onClick={() => navigate(createPageUrl("Invoices"))}>
+              <Button variant="destructive" onClick={() => navigate(createPageUrl("Invoices"))}>
                 Review
               </Button>
             </div>
@@ -193,8 +183,8 @@ ${companyName}`;
         {/* Recent invoices */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold tracking-[0.15em] uppercase text-slate-600">Recent Invoices</h2>
-            <Link to={createPageUrl("Invoices")} className="text-xs font-semibold text-slate-500 hover:text-slate-800">
+            <h2 className="text-sm font-mono font-bold tracking-[0.15em] uppercase text-ink">Recent Invoices</h2>
+            <Link to={createPageUrl("Invoices")} className="text-xs font-mono font-semibold text-money hover:text-ink">
               View all →
             </Link>
           </div>
@@ -202,14 +192,14 @@ ${companyName}`;
           {isLoading ? (
             <div className="space-y-2">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="h-20 bg-white rounded-xl border border-slate-200 animate-pulse" />
+                <div key={i} className="h-20 bg-card rounded-md border-2 border-ink shadow-hard-sm animate-pulse" />
               ))}
             </div>
           ) : recentInvoices.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center">
-              <FileText className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-              <p className="font-semibold text-slate-700">No invoices yet</p>
-              <p className="text-sm text-slate-500 mt-1">Create your first invoice to start the pipeline.</p>
+            <div className="bg-card rounded-md border-2 border-ink shadow-hard p-10 text-center">
+              <FileText className="w-10 h-10 mx-auto mb-3 text-ink/30" />
+              <p className="font-heading font-bold text-ink">No invoices yet</p>
+              <p className="text-sm font-mono text-ink/60 mt-1">Create your first invoice to start the pipeline.</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -246,17 +236,17 @@ function InvoiceRow({ invoice, onView, onFollowUp }) {
   return (
     <div
       onClick={onView}
-      className="group bg-white rounded-xl border border-slate-200 p-3 md:p-4 flex items-center gap-3 md:gap-4 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer"
+      className="group bg-card rounded-md border-2 border-ink shadow-hard-sm p-3 md:p-4 flex items-center gap-3 md:gap-4 hover:shadow-hard transition-all cursor-pointer"
     >
       {/* Stamp */}
       <div className="flex-shrink-0 w-16 md:w-20 flex justify-center">
-        <StampBadge status={invoice.status} pulse={isViewed} />
+        <StampBadge status={invoice.status} className={isViewed ? "animate-pulse" : ""} />
       </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-mono text-xs md:text-sm font-semibold text-slate-500">
+          <span className="font-mono text-xs md:text-sm font-semibold text-ink/60">
             #{invoice.invoice_number || "—"}
           </span>
           {isViewed && (
@@ -265,34 +255,22 @@ function InvoiceRow({ invoice, onView, onFollowUp }) {
                 e.stopPropagation();
                 onFollowUp();
               }}
-              className="text-[10px] md:text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors"
+              className="text-[10px] md:text-xs font-mono font-semibold px-2 py-0.5 rounded-full border-2 border-money text-money hover:bg-money/10 transition-colors"
             >
               Follow up
             </button>
           )}
         </div>
-        <p className="font-semibold text-slate-900 truncate">{invoice.client_name || "—"}</p>
-        <p className="text-xs text-slate-500 truncate">{invoice.line_items?.[0]?.description || invoice.notes?.split("\n")[0] || "—"}</p>
+        <p className="font-heading font-bold text-ink truncate">{invoice.client_name || "—"}</p>
+        <p className="text-xs font-mono text-ink/50 truncate">{invoice.line_items?.[0]?.description || invoice.notes?.split("\n")[0] || "—"}</p>
       </div>
 
       {/* Amount */}
       <div className="text-right flex-shrink-0">
-        <p className="font-mono text-base md:text-lg font-semibold text-slate-900 tabular-nums">
+        <p className="font-mono text-base md:text-lg font-bold text-ink tabular-nums">
           ${formatMoney(invoice.total_amount)}
         </p>
       </div>
     </div>
-  );
-}
-
-function StampBadge({ status, pulse }) {
-  const cls = STAMP_STYLES[status] || STAMP_STYLES.draft;
-  return (
-    <span
-      className={`inline-flex items-center justify-center px-2 py-1 border-2 ${cls} text-[10px] md:text-xs font-bold tracking-[0.12em] uppercase rounded-md ${pulse ? "animate-pulse" : ""}`}
-      style={{ transform: "rotate(-4deg)" }}
-    >
-      {status}
-    </span>
   );
 }

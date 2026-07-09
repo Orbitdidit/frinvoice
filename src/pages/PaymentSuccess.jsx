@@ -52,14 +52,15 @@ export default function PaymentSuccess() {
   }, [invoiceId, sessionId]);
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-money-paper flex items-center justify-center p-6">
       <motion.div
         initial={{ opacity: 0, y: -20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-lg"
       >
-        <Card className="w-full max-w-lg text-center shadow-2xl rounded-2xl">
-          <CardHeader className="bg-green-600 text-white p-10 rounded-t-2xl">
+        <div className="bg-card text-center rounded-md border-2 border-ink shadow-hard-lg overflow-hidden">
+          <div className="bg-money text-white p-10 border-b-2 border-ink">
             <motion.div
               initial={{ scale: 0.5 }}
               animate={{ scale: 1 }}
@@ -67,19 +68,19 @@ export default function PaymentSuccess() {
             >
               <CheckCircle className="w-20 h-20 mx-auto" />
             </motion.div>
-            <CardTitle className="text-4xl font-bold mt-4">Payment Successful!</CardTitle>
-          </CardHeader>
-          <CardContent className="p-8 md:p-10 space-y-6">
-            <p className="text-xl text-slate-700">
+            <h1 className="text-4xl font-heading font-extrabold mt-4">Payment Successful!</h1>
+          </div>
+          <div className="p-8 md:p-10 space-y-6">
+            <p className="text-xl font-heading text-ink">
               Thank you for your payment! Your project is ready to move forward.
             </p>
             {invoice && (
-              <div className="bg-slate-50 p-4 rounded-lg text-left">
+              <div className="bg-paper p-4 rounded-md border-2 border-ink text-left font-mono">
                 <p><strong>Invoice Number:</strong> {invoice.invoice_number}</p>
-                <p><strong>Amount Paid:</strong> <span className="font-bold text-green-700">${invoice.total_amount.toFixed(2)}</span></p>
+                <p><strong>Amount Paid:</strong> <span className="font-bold text-money">${invoice.total_amount.toFixed(2)}</span></p>
               </div>
             )}
-            <p className="text-slate-500">
+            <p className="text-ink/60 font-mono text-sm">
               We've sent a receipt to your email. If you have any questions, please contact us.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -90,14 +91,14 @@ export default function PaymentSuccess() {
                 </Button>
               </Link>
               <Link to="/">
-                <Button className="w-full bg-green-600 hover:bg-green-700">
+                <Button variant="money" className="w-full">
                   <Home className="w-4 h-4 mr-2" />
                   Back to Home
                 </Button>
               </Link>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </motion.div>
     </div>
   );

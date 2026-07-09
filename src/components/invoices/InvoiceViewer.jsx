@@ -359,7 +359,7 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
       `}</style>
       
       {/* Action Bar - Always visible, not affected by preview mode */}
-      <Card className="no-print">
+      <Card className="no-print border-2 border-ink shadow-hard">
         <CardContent className="p-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => navigate(createPageUrl(isEstimate ? 'Estimates' : 'Invoices'))}>
@@ -379,7 +379,7 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
           <div className="flex items-center gap-4">
             {/* Convert to Invoice Button */}
             {isEstimate && invoice.status === 'accepted' && (
-              <Button onClick={handleConvertToInvoice} disabled={isConverting} className="bg-green-600 hover:bg-green-700 text-white">
+              <Button onClick={handleConvertToInvoice} disabled={isConverting} variant="money">
                 {isConverting ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : <RefreshCw className="w-4 h-4 mr-2" />}
                 Convert to Invoice
               </Button>
@@ -387,7 +387,7 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
 
             {/* Status Changer */}
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-slate-600">Status:</span>
+              <span className="text-sm font-mono font-medium text-ink">Status:</span>
               <Select
                 value={invoice.status}
                 onValueChange={handleStatusChange}
@@ -424,7 +424,7 @@ export default function InvoiceViewer({ invoice: invoiceProp, onInvoiceUpdate, s
               <Button
                 variant="outline"
                 onClick={() => setPreviewMode(!previewMode)}
-                className={previewMode ? 'bg-blue-100 border-blue-300' : ''}
+                className={previewMode ? 'bg-money/10 border-money text-money' : ''}
               >
                 {previewMode ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
                 {previewMode ? 'Exit Preview' : 'Preview Mode'}

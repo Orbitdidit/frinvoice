@@ -85,10 +85,10 @@ ${companyName}`);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[525px]">
+      <DialogContent className="sm:max-w-[525px] border-2 border-ink shadow-hard-lg">
         <DialogHeader>
-          <DialogTitle>Send Invoice by Email</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="font-heading font-extrabold text-ink">Send Invoice by Email</DialogTitle>
+          <DialogDescription className="font-mono text-ink/60">
             Review the details below and click send. The invoice status will be updated to 'sent'.
           </DialogDescription>
         </DialogHeader>

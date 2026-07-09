@@ -85,10 +85,10 @@ ${companyName}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="border-2 border-ink shadow-hard-lg">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Invoice Generated for {invoiceData.client_name}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-2xl font-heading font-extrabold text-ink">Invoice Generated for {invoiceData.client_name}</DialogTitle>
+          <DialogDescription className="font-mono text-ink/60">
             Would you like to send it now, or save it as a draft?
           </DialogDescription>
         </DialogHeader>
@@ -97,7 +97,7 @@ ${companyName}`;
             onClick={handleSendEmail}
             disabled={!invoiceData.client_email || isSending}
             size="lg"
-            className="bg-blue-600 hover:bg-blue-700"
+            variant="money"
           >
             {isSending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

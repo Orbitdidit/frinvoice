@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
+import StampBadge from "@/components/StampBadge";
 import { createCheckoutSession } from "@/functions/createCheckoutSession";
 import { User } from "@/entities/User";
 import { Invoice } from "@/entities/Invoice";
@@ -91,10 +92,10 @@ export default function ClientInvoiceView({ invoice: initialInvoice, onInvoiceUp
   // const isEstimateActionable = isEstimate && (invoice.status === 'sent' || invoice.status === 'viewed');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-money-paper">
       {/* Header with Call to Action */}
       {!isPaid && !isEstimateAccepted && !isEstimateDeclined && (
-        <div className={`text-white py-8 ${isEstimate ? 'bg-gradient-to-r from-cyan-600 to-blue-600' : 'bg-gradient-to-r from-green-600 to-emerald-600'}`}>
+        <div className={`text-white py-8 border-b-2 border-ink ${isEstimate ? 'bg-ink' : 'bg-money'}`}>
           <div className="max-w-4xl mx-auto px-6 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}

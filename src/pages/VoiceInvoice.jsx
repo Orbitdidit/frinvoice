@@ -15,6 +15,7 @@ import ThermalReceipt from "../components/invoices/ThermalReceipt";
 import InvoiceEditor from "../components/invoices/InvoiceEditor";
 import SendConfirmationModal from "../components/invoices/SendConfirmationModal";
 import VoiceConversation from "../components/voice/VoiceConversation";
+import VoiceDebugPanel from "../components/voice/VoiceDebugPanel";
 
 const EXAMPLE_COMMANDS = [
   "Invoice ABC Corp for website design, $2,500",
@@ -41,22 +42,42 @@ export default function VoiceInvoice() {
   const [clients, setClients] = useState([]);
   const [presets, setPresets] = useState([]);
   const [showSendModal, setShowSendModal] = useState(false);
-  const wasRecording = useRef(false);
   const [showVoiceConversation, setShowVoiceConversation] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
+
+  // Debug mode — tap the INVOX THERMAL header 5x to reveal
+  const [showDebug, setShowDebug] = useState(false);
+  const [debugData, setDebugData] = useState({});
+  const headerTapsRef = useRef(0);
+  const headerTapTimerRef = useRef(null);
 
   useEffect(() => {
     loadClients();
     loadPresets();
   }, []);
 
-  useEffect(() => {
-    // Auto-trigger processing when recording stops
-    if (wasRecording.current && !isRecording && transcript.trim()) {
-      processCommand(transcript);
+  const handleHeaderTap = () => {
+    headerTapsRef.current += 1;
+    if (headerTapTimerRef.current) clearTimeout(headerTapTimerRef.current);
+    headerTapTimerRef.current = setTimeout(() => {
+      headerTapsRef.current = 0;
+    }, 1500);
+    if (headerTapsRef.current >= 5) {
+      headerTapsRef.current = 0;
+      setShowDebug((s) => !s);
     }
-    wasRecording.current = isRecording;
-  }, [isRecording, transcript]);
+  };
+
+  const mergeDebug = (patch) => setDebugData((prev) => ({ ...prev, ...patch }));
+
+  // Called by the mic button ONLY after transcription completes.
+  // append=true means the user tapped "add more" — combine with prior transcript.
+  const handleTranscriptReady = (text, { append } = {}) => {
+    const combined = append && transcript.trim() ? `${transcript.trim()} ${text.trim()}` : text.trim();
+    setTranscript(combined);
+    mergeDebug({ rawTranscript: combined, parseStatus: "parsing…" });
+    processCommand(combined);
+  };
 
   const loadClients = async () => {
     try {
@@ -83,40 +104,37 @@ export default function VoiceInvoice() {
     setError(null);
 
     try {
+      const clientNames = clients.map((c) => c.name).filter(Boolean);
       const prompt = `
-You are INVOX, an AI assistant specialized in converting natural language requests into detailed, professional invoices.
+You are INVOX, an AI that converts spoken natural-language requests into detailed, professional invoices or estimates.
 
-Context: The user has provided the following request for creating an invoice:
+The user SPOKE this out loud (it may be a long run-on sentence with several items):
 "${inputText}"
 
-Your task is to extract and structure this information into a comprehensive invoice format. Be intelligent about:
-1. Identifying the client/company name and email.
-2. Breaking down services into clear line items with descriptions.
-3. Calculating appropriate pricing (use reasonable market rates if not specified).
-4. Identifying any discounts OR deposits mentioned. Treat deposits as a form of discount.
-5. Generating a professional invoice number.
+=== EXTRACTION RULES — read carefully ===
+1. DOCUMENT TYPE: If the user said "estimate", "quote", or "proposal", set document_type to "estimate". Otherwise "invoice".
+2. CLIENT: Extract the client/company name, and email/phone if spoken. Existing clients: [${clientNames.map((n) => `"${n}"`).join(", ") || "none"}]. If the spoken name closely matches one of these (ignoring case, "inc/llc/corp", minor misspellings), use the EXACT existing spelling.
+3. ONE LINE ITEM PER DISTINCT ITEM/SERVICE. Never merge two different things into one line. If the user lists "logo design, a website, and business cards", that is THREE separate line items — one each.
+4. QUANTITIES & UNIT PRICE: Capture explicit quantities ("3 banners", "5 panels"). total = quantity × unit_price.
+5. HOURLY WORK: "5 hours consulting at $150/hr" → quantity=5, unit_price=150, description mentions the hourly rate, total=750.
+6. DEPOSITS: "half deposit", "50% deposit paid", "$500 deposit down" → a SEPARATE line item, description "Deposit", is_discount=true, and total NEGATIVE. For percentage deposits ("half", "50%"), compute the amount from the sum of the positive line items.
+7. DISCOUNTS: any "10% off", "$200 discount" → separate line item, is_discount=true, NEGATIVE total.
+8. If a price for an item isn't spoken, use a reasonable industry rate — but never drop an item the user mentioned.
+9. Generate invoice_number (format INV-YYYY-XXXX). invoice_date = today. due_date = 30 days out unless the user said otherwise.
+10. Use clean professional wording for each description; keep the user's own detail in the "detail" field where useful.
 
 === RATECALC PRESETS ===
 The user has the following saved pricing presets. If the user's request mentions a preset name (or close match) AND provides target dimensions (e.g., "20ft x 10ft", "50 ft by 5 ft"), set that line item's "ratecalc" field with { "preset_id": "<preset id>", "target_width": <number>, "target_height": <number>, "target_unit": "ft" }. Do NOT calculate the quantity yourself — the system auto-calculates from the preset's item dimensions. Set description to the preset name and unit_price to its base_price.
 
 ${presets.length > 0 ? presets.map(p => `- ID: ${p.id} | Name: "${p.name}" | Base Price: $${p.base_price} | Unit: ${p.unit_type}${p.item_width ? ` | Item Dims: ${p.item_width}${p.item_dimension_unit} × ${p.item_height}${p.item_dimension_unit}` : ""}`).join('\n') : '(No presets saved)'}
 
-Rules:
-- If pricing isn't specified, use reasonable industry standard rates.
-- Break complex services into individual line items.
-- Include detailed descriptions for each item.
-- **IMPORTANT**: Apply any discounts or deposits as separate line items with negative amounts and set the 'is_discount' flag to true. For example, a '$250 deposit' should become a line item with description 'Deposit' and a total of -250.
-- Generate a unique invoice number (format: INV-YYYY-XXXX).
-- Set invoice date to today's date.
-- Set due date to 30 days from today if not specified.
-- Use professional language for all descriptions.
-- Try to extract a phone number if mentioned.
-Return the invoice data in the exact JSON structure specified.
+Return the invoice data in the exact JSON structure specified. Double-check: count the distinct items the user named and make sure you produced that many positive line items (plus any deposit/discount lines).
 `;
 
       const invoiceSchema = {
         type: "object",
         properties: {
+          document_type: { type: "string", enum: ["invoice", "estimate"] },
           invoice_number: { type: "string" },
           client_name: { type: "string" },
           client_email: { type: "string" },
@@ -163,6 +181,23 @@ Return the invoice data in the exact JSON structure specified.
 
       result.voice_transcript = inputText;
       result.template = "modern";
+      result.document_type = result.document_type === "estimate" ? "estimate" : "invoice";
+
+      // Fuzzy-link to an existing client (case/suffix/whitespace-insensitive)
+      if (result.client_name && clients.length > 0) {
+        const norm = (s) =>
+          (s || "").toLowerCase().replace(/\b(inc|llc|corp|ltd|co)\b\.?/g, "").replace(/[^a-z0-9]/g, "").trim();
+        const target = norm(result.client_name);
+        const match = clients.find((c) => {
+          const n = norm(c.name);
+          return n && target && (n === target || n.includes(target) || target.includes(n));
+        });
+        if (match) {
+          result.client_name = match.name;
+          result.client_email = result.client_email || match.email || "";
+          result.client_phone = result.client_phone || match.phone || "";
+        }
+      }
 
       // Apply RateCalc: auto-calculate quantity from preset item dimensions
       if (result.line_items && presets.length > 0) {
@@ -199,13 +234,17 @@ Return the invoice data in the exact JSON structure specified.
       result.tax_amount = (subtotal - discountAmount) * (taxRate / 100);
       result.total_amount = subtotal - discountAmount + result.tax_amount;
 
+      mergeDebug({ parseStatus: "success", lineItemCount: result.line_items?.length || 0 });
       setInvoiceData(result);
-      speak(`I've generated the invoice for ${result.client_name}. Would you like to review it?`);
+      const docWord = result.document_type === "estimate" ? "estimate" : "invoice";
+      speak(`I've generated the ${docWord} for ${result.client_name}. Would you like to review it?`);
       setShowSendModal(false);
 
     } catch (error) {
       console.error("Error processing command:", error);
-      setError("Failed to process your request. Please try again.");
+      mergeDebug({ parseStatus: "FAILED: " + (error.message || "unknown") });
+      // Never discard the transcript — keep it so the user can retry parsing.
+      setError("Couldn't turn that into an invoice — your words are saved below. Tap “Try parsing again”.");
     } finally {
       setIsProcessing(false);
     }
@@ -270,18 +309,37 @@ Return the invoice data in the exact JSON structure specified.
         {/* Two-column layout: SPEAK + THE PRINTER */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* LEFT — SPEAK panel */}
-          <div className="bg-card rounded-md border-2 border-ink p-6 md:p-8 shadow-hard">
-            <p className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-ink mb-6">Speak</p>
+          <div className="bg-card rounded-md border-2 border-ink p-6 md:p-8 shadow-hard space-y-6">
+            <p className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-ink">Speak</p>
             <ThermalMicButton
-              onTranscriptChange={setTranscript}
+              key={invoiceData ? "append" : "fresh"}
+              onTranscriptReady={handleTranscriptReady}
               onRecordingChange={setIsRecording}
+              onDebug={mergeDebug}
               isProcessing={isProcessing}
+              appendMode={!!invoiceData}
             />
+
+            {/* Transcript safety net — keeps your words even if parsing fails */}
+            {transcript && (
+              <div className="rounded-md border-2 border-ink bg-paper p-4 space-y-3">
+                <p className="text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-ink/50">You said</p>
+                <p className="font-mono text-sm text-ink whitespace-pre-wrap leading-relaxed">{transcript}</p>
+                {error && (
+                  <Button variant="signal" size="sm" onClick={() => processCommand(transcript)} disabled={isProcessing}>
+                    <Zap className="w-4 h-4 mr-2" />
+                    Try parsing again
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* RIGHT — THE PRINTER panel */}
           <div className="space-y-4">
-            <ThermalReceipt invoiceData={invoiceData} isProcessing={isProcessing} />
+            <ThermalReceipt invoiceData={invoiceData} isProcessing={isProcessing} onHeaderTap={handleHeaderTap} />
+
+            {showDebug && <VoiceDebugPanel debug={debugData} onClose={() => setShowDebug(false)} />}
 
             {/* Action buttons revealed after total prints */}
             {invoiceData && !isProcessing && (

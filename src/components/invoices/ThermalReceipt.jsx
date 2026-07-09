@@ -9,7 +9,7 @@ const formatMoney = (n) =>
  * Receipt-style preview panel with thermal-printer aesthetic.
  * Animates line-by-line printing when `invoiceData` is provided.
  */
-export default function ThermalReceipt({ invoiceData, isProcessing }) {
+export default function ThermalReceipt({ invoiceData, isProcessing, onHeaderTap }) {
   const [printedLines, setPrintedLines] = useState(0);
 
   // Reset animation when new invoice data arrives
@@ -38,10 +38,15 @@ export default function ThermalReceipt({ invoiceData, isProcessing }) {
     <div className="relative max-w-sm mx-auto md:mx-0 w-full">
       {/* Dark printer header bar */}
       <div className="bg-ink text-white px-4 py-2.5 rounded-t-md border-2 border-b-0 border-ink flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onHeaderTap}
+          className="flex items-center gap-2 select-none focus:outline-none"
+          aria-label="INVOX Thermal"
+        >
           <Printer className="w-4 h-4" />
           <span className="text-xs font-mono font-bold tracking-[0.2em]">INVOX THERMAL</span>
-        </div>
+        </button>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-money animate-pulse" />
           <span className="text-[10px] font-mono font-bold tracking-[0.15em] text-money">READY TO PRINT</span>

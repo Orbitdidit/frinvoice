@@ -37,19 +37,16 @@ export default function ThermalReceipt({ invoiceData, isProcessing }) {
   return (
     <div className="relative max-w-sm mx-auto md:mx-0 w-full">
       {/* Dark printer header bar */}
-      <div className="bg-[#17150f] text-white px-4 py-2.5 rounded-t-lg flex items-center justify-between">
+      <div className="bg-ink text-white px-4 py-2.5 rounded-t-md border-2 border-b-0 border-ink flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Printer className="w-4 h-4" />
-          <span className="text-xs font-bold tracking-[0.2em]">INVOX THERMAL</span>
+          <span className="text-xs font-mono font-bold tracking-[0.2em]">INVOX THERMAL</span>
         </div>
-        <div className="flex gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400/50" />
-        </div>
+        <span className="w-2 h-2 rounded-full bg-money animate-pulse" />
       </div>
 
       {/* Receipt paper */}
-      <div className="bg-white border-2 border-t-0 border-[#17150f] px-4 py-5 min-h-[400px] font-mono text-sm text-[#17150f] relative">
+      <div className="bg-[#fffdf7] border-2 border-t-0 border-ink px-4 py-5 min-h-[400px] font-mono text-sm text-ink relative shadow-hard">
         {/* Empty state */}
         {!invoiceData && (
           <div className="text-center py-16">

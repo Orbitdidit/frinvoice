@@ -1,7 +1,6 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Mic, MicOff, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useState, useRef, useCallback } from "react";
 import { transcribeAudioSimple } from "@/functions/transcribeAudioSimple";
 
@@ -17,9 +16,15 @@ export default function ThermalMicButton({ onTranscriptChange, onRecordingChange
   const [usingBrowserSTT, setUsingBrowserSTT] = useState(false);
   const [micPermission, setMicPermission] = useState("unknown");
   const [isCheckingPermission, setIsCheckingPermission] = useState(false);
+  const [liveTranscript, setLiveTranscript] = useState("");
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const recognitionRef = useRef(null);
+
+  const pushTranscript = (text) => {
+    setLiveTranscript(text);
+    onTranscriptChange(text);
+  };
 
   const checkMicrophoneSupport = useCallback(() => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -78,8 +83,8 @@ export default function ThermalMicButton({ onTranscriptChange, onRecordingChange
         if (event.results[i].isFinal) final += t;
         else interim += t;
       }
-      if (final) onTranscriptChange(final);
-      else if (interim) onTranscriptChange(interim);
+      if (final) pushTranscript(final);
+      else if (interim) pushTranscript(interim);
     };
     recognitionRef.current.onerror = (e) => {
       setError(`Speech recognition error: ${e.error}. Try speaking again or use typing.`);
@@ -156,7 +161,7 @@ export default function ThermalMicButton({ onTranscriptChange, onRecordingChange
       formData.append("audio", audioBlob, `recording.${ext}`);
       const response = await transcribeAudioSimple(formData);
       if (response.data.transcript) {
-        onTranscriptChange(response.data.transcript);
+        pushTranscript(response.data.transcript);
       } else {
         throw new Error(response.data.error || "No transcript received");
       }
@@ -175,7 +180,7 @@ export default function ThermalMicButton({ onTranscriptChange, onRecordingChange
                 variant="outline"
                 onClick={() => {
                   setError(null);
-                  onTranscriptChange("");
+                  pushTranscript("");
                 }}
               >
                 💻 Use Typing Instead
@@ -192,7 +197,7 @@ export default function ThermalMicButton({ onTranscriptChange, onRecordingChange
         else if (err.message) detailedError = `Failed to connect to server: ${err.message}`;
         setError(detailedError);
       }
-      onTranscriptChange("");
+      pushTranscript("");
     } finally {
       setIsTranscribing(false);
     }
@@ -200,56 +205,53 @@ export default function ThermalMicButton({ onTranscriptChange, onRecordingChange
 
   const handleRetry = () => {
     setError(null);
-    onTranscriptChange("");
+    pushTranscript("");
   };
 
   if (!micSupported) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          Voice recording is not supported in this browser. Please try using Chrome, Firefox, or Safari.
-        </AlertDescription>
-      </Alert>
+      <div className="rounded-md border-2 border-stamp bg-stamp/10 p-4 text-sm font-mono text-ink">
+        Voice recording is not supported in this browser. Please try using Chrome, Firefox, or Safari.
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col items-center space-y-6">
-      {/* Permission request */}
+      {/* Permission request — paper yellow banner */}
       {micPermission !== "granted" && (
-        <Alert className="bg-orange-50 border-orange-300">
-          <AlertCircle className="h-5 w-5 text-orange-600" />
-          <AlertDescription>
-            <div className="space-y-3">
-              <p className="font-semibold text-orange-900">⚠️ Microphone Permission Required</p>
-              <p className="text-sm text-orange-800">Click the button below to enable voice recording:</p>
+        <div className="w-full rounded-md border-2 border-ink bg-[#f5e6a8] p-4">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-5 w-5 text-ink flex-shrink-0 mt-0.5" />
+            <div className="space-y-3 flex-1">
+              <p className="font-mono font-bold text-sm uppercase tracking-wider text-ink">Microphone Permission Required</p>
+              <p className="text-xs font-mono text-ink/70">Enable voice recording to speak your invoice:</p>
               <Button
                 onClick={requestMicrophonePermission}
                 disabled={isCheckingPermission}
-                className="bg-orange-600 hover:bg-orange-700 text-white w-full"
+                className="w-full"
               >
                 {isCheckingPermission ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mic className="w-4 h-4 mr-2" />}
                 Request Microphone Access
               </Button>
             </div>
-          </AlertDescription>
-        </Alert>
+          </div>
+        </div>
       )}
 
-      {/* Circular mic button */}
-      <div className="relative">
-        {/* Pulsing ring while recording */}
+      {/* Circular mic button — 110px, ink → stamp red with pulse */}
+      <div className="relative flex items-center justify-center" style={{ width: 110, height: 110 }}>
+        {/* Expanding pulse ring while recording */}
         {isRecording && (
           <>
             <motion.div
-              className="absolute inset-0 rounded-full border-2 border-red-500"
-              animate={{ scale: [1, 1.6], opacity: [0.7, 0] }}
+              className="absolute inset-0 rounded-full border-2 border-stamp"
+              animate={{ scale: [1, 1.7], opacity: [0.7, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
             />
             <motion.div
-              className="absolute inset-0 rounded-full border-2 border-red-400"
-              animate={{ scale: [1, 1.9], opacity: [0.5, 0] }}
+              className="absolute inset-0 rounded-full border-2 border-stamp"
+              animate={{ scale: [1, 2], opacity: [0.5, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.4 }}
             />
           </>
@@ -259,33 +261,46 @@ export default function ThermalMicButton({ onTranscriptChange, onRecordingChange
           disabled={isProcessing || isTranscribing}
           whileTap={{ scale: 0.95 }}
           whileHover={{ scale: 1.03 }}
-          className={`relative w-28 h-28 md:w-32 md:h-32 rounded-full flex items-center justify-center shadow-[4px_4px_0_#17150f] border-2 border-[#17150f] transition-colors duration-200 ${
-            isRecording ? "bg-red-600" : "bg-[#17150f]"
+          style={{ width: 110, height: 110 }}
+          className={`relative rounded-full flex items-center justify-center shadow-hard border-2 border-ink transition-colors duration-200 ${
+            isRecording ? "bg-stamp" : "bg-ink"
           }`}
         >
           {isTranscribing ? (
-            <Loader2 className="w-10 h-10 md:w-12 md:h-12 animate-spin text-white" />
+            <Loader2 className="w-11 h-11 animate-spin text-white" />
           ) : isRecording ? (
-            <MicOff className="w-10 h-10 md:w-12 md:h-12 text-white" />
+            <MicOff className="w-11 h-11 text-white" />
           ) : (
-            <Mic className="w-10 h-10 md:w-12 md:h-12 text-white" />
+            <Mic className="w-11 h-11 text-white" />
           )}
         </motion.button>
       </div>
 
-      {/* Status text */}
+      {/* Status text — mono */}
       <div className="text-center">
         {isTranscribing ? (
-          <p className="text-slate-700 font-semibold text-sm">{usingBrowserSTT ? "🆓 Processing..." : "🤖 AI processing..."}</p>
+          <p className="font-mono font-semibold text-sm text-ink">{usingBrowserSTT ? "Processing…" : "AI processing…"}</p>
         ) : isRecording ? (
-          <p className="text-red-600 font-semibold animate-pulse text-sm">🎤 {usingBrowserSTT ? "Listening..." : "Recording... Speak now!"}</p>
+          <p className="font-mono font-semibold text-sm text-stamp animate-pulse">{usingBrowserSTT ? "LISTENING…" : "RECORDING… SPEAK NOW!"}</p>
         ) : (
-          <div className="space-y-1">
-            <p className="text-slate-600 font-semibold text-sm">Tap to start recording</p>
-            <p className="text-xs text-slate-400">Speak clearly for best results</p>
-          </div>
+          <p className="font-mono text-xs uppercase tracking-[0.15em] text-ink/70">
+            Tap &amp; talk — say it like you'd tell a friend
+          </p>
         )}
       </div>
+
+      {/* Live transcript — dashed paper note with blinking green cursor */}
+      {(liveTranscript || isRecording || isTranscribing) && (
+        <div className="w-full rounded-md border-2 border-dashed border-ink bg-paper p-4">
+          <p className="text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-ink/50 mb-2">Transcript</p>
+          <p className="font-mono text-sm text-ink whitespace-pre-wrap leading-relaxed">
+            {liveTranscript || <span className="text-ink/40">…</span>}
+            {(isRecording || isTranscribing) && (
+              <span className="inline-block w-2 h-4 ml-0.5 align-middle bg-money animate-pulse" />
+            )}
+          </p>
+        </div>
+      )}
 
       {/* Browser STT fallback */}
       {!isRecording && !isProcessing && micPermission === "granted" && (
@@ -293,7 +308,7 @@ export default function ThermalMicButton({ onTranscriptChange, onRecordingChange
           variant="outline"
           size="sm"
           onClick={startBrowserSTT}
-          className="text-xs bg-green-50 border-green-300 text-green-700 hover:bg-green-100"
+          className="text-xs"
         >
           <Mic className="w-4 h-4 mr-2" />
           Try Device Voice (Works Offline)
@@ -302,21 +317,18 @@ export default function ThermalMicButton({ onTranscriptChange, onRecordingChange
 
       {/* Error */}
       {error && (
-        <Alert variant="destructive" className="w-full max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="flex flex-col gap-2 text-sm">
-            {typeof error === "string" ? (
-              <div className="flex flex-col gap-2">
-                <span>{error}</span>
-                <Button variant="outline" size="sm" onClick={handleRetry} className="w-full">
-                  Try Again
-                </Button>
-              </div>
-            ) : (
-              error
-            )}
-          </AlertDescription>
-        </Alert>
+        <div className="w-full rounded-md border-2 border-stamp bg-stamp/10 p-4 text-sm font-mono text-ink">
+          {typeof error === "string" ? (
+            <div className="flex flex-col gap-2">
+              <span>{error}</span>
+              <Button variant="outline" size="sm" onClick={handleRetry} className="w-full">
+                Try Again
+              </Button>
+            </div>
+          ) : (
+            error
+          )}
+        </div>
       )}
     </div>
   );

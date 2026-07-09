@@ -4,10 +4,8 @@ import { Client } from "@/entities/Client";
 import { PricingPreset } from "@/entities/PricingPreset";
 import { calculateFit } from "@/lib/rateCalc";
 import { InvokeLLM } from "@/integrations/Core";
-import { Mic, Wand2, Keyboard, RefreshCw, FileUp, Zap, Camera, Send, Edit } from "lucide-react";
+import { Zap, Send, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -15,12 +13,14 @@ import { createPageUrl } from "@/utils";
 import ThermalMicButton from "../components/voice/ThermalMicButton";
 import ThermalReceipt from "../components/invoices/ThermalReceipt";
 import InvoiceEditor from "../components/invoices/InvoiceEditor";
-import ManualInput from "../components/voice/ManualInput";
 import SendConfirmationModal from "../components/invoices/SendConfirmationModal";
 import VoiceConversation from "../components/voice/VoiceConversation";
-import VoiceSetupGuide from "../components/voice/VoiceSetupGuide";
-import PdfInvoiceUploader from "../components/invoices/PdfInvoiceUploader";
-import ScreenshotInvoiceUploader from "../components/invoices/ScreenshotInvoiceUploader";
+
+const EXAMPLE_COMMANDS = [
+  "Invoice ABC Corp for website design, $2,500",
+  "Bill John Smith 5 hours consulting at $150/hr",
+  "Estimate for Exotic Pop, LED wall install, $88,000",
+];
 
 const speak = (text) => {
   if ("speechSynthesis" in window) {
@@ -35,13 +35,11 @@ export default function VoiceInvoice() {
   const navigate = useNavigate();
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
-  const [manualInput, setManualInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [invoiceData, setInvoiceData] = useState(null);
   const [error, setError] = useState(null);
   const [clients, setClients] = useState([]);
   const [presets, setPresets] = useState([]);
-  const [inputMode, setInputMode] = useState("voice");
   const [showSendModal, setShowSendModal] = useState(false);
   const wasRecording = useRef(false);
   const [showVoiceConversation, setShowVoiceConversation] = useState(false);
@@ -54,11 +52,11 @@ export default function VoiceInvoice() {
 
   useEffect(() => {
     // Auto-trigger processing when recording stops
-    if (inputMode === "voice" && wasRecording.current && !isRecording && transcript.trim()) {
+    if (wasRecording.current && !isRecording && transcript.trim()) {
       processCommand(transcript);
     }
     wasRecording.current = isRecording;
-  }, [isRecording, transcript, inputMode]);
+  }, [isRecording, transcript]);
 
   const loadClients = async () => {
     try {
@@ -213,47 +211,6 @@ Return the invoice data in the exact JSON structure specified.
     }
   };
 
-  const handlePdfDataExtracted = (data) => {
-    setError(null);
-
-    if (!data) {
-      setError("No data could be extracted. Please try a different file/image or enter details manually.");
-      return;
-    }
-
-    const finalData = {
-      invoice_number: data.invoice_number || `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-      client_name: data.client_name || 'Client Name',
-      client_email: data.client_email || '',
-      invoice_date: data.invoice_date || new Date().toISOString().split('T')[0],
-      due_date: data.due_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      line_items: data.line_items || [],
-      subtotal: data.subtotal || 0,
-      tax_rate: data.tax_rate || 0,
-      tax_amount: data.tax_amount || 0,
-      discount_amount: data.discount_amount || 0,
-      total_amount: data.total_amount || 0,
-      notes: data.notes || '',
-      template: "modern"
-    };
-
-    if (finalData.line_items.length === 0) {
-      setError("No line items found. Please add items manually or try a different file/image.");
-      return;
-    }
-
-    const subtotal = finalData.line_items.reduce((sum, item) => sum + (item.total || 0), 0);
-    const taxAmount = subtotal * (finalData.tax_rate / 100);
-    const totalAmount = subtotal + taxAmount - (finalData.discount_amount || 0);
-
-    finalData.subtotal = subtotal;
-    finalData.tax_amount = taxAmount;
-    finalData.total_amount = totalAmount;
-
-    setInvoiceData(finalData);
-    speak(`I've extracted the data. Please review the invoice.`);
-  };
-
   const saveInvoiceAsDraft = async () => {
     if (!invoiceData) return;
 
@@ -280,37 +237,25 @@ Return the invoice data in the exact JSON structure specified.
   const resetSession = () => {
     setIsRecording(false);
     setTranscript("");
-    setManualInput("");
     setInvoiceData(null);
     setError(null);
     setShowSendModal(false);
     setShowVoiceConversation(false);
     setShowEditor(false);
-    setInputMode("voice");
-  };
-
-  const getCurrentInput = () => {
-    return inputMode === "voice" ? transcript : manualInput;
-  };
-
-  const handleProcessClick = () => {
-    const inputText = getCurrentInput();
-    processCommand(inputText);
   };
 
   return (
-    <div className="min-h-screen bg-stone-100 p-4 md:p-8">
+    <div className="min-h-screen bg-money-paper p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-end justify-between flex-wrap gap-3">
           <div>
-            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-500">Thermal Print</p>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Voice Invoice</h1>
+            <p className="text-xs font-mono font-semibold tracking-[0.2em] uppercase text-money">The Vox</p>
+            <h1 className="text-3xl md:text-4xl font-heading font-extrabold text-ink tracking-tight">Voice Invoice</h1>
           </div>
           <Button
             variant="outline"
             onClick={() => setShowVoiceConversation(true)}
-            className="text-sm"
             size="sm"
           >
             <Zap className="w-4 h-4 mr-2" />
@@ -318,109 +263,19 @@ Return the invoice data in the exact JSON structure specified.
           </Button>
         </div>
 
-        {/* Two-column layout: mic + receipt */}
+        {/* Two-column layout: SPEAK + THE PRINTER */}
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Left: Mic + transcript + input modes */}
-          <div className="bg-white rounded-xl border-2 border-[#17150f] p-4 md:p-6 shadow-[4px_4px_0_#17150f]">
-            <Tabs value={inputMode} onValueChange={setInputMode} className="w-full mb-6">
-              <TabsList className="grid w-full grid-cols-4 bg-stone-100">
-                <TabsTrigger value="voice" className="flex items-center gap-1.5 text-xs">
-                  <Mic className="w-4 h-4" />
-                  <span className="hidden sm:inline">Voice</span>
-                </TabsTrigger>
-                <TabsTrigger value="screenshot" className="flex items-center gap-1.5 text-xs">
-                  <Camera className="w-4 h-4" />
-                  <span className="hidden sm:inline">Photo</span>
-                </TabsTrigger>
-                <TabsTrigger value="manual" className="flex items-center gap-1.5 text-xs">
-                  <Keyboard className="w-4 h-4" />
-                  <span className="hidden sm:inline">Type</span>
-                </TabsTrigger>
-                <TabsTrigger value="pdf" className="flex items-center gap-1.5 text-xs">
-                  <FileUp className="w-4 h-4" />
-                  <span className="hidden sm:inline">PDF</span>
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={inputMode}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
-                transition={{ duration: 0.2 }}
-              >
-                {inputMode === "voice" && (
-                  <div className="space-y-6">
-                    <VoiceSetupGuide />
-                    <ThermalMicButton
-                      onTranscriptChange={setTranscript}
-                      onRecordingChange={setIsRecording}
-                      isProcessing={isProcessing}
-                    />
-                    {transcript && !isProcessing && (
-                      <div className="space-y-3">
-                        <div className="bg-stone-50 border border-[#17150f]/20 rounded-lg p-3">
-                          <p className="text-[10px] font-semibold tracking-[0.15em] uppercase text-slate-500 mb-1">Transcript</p>
-                          <p className="font-mono text-sm text-[#17150f] whitespace-pre-wrap">{transcript}</p>
-                        </div>
-                        <Button
-                          onClick={handleProcessClick}
-                          disabled={!transcript || isProcessing}
-                          className="w-full bg-[#17150f] hover:bg-black text-white"
-                        >
-                          <Wand2 className="w-4 h-4 mr-2" />
-                          Generate Invoice
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {inputMode === "manual" && (
-                  <div className="space-y-4">
-                    <ManualInput
-                      value={manualInput}
-                      onChange={setManualInput}
-                      isProcessing={isProcessing}
-                    />
-                    <Button
-                      onClick={handleProcessClick}
-                      disabled={!manualInput || isProcessing}
-                      className="w-full bg-[#17150f] hover:bg-black text-white"
-                    >
-                      <Wand2 className="w-4 h-4 mr-2" />
-                      Generate Invoice
-                    </Button>
-                  </div>
-                )}
-
-                {inputMode === "screenshot" && (
-                  <ScreenshotInvoiceUploader
-                    onDataExtracted={handlePdfDataExtracted}
-                    onProcessing={setIsProcessing}
-                  />
-                )}
-
-                {inputMode === "pdf" && (
-                  <PdfInvoiceUploader
-                    onDataExtracted={handlePdfDataExtracted}
-                    onProcessing={setIsProcessing}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
-
-            {isProcessing && (
-              <div className="flex items-center justify-center gap-2 mt-6 py-4">
-                <RefreshCw className="w-5 h-5 animate-spin text-slate-600" />
-                <p className="text-sm font-semibold text-slate-700">Printing receipt...</p>
-              </div>
-            )}
+          {/* LEFT — SPEAK panel */}
+          <div className="bg-card rounded-md border-2 border-ink p-6 md:p-8 shadow-hard">
+            <p className="text-xs font-mono font-bold tracking-[0.2em] uppercase text-ink mb-6">Speak</p>
+            <ThermalMicButton
+              onTranscriptChange={setTranscript}
+              onRecordingChange={setIsRecording}
+              isProcessing={isProcessing}
+            />
           </div>
 
-          {/* Right: Thermal receipt preview + action buttons */}
+          {/* RIGHT — THE PRINTER panel */}
           <div className="space-y-4">
             <ThermalReceipt invoiceData={invoiceData} isProcessing={isProcessing} />
 
@@ -435,13 +290,27 @@ Return the invoice data in the exact JSON structure specified.
           </div>
         </div>
 
+        {/* Example chips as paper pills */}
+        {!invoiceData && (
+          <div className="flex flex-wrap justify-center gap-3 pt-2">
+            {EXAMPLE_COMMANDS.map((cmd) => (
+              <span
+                key={cmd}
+                className="inline-block px-4 py-2 rounded-full border-2 border-ink bg-paper text-ink text-xs font-mono font-medium shadow-hard-sm"
+              >
+                "{cmd}"
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Error */}
         <AnimatePresence>
           {error && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+              <div className="rounded-md border-2 border-stamp bg-stamp/10 p-4 text-sm font-mono text-ink">
+                {error}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -502,13 +371,13 @@ function ReceiptActions({ invoiceData, onSend, onEdit }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex gap-3"
+      className="flex gap-3 max-w-sm mx-auto md:mx-0"
     >
-      <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white">
+      <Button variant="money" className="flex-1" onClick={onSend}>
         <Send className="w-4 h-4 mr-2" />
         Send + Pay Link
       </Button>
-      <Button variant="outline" className="flex-1 border-[#17150f] text-[#17150f] hover:bg-stone-100" onClick={onEdit}>
+      <Button variant="outline" className="flex-1" onClick={onEdit}>
         <Edit className="w-4 h-4 mr-2" />
         Edit
       </Button>

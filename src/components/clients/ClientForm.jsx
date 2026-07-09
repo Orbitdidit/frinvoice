@@ -49,11 +49,11 @@ export default function ClientForm({ onSave, onCancel, client = null }) {
         exit={{ opacity: 0, scale: 0.95 }}
         className="max-w-2xl w-full max-h-[90vh] overflow-y-auto"
       >
-        <Card className="shadow-2xl">
-          <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+        <Card className="shadow-hard-lg border-2 border-ink">
+          <CardHeader className="bg-ink text-paper">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-white/20 rounded-md flex items-center justify-center">
                   <User className="w-5 h-5" />
                 </div>
                 <CardTitle className="text-xl">
@@ -76,7 +76,7 @@ export default function ClientForm({ onSave, onCancel, client = null }) {
               {/* Basic Information */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <User className="w-5 h-5 text-purple-600" />
+                  <User className="w-5 h-5 text-money" />
                   Basic Information
                 </h3>
                 
@@ -130,7 +130,7 @@ export default function ClientForm({ onSave, onCancel, client = null }) {
               {/* Business Details */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <Building className="w-5 h-5 text-purple-600" />
+                  <Building className="w-5 h-5 text-money" />
                   Business Details
                 </h3>
                 
@@ -187,8 +187,8 @@ export default function ClientForm({ onSave, onCancel, client = null }) {
               </Button>
               <Button
                 type="submit"
+                variant="money"
                 disabled={isSubmitting}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
               >
                 {isSubmitting ? (
                   "Saving..."

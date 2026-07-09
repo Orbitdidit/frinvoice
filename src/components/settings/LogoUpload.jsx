@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { UploadFile } from "@/integrations/Core";
 import { User } from "@/entities/User";
@@ -166,7 +165,7 @@ export default function LogoUpload() {
           <Button 
             onClick={handleSave} 
             disabled={saving}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            variant="money"
           >
             <Save className="w-4 h-4 mr-2" />
             {saving ? 'Saving...' : 'Save Company Information'}
@@ -178,7 +177,7 @@ export default function LogoUpload() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-purple-600" />
+            <FileText className="w-5 h-5 text-money" />
             Default Invoice Terms
           </CardTitle>
           <p className="text-slate-600">Set default terms and conditions that will appear on all new invoices</p>
@@ -201,7 +200,7 @@ export default function LogoUpload() {
           <Button 
             onClick={handleSave} 
             disabled={saving}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            variant="money"
           >
             <Save className="w-4 h-4 mr-2" />
             {saving ? 'Saving...' : 'Save Default Terms'}
@@ -213,7 +212,7 @@ export default function LogoUpload() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Banknote className="w-5 h-5 text-purple-600" />
+            <Banknote className="w-5 h-5 text-money" />
             Default Payment Instructions
           </CardTitle>
           <p className="text-slate-600">Specify instructions for how customers can make payments for invoices</p>
@@ -236,7 +235,7 @@ export default function LogoUpload() {
           <Button 
             onClick={handleSave} 
             disabled={saving}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            variant="money"
           >
             <Save className="w-4 h-4 mr-2" />
             {saving ? 'Saving...' : 'Save Payment Instructions'}

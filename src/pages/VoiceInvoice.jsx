@@ -14,7 +14,6 @@ import ThermalMicButton from "../components/voice/ThermalMicButton";
 import ThermalReceipt from "../components/invoices/ThermalReceipt";
 import InvoiceEditor from "../components/invoices/InvoiceEditor";
 import SendConfirmationModal from "../components/invoices/SendConfirmationModal";
-import VoiceConversation from "../components/voice/VoiceConversation";
 import VoiceDebugPanel from "../components/voice/VoiceDebugPanel";
 
 const EXAMPLE_COMMANDS = [
@@ -42,7 +41,6 @@ export default function VoiceInvoice() {
   const [clients, setClients] = useState([]);
   const [presets, setPresets] = useState([]);
   const [showSendModal, setShowSendModal] = useState(false);
-  const [showVoiceConversation, setShowVoiceConversation] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
 
   // Debug mode — tap the INVOX THERMAL header 5x to reveal
@@ -279,7 +277,6 @@ Return the invoice data in the exact JSON structure specified. Double-check: cou
     setInvoiceData(null);
     setError(null);
     setShowSendModal(false);
-    setShowVoiceConversation(false);
     setShowEditor(false);
   };
 
@@ -296,14 +293,6 @@ Return the invoice data in the exact JSON structure specified. Double-check: cou
               THE VOX
             </h1>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowVoiceConversation(true)}
-            size="sm"
-          >
-            <Zap className="w-4 h-4 mr-2" />
-            AI Chat
-          </Button>
         </div>
 
         {/* Two-column layout: SPEAK + THE PRINTER */}
@@ -391,19 +380,6 @@ Return the invoice data in the exact JSON structure specified. Double-check: cou
                 isNew={true}
               />
             </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Voice Conversation Modal */}
-        <AnimatePresence>
-          {showVoiceConversation && (
-            <VoiceConversation
-              onInvoiceDataGenerated={(data) => {
-                setInvoiceData(data);
-                setShowVoiceConversation(false);
-              }}
-              onClose={() => setShowVoiceConversation(false)}
-            />
           )}
         </AnimatePresence>
 

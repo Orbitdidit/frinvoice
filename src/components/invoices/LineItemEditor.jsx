@@ -81,12 +81,12 @@ export default function LineItemEditor({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-          <Package className="w-5 h-5 text-purple-600" />
+          <Package className="w-5 h-5 text-money" />
           {documentType === "estimate" ? "Estimated Items" : "Invoice Items"}
         </h3>
         <Button
           onClick={addLineItem}
-          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+          variant="money"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Item

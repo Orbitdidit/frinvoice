@@ -247,8 +247,8 @@ export default function CompanySettings() {
       <div className="flex justify-end">
         <Button 
           onClick={handleSave} 
+          variant="money"
           disabled={saving}
-          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
         >
           <Save className="w-4 h-4 mr-2" />
           {saving ? 'Saving...' : 'Save All Settings'}

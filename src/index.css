@@ -226,3 +226,20 @@
     flex-shrink: 0;
   }
 }
+
+/* ============================================================
+   GLOBAL MICRO-ANIMATION SYSTEM (transform/opacity only)
+   ============================================================ */
+@keyframes inkRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes stampIn{0%{opacity:0;transform:scale(1.6) rotate(-6deg)}60%{opacity:1;transform:scale(.95) rotate(-3deg)}100%{transform:scale(1) rotate(-3deg)}}
+@keyframes blinkLive{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes shadowLift{from{box-shadow:4px 4px 0 #17150f}to{box-shadow:7px 7px 0 #17150f}}
+
+.anim-rise{animation:inkRise .45s cubic-bezier(.2,.8,.2,1) both}
+.anim-stamp{animation:stampIn .35s cubic-bezier(.3,1.4,.4,1) both}
+.dot-live{display:inline-block;width:7px;height:7px;border-radius:50%;background:#1f7a3d;animation:blinkLive 1.6s steps(1) infinite}
+.card-hard{transition:box-shadow .18s ease, transform .18s ease}
+.card-hard:hover{box-shadow:7px 7px 0 #17150f;transform:translate(-2px,-2px)}
+button.shadow-hard-sm:active, .card-hard:active{box-shadow:1px 1px 0 #17150f;transform:translate(2px,2px)}
+
+@media (prefers-reduced-motion: reduce){.anim-rise,.anim-stamp,.dot-live{animation:none}.card-hard,.card-hard:hover{transition:none;transform:none}}

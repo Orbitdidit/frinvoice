@@ -53,6 +53,25 @@ function formatMoney(n) {
   return (Number(n) || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// Counts up from 0 to `value` over `duration`ms on mount, formatted as money.
+function CountUpMoney({ value, duration = 700 }) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    const target = Number(value) || 0;
+    let raf;
+    const start = performance.now();
+    const tick = (now) => {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(target * eased);
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value, duration]);
+  return <>${formatMoney(display)}</>;
+}
+
 export default function Dashboard() {
   const [invoices, setInvoices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -124,7 +143,10 @@ ${companyName}`;
         {/* Header */}
         <div className="flex items-end justify-between flex-wrap gap-4">
           <div>
-            <p className="text-[11px] eyebrow text-money">Money Pipeline</p>
+            <p className="text-[11px] eyebrow text-money flex items-center gap-2">
+              <span className="dot-live" />
+              Money Pipeline
+            </p>
             <h1 className="title-underline font-poster text-ink text-[42px] md:text-[48px] leading-none mt-1">Dashboard</h1>
           </div>
           <Link to={createPageUrl("CreateInvoice")}>
@@ -172,24 +194,21 @@ ${companyName}`;
               {PIPELINE.map((col, idx) => {
                 const s = stats[col.key];
                 return (
-                  <motion.div
+                  <div
                     key={col.key}
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="card-hard overflow-hidden"
-                    style={{ background: col.fullBlock ? "#1f7a3d" : "var(--cream)" }}
+                    className="card-hard anim-rise overflow-hidden"
+                    style={{ background: col.fullBlock ? "#1f7a3d" : "var(--cream)", animationDelay: `${idx * 80}ms` }}
                   >
                     <div className={`px-4 py-2 ${col.headerBar} ${col.fullBlock ? "" : "border-b-2 border-ink"}`}>
                       <p className="text-[11px] font-mono font-bold tracking-[0.15em] uppercase">{col.label}</p>
                     </div>
                     <div className="p-4 md:p-5">
                       <p className={`font-amount tabular-nums text-[28px] md:text-[32px] leading-none ${col.amount}`}>
-                        ${formatMoney(s.total)}
+                        <CountUpMoney value={s.total} />
                       </p>
                       <p className={`text-xs font-mono mt-1 ${col.sub}`}>{s.count} {s.count === 1 ? "invoice" : "invoices"}</p>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
@@ -246,10 +265,11 @@ ${companyName}`;
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {recentInvoices.map((inv) => (
+                  {recentInvoices.map((inv, i) => (
                     <InvoiceRow
                       key={inv.id}
                       invoice={inv}
+                      index={i}
                       onView={() => handleViewInvoice(inv.id)}
                       onFollowUp={() => openFollowUp(inv)}
                     />
@@ -276,12 +296,13 @@ ${companyName}`;
   );
 }
 
-function InvoiceRow({ invoice, onView, onFollowUp }) {
+function InvoiceRow({ invoice, index = 0, onView, onFollowUp }) {
   const isViewed = invoice.status === "viewed";
   return (
     <div
       onClick={onView}
-      className="group card-hard card-hard-hover bg-card p-3 md:p-4 flex items-center gap-3 md:gap-4 cursor-pointer"
+      style={{ animationDelay: `${index * 60}ms` }}
+      className="group card-hard card-hard-hover anim-rise bg-card p-3 md:p-4 flex items-center gap-3 md:gap-4 cursor-pointer"
     >
       {/* Stamp */}
       <div className="flex-shrink-0 w-16 md:w-20 flex justify-center">

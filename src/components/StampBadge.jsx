@@ -17,7 +17,7 @@ export default function StampBadge({ status, className, rotate = true }) {
   return (
     <span
       className={cn(
-        "stamp inline-flex items-center justify-center border-2 px-2 py-1 text-[10px] rounded-md",
+        "stamp anim-stamp inline-flex items-center justify-center border-2 px-2 py-1 text-[10px] rounded-md",
         cls,
         rotate && "rotate-[-4deg]",
         className

@@ -10,42 +10,44 @@ import SendEmailModal from "@/components/invoices/SendEmailModal";
 import StampBadge from "@/components/StampBadge";
 
 const PIPELINE = [
-  { key: "draft", label: "Draft", accent: "slate" },
-  { key: "sent", label: "Sent", accent: "ink" },
-  { key: "viewed", label: "Viewed", accent: "ink" },
-  { key: "paid", label: "Paid", accent: "money" },
-];
-
-const ACCENTS = {
-  slate: {
-    bar: "bg-slate-400",
-    text: "text-slate-600",
-    amount: "text-ink",
-    sub: "text-slate-500",
-    ring: "border-ink",
-  },
-  ink: {
-    bar: "bg-ink",
-    text: "text-ink",
+  {
+    key: "draft",
+    label: "Draft",
+    // ink-black header bar, paper text
+    headerBar: "bg-ink text-paper",
+    cardBg: "bg-card",
     amount: "text-ink",
     sub: "text-ink/60",
-    ring: "border-ink",
   },
-  money: {
-    bar: "bg-money",
-    text: "text-money",
-    amount: "text-money",
-    sub: "text-money",
-    ring: "border-ink",
+  {
+    key: "sent",
+    label: "Sent",
+    // mustard header bar, ink text
+    headerBar: "bg-[#d9a441] text-ink",
+    cardBg: "bg-card",
+    amount: "text-ink",
+    sub: "text-ink/60",
   },
-  red: {
-    bar: "bg-stamp",
-    text: "text-stamp",
-    amount: "text-stamp",
-    sub: "text-stamp",
-    ring: "border-ink",
+  {
+    key: "viewed",
+    label: "Viewed",
+    // cobalt header bar, white text
+    headerBar: "bg-[#2456d6] text-white",
+    cardBg: "bg-card",
+    amount: "text-ink",
+    sub: "text-ink/60",
   },
-};
+  {
+    key: "paid",
+    label: "Paid",
+    // fully color-blocked money green
+    headerBar: "bg-money/0 text-white",
+    cardBg: "bg-money",
+    amount: "text-white",
+    sub: "text-white/80",
+    fullBlock: true,
+  },
+];
 
 function formatMoney(n) {
   return (Number(n) || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -122,8 +124,8 @@ ${companyName}`;
         {/* Header */}
         <div className="flex items-end justify-between flex-wrap gap-4">
           <div>
-            <p className="text-xs font-mono font-semibold tracking-[0.2em] uppercase text-money">Money Pipeline</p>
-            <h1 className="text-3xl md:text-4xl font-heading font-extrabold text-ink tracking-tight">Dashboard</h1>
+            <p className="text-[11px] eyebrow text-money">Money Pipeline</p>
+            <h1 className="font-poster text-ink text-[42px] md:text-[48px] leading-none mt-1">Dashboard</h1>
           </div>
           <Link to={createPageUrl("CreateInvoice")}>
             <Button>
@@ -137,21 +139,23 @@ ${companyName}`;
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {PIPELINE.map((col, idx) => {
             const s = stats[col.key];
-            const a = ACCENTS[col.accent];
             return (
               <motion.div
                 key={col.key}
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className={`relative bg-card rounded-md border-2 ${a.ring} shadow-hard p-4 md:p-5 overflow-hidden`}
+                className={`card-hard overflow-hidden ${col.cardBg}`}
               >
-                <div className={`absolute top-0 left-0 h-full w-1.5 ${a.bar}`} />
-                <p className={`text-[10px] md:text-xs font-mono font-bold tracking-[0.15em] uppercase ${a.text}`}>{col.label}</p>
-                <p className={`mt-2 text-xl md:text-3xl font-mono font-bold tabular-nums ${a.amount}`}>
-                  ${formatMoney(s.total)}
-                </p>
-                <p className={`text-xs font-mono ${a.sub}`}>{s.count} {s.count === 1 ? "invoice" : "invoices"}</p>
+                <div className={`px-4 py-2 ${col.headerBar} ${col.fullBlock ? "" : "border-b-2 border-ink"}`}>
+                  <p className="text-[11px] font-mono font-bold tracking-[0.15em] uppercase">{col.label}</p>
+                </div>
+                <div className="p-4 md:p-5">
+                  <p className={`font-amount tabular-nums text-[28px] md:text-[32px] leading-none ${col.amount}`}>
+                    ${formatMoney(s.total)}
+                  </p>
+                  <p className={`text-xs font-mono mt-1 ${col.sub}`}>{s.count} {s.count === 1 ? "invoice" : "invoices"}</p>
+                </div>
               </motion.div>
             );
           })}
@@ -162,18 +166,17 @@ ${companyName}`;
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`relative bg-card rounded-md border-2 ${ACCENTS.red.ring} shadow-hard p-4 md:p-5 overflow-hidden`}
+            className="card-hard overflow-hidden bg-stamp text-white"
           >
-            <div className={`absolute top-0 left-0 h-full w-1.5 ${ACCENTS.red.bar}`} />
-            <div className="flex items-center justify-between">
+            <div className="p-4 md:p-5 flex items-center justify-between gap-4">
               <div>
-                <p className="text-[10px] md:text-xs font-mono font-bold tracking-[0.15em] uppercase text-stamp">Overdue</p>
-                <p className="mt-2 text-xl md:text-3xl font-mono font-bold tabular-nums text-stamp">
+                <p className="text-[11px] font-mono font-bold tracking-[0.15em] uppercase text-white">Overdue</p>
+                <p className="mt-2 font-amount tabular-nums text-[28px] md:text-[32px] leading-none text-white">
                   ${formatMoney(stats.overdue.total)}
                 </p>
-                <p className="text-xs font-mono text-stamp">{stats.overdue.count} overdue {stats.overdue.count === 1 ? "invoice" : "invoices"}</p>
+                <p className="text-xs font-mono text-white/80 mt-1">{stats.overdue.count} overdue {stats.overdue.count === 1 ? "invoice" : "invoices"}</p>
               </div>
-              <Button variant="destructive" onClick={() => navigate(createPageUrl("Invoices"))}>
+              <Button variant="secondary" onClick={() => navigate(createPageUrl("Invoices"))}>
                 Review
               </Button>
             </div>
@@ -183,7 +186,7 @@ ${companyName}`;
         {/* Recent invoices */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-mono font-bold tracking-[0.15em] uppercase text-ink">Recent Invoices</h2>
+            <h2 className="text-[11px] eyebrow text-ink">Recent Invoices</h2>
             <Link to={createPageUrl("Invoices")} className="text-xs font-mono font-semibold text-money hover:text-ink">
               View all →
             </Link>
@@ -236,11 +239,11 @@ function InvoiceRow({ invoice, onView, onFollowUp }) {
   return (
     <div
       onClick={onView}
-      className="group bg-card rounded-md border-2 border-ink shadow-hard-sm p-3 md:p-4 flex items-center gap-3 md:gap-4 hover:shadow-hard transition-all cursor-pointer"
+      className="group card-hard bg-card p-3 md:p-4 flex items-center gap-3 md:gap-4 cursor-pointer"
     >
       {/* Stamp */}
       <div className="flex-shrink-0 w-16 md:w-20 flex justify-center">
-        <StampBadge status={invoice.status} className={isViewed ? "animate-pulse" : ""} />
+        <StampBadge status={invoice.status} />
       </div>
 
       {/* Info */}

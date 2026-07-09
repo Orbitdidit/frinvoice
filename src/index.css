@@ -79,7 +79,8 @@
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Archivo', system-ui, sans-serif;
-    letter-spacing: -0.01em;
+    font-weight: 900;
+    letter-spacing: -0.04em;
   }
 }
 
@@ -95,13 +96,41 @@
   }
   .bg-money-paper {
     background-color: #f4f0e6;
-    background-image: radial-gradient(rgba(23, 21, 15, 0.12) 0.6px, transparent 0.6px);
-    background-size: 16px 16px;
+    background-image: radial-gradient(rgba(23, 21, 15, 0.05) 1.4px, transparent 1.4px);
+    background-size: 22px 22px;
     background-position: 0 0;
   }
   .dark .bg-money-paper {
     background-color: #17150f;
-    background-image: radial-gradient(rgba(244, 240, 230, 0.08) 0.6px, transparent 0.6px);
+    background-image: radial-gradient(rgba(244, 240, 230, 0.06) 1.4px, transparent 1.4px);
+  }
+  /* Poster typography */
+  .font-poster {
+    font-family: 'Archivo', system-ui, sans-serif;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+  }
+  .font-amount {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+  /* Hard-shadow card with lift on hover */
+  .card-hard {
+    border: 2px solid #17150f;
+    border-radius: 8px;
+    box-shadow: 4px 4px 0 #17150f;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .card-hard:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 #17150f;
   }
   .shadow-hard {
     box-shadow: 4px 4px 0 #17150f;
@@ -124,8 +153,15 @@
   .stamp {
     font-family: 'IBM Plex Mono', monospace;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
     transform: rotate(-4deg);
+  }
+  @keyframes stamp-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+  .stamp-pulse {
+    animation: stamp-pulse 2s ease-in-out infinite;
   }
 }

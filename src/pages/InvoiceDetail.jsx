@@ -20,7 +20,6 @@ export default function InvoiceDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const [linkCopied, setLinkCopied] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -66,11 +65,9 @@ export default function InvoiceDetail() {
     return `${window.location.origin}${createPageUrl(`PublicInvoice?id=${invoiceId}`)}`;
   };
 
-  const handleCopyLink = async () => {
+  const handleCopyShowpieceLink = async () => {
     await navigator.clipboard.writeText(getPublicInvoiceUrl());
-    setLinkCopied(true);
     toast({ title: "Link copied — send it and get paid 💸" });
-    setTimeout(() => setLinkCopied(false), 2000);
   };
 
   if (isLoading) {
@@ -119,30 +116,28 @@ export default function InvoiceDetail() {
                   </Button>
                   
                   <Button 
-                    variant="outline" 
-                    onClick={handleCopyLink}
-                    className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300"
+                    variant="money" 
+                    onClick={handleCopyShowpieceLink}
                   >
                     <Copy className="w-4 h-4 mr-2" />
-                    {linkCopied ? "Link Copied!" : "Copy Payment Link"}
+                    Copy showpiece link
                   </Button>
 
                   <Button
                     variant="outline"
                     onClick={() => window.open(getPublicInvoiceUrl(), "_blank")}
-                    className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300"
                   >
                     <ExternalLink className="w-4 h-4 mr-2" />
                     Preview as client
                   </Button>
               </div>
               
-              <Alert className="bg-green-50 border-green-200 shadow-sm mt-4">
-                <CheckCircle className="h-4 w-4 text-green-700" />
-                <AlertTitle className="text-green-800 font-semibold flex items-center gap-2">
+              <Alert className="bg-money/10 border-2 border-money shadow-hard-sm mt-4">
+                <CheckCircle className="h-4 w-4 text-money" />
+                <AlertTitle className="text-ink font-semibold flex items-center gap-2">
                   🎉 Ready to get paid!
                 </AlertTitle>
-                <AlertDescription className="text-green-700">
+                <AlertDescription className="text-ink-soft">
                   Send the link to your client. They can view and pay the invoice instantly - no login required!
                 </AlertDescription>
               </Alert>

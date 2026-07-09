@@ -487,19 +487,19 @@ Client: "${editableData.client_name || ''}"`,
       className="space-y-6"
     >
       {isNew && (
-        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+        <Card className="card-hard bg-money">
           <CardHeader>
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-green-dark rounded-xl flex items-center justify-center">
                   <Sparkles className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl text-green-900">Document Generated!</CardTitle>
-                  <p className="text-green-700">Need changes? You can edit all details below before saving.</p>
+                  <CardTitle className="text-2xl text-white">Document Generated!</CardTitle>
+                  <p className="text-white/80">Need changes? You can edit all details below before saving.</p>
                 </div>
               </div>
-              <Badge className="bg-green-100 text-green-800 px-4 py-2">
+              <Badge className="bg-white text-money px-4 py-2">
                 ✨ AI Generated & Fully Editable
               </Badge>
             </div>
@@ -521,7 +521,7 @@ Client: "${editableData.client_name || ''}"`,
         <Button
           variant={!isClassic ? 'default' : 'outline'}
           onClick={() => handleFieldChange('template', 'modern')}
-          className={`rounded-full transition-all duration-300 ${!isClassic ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' : ''}`}
+          className="rounded-full transition-all duration-300"
         >
           <Sparkles className="w-4 h-4 mr-2" />
           Modern Style
@@ -529,7 +529,7 @@ Client: "${editableData.client_name || ''}"`,
         <Button
           variant={isClassic ? 'default' : 'outline'}
           onClick={() => handleFieldChange('template', 'classic')}
-          className={`rounded-full transition-all duration-300 ${isClassic ? 'bg-slate-800 text-white' : ''}`}
+          className="rounded-full transition-all duration-300"
         >
           <BookOpen className="w-4 h-4 mr-2" />
           Classic Style
@@ -598,9 +598,10 @@ Client: "${editableData.client_name || ''}"`,
 
       <div className="flex flex-col sm:flex-row justify-center gap-4">
         <Button
+          variant="money"
           onClick={handleSave}
           disabled={isProcessing}
-          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl shadow-lg order-1"
+          className="px-8 py-3 rounded-xl order-1"
         >
           {isProcessing ? (
             <>
@@ -1168,9 +1169,10 @@ Client: "${editableData.client_name || ''}"`,
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row justify-center gap-4">
         <Button
+          variant="money"
           onClick={handleSave}
           disabled={isProcessing}
-          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl shadow-lg"
+          className="px-8 py-3 rounded-xl"
         >
           {isProcessing ? (
             <>

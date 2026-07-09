@@ -14,8 +14,10 @@ import {
   User as UserIcon, // Renamed to avoid conflict with User entity import
   CheckCircle,
   Clock,
-  RefreshCw
+  RefreshCw,
+  Copy
 } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -133,6 +135,12 @@ export default function Invoices() {
 
   const handleViewInvoice = (invoiceId) => {
     navigate(createPageUrl(`InvoiceDetail?id=${invoiceId}`));
+  };
+
+  const handleCopyShowpieceLink = (invoiceId) => {
+    const url = `${window.location.origin}${createPageUrl(`PublicInvoice?id=${invoiceId}`)}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: "Link copied — send it and get paid 💸" });
   };
 
   const getStatusColor = (status) => {
@@ -358,7 +366,7 @@ export default function Invoices() {
                             {format(new Date(invoice.created_date), 'MMM dd, yyyy')}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center justify-center">
+                            <div className="flex items-center justify-center gap-1">
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
@@ -369,6 +377,18 @@ export default function Invoices() {
                                 }}
                               >
                                 <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="w-8 h-8 text-money"
+                                title="Copy showpiece link"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopyShowpieceLink(invoice.id);
+                                }}
+                              >
+                                <Copy className="w-4 h-4" />
                               </Button>
                             </div>
                           </TableCell>

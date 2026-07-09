@@ -250,8 +250,12 @@ Return the invoice data in the exact JSON structure specified.
         {/* Header */}
         <div className="flex items-end justify-between flex-wrap gap-3">
           <div>
-            <p className="text-xs font-mono font-semibold tracking-[0.2em] uppercase text-money">The Vox</p>
-            <h1 className="text-3xl md:text-4xl font-heading font-extrabold text-ink tracking-tight">Voice Invoice</h1>
+            <h1
+              className="title-underline font-heading font-black text-ink leading-none"
+              style={{ fontSize: 46, letterSpacing: "-0.04em" }}
+            >
+              THE VOX
+            </h1>
           </div>
           <Button
             variant="outline"
@@ -296,7 +300,7 @@ Return the invoice data in the exact JSON structure specified.
             {EXAMPLE_COMMANDS.map((cmd) => (
               <span
                 key={cmd}
-                className="inline-block px-4 py-2 rounded-full border-2 border-ink bg-paper text-ink text-xs font-mono font-medium shadow-hard-sm"
+                className="inline-block px-4 py-2 rounded-full border-2 border-ink bg-paper text-ink text-xs font-mono font-medium shadow-[2px_2px_0_#17150f] transition-colors hover:bg-money hover:text-white cursor-default"
               >
                 "{cmd}"
               </span>
@@ -308,8 +312,11 @@ Return the invoice data in the exact JSON structure specified.
         <AnimatePresence>
           {error && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
-              <div className="rounded-md border-2 border-stamp bg-stamp/10 p-4 text-sm font-mono text-ink">
-                {error}
+              <div className="rounded-md border-2 border-stamp bg-stamp/10 p-4 shadow-hard-sm flex flex-col sm:flex-row sm:items-center gap-3">
+                <span className="flex-1 text-sm font-mono text-ink">{error}</span>
+                <Button variant="signal" size="sm" onClick={() => setError(null)}>
+                  TRY AGAIN
+                </Button>
               </div>
             </motion.div>
           )}

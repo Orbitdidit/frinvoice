@@ -42,16 +42,26 @@ export default function ThermalReceipt({ invoiceData, isProcessing }) {
           <Printer className="w-4 h-4" />
           <span className="text-xs font-mono font-bold tracking-[0.2em]">INVOX THERMAL</span>
         </div>
-        <span className="w-2 h-2 rounded-full bg-money animate-pulse" />
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-money animate-pulse" />
+          <span className="text-[10px] font-mono font-bold tracking-[0.15em] text-money">READY TO PRINT</span>
+        </div>
       </div>
 
-      {/* Receipt paper */}
-      <div className="bg-[#fffdf7] border-2 border-t-0 border-ink px-4 py-5 min-h-[400px] font-mono text-sm text-ink relative shadow-hard">
-        {/* Empty state */}
+      {/* Receipt paper — thermal line texture */}
+      <div
+        className="bg-[#fffdf7] border-2 border-t-0 border-ink px-4 py-5 min-h-[400px] font-mono text-sm text-ink relative shadow-hard"
+        style={{
+          backgroundImage: "repeating-linear-gradient(to bottom, transparent 0px, transparent 27px, rgba(23,21,15,0.04) 27px, rgba(23,21,15,0.04) 28px)",
+        }}
+      >
+        {/* Empty state — blinking green cursor */}
         {!invoiceData && (
-          <div className="text-center py-16">
-            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-slate-400 mb-2">Awaiting input</p>
-            <p className="text-slate-400 text-xs">Your receipt will print here</p>
+          <div className="flex flex-col items-center justify-center py-24">
+            <p className="text-slate-400 text-xs tracking-wide flex items-center">
+              — awaiting your voice —
+              <span className="inline-block w-2 h-4 ml-1 align-middle bg-money animate-pulse" />
+            </p>
           </div>
         )}
 

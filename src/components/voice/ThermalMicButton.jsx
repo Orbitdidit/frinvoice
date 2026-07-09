@@ -239,18 +239,18 @@ export default function ThermalMicButton({ onTranscriptChange, onRecordingChange
         </div>
       )}
 
-      {/* Circular mic button — 110px, ink → stamp red with pulse */}
-      <div className="relative flex items-center justify-center" style={{ width: 110, height: 110 }}>
+      {/* Circular mic button — 120px, ink → signal orange with expanding pulse */}
+      <div className="relative flex items-center justify-center" style={{ width: 120, height: 120 }}>
         {/* Expanding pulse ring while recording */}
         {isRecording && (
           <>
             <motion.div
-              className="absolute inset-0 rounded-full border-2 border-stamp"
+              className="absolute inset-0 rounded-full border-2 border-signal"
               animate={{ scale: [1, 1.7], opacity: [0.7, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
             />
             <motion.div
-              className="absolute inset-0 rounded-full border-2 border-stamp"
+              className="absolute inset-0 rounded-full border-2 border-signal"
               animate={{ scale: [1, 2], opacity: [0.5, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.4 }}
             />
@@ -261,9 +261,9 @@ export default function ThermalMicButton({ onTranscriptChange, onRecordingChange
           disabled={isProcessing || isTranscribing}
           whileTap={{ scale: 0.95 }}
           whileHover={{ scale: 1.03 }}
-          style={{ width: 110, height: 110 }}
+          style={{ width: 120, height: 120 }}
           className={`relative rounded-full flex items-center justify-center shadow-hard border-2 border-ink transition-colors duration-200 ${
-            isRecording ? "bg-stamp" : "bg-ink"
+            isRecording ? "bg-signal" : "bg-ink"
           }`}
         >
           {isTranscribing ? (
@@ -281,7 +281,7 @@ export default function ThermalMicButton({ onTranscriptChange, onRecordingChange
         {isTranscribing ? (
           <p className="font-mono font-semibold text-sm text-ink">{usingBrowserSTT ? "Processing…" : "AI processing…"}</p>
         ) : isRecording ? (
-          <p className="font-mono font-semibold text-sm text-stamp animate-pulse">{usingBrowserSTT ? "LISTENING…" : "RECORDING… SPEAK NOW!"}</p>
+          <p className="font-mono font-semibold text-sm text-signal animate-pulse">LISTENING…</p>
         ) : (
           <p className="font-mono text-xs uppercase tracking-[0.15em] text-ink/70">
             Tap &amp; talk — say it like you'd tell a friend

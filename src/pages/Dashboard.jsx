@@ -135,86 +135,129 @@ ${companyName}`;
           </Link>
         </div>
 
-        {/* Stat columns */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          {PIPELINE.map((col, idx) => {
-            const s = stats[col.key];
-            return (
-              <motion.div
-                key={col.key}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className={`card-hard overflow-hidden ${col.cardBg}`}
-              >
-                <div className={`px-4 py-2 ${col.headerBar} ${col.fullBlock ? "" : "border-b-2 border-ink"}`}>
-                  <p className="text-[11px] font-mono font-bold tracking-[0.15em] uppercase">{col.label}</p>
-                </div>
-                <div className="p-4 md:p-5">
-                  <p className={`font-amount tabular-nums text-[28px] md:text-[32px] leading-none ${col.amount}`}>
-                    ${formatMoney(s.total)}
-                  </p>
-                  <p className={`text-xs font-mono mt-1 ${col.sub}`}>{s.count} {s.count === 1 ? "invoice" : "invoices"}</p>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Overdue card (conditional) */}
-        {stats.overdue.count > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="card-hard overflow-hidden bg-stamp text-white"
+        {/* Layered frame panel: tan surface with an ink header bar bolted to its top edge */}
+        <div
+          className="overflow-hidden"
+          style={{
+            background: "var(--tan)",
+            border: "2px solid #17150f",
+            boxShadow: "6px 6px 0 #17150f",
+            borderRadius: "6px",
+          }}
+        >
+          {/* Ink header bar */}
+          <div
+            className="flex items-center justify-between gap-4"
+            style={{
+              background: "#17150f",
+              color: "#f4f0e6",
+              padding: "10px 20px",
+              borderRadius: "4px 4px 0 0",
+            }}
           >
-            <div className="p-4 md:p-5 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-[11px] font-mono font-bold tracking-[0.15em] uppercase text-white">Overdue</p>
-                <p className="mt-2 font-amount tabular-nums text-[28px] md:text-[32px] leading-none text-white">
-                  ${formatMoney(stats.overdue.total)}
-                </p>
-                <p className="text-xs font-mono text-white/80 mt-1">{stats.overdue.count} overdue {stats.overdue.count === 1 ? "invoice" : "invoices"}</p>
-              </div>
-              <Button variant="secondary" onClick={() => navigate(createPageUrl("Invoices"))}>
-                Review
-              </Button>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Recent invoices */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="section-header text-sm text-ink">Recent Invoices</h2>
-            <Link to={createPageUrl("Invoices")} className="text-xs font-mono font-semibold text-money hover:text-ink">
-              View all →
-            </Link>
+            <span style={{ fontFamily: "Archivo, system-ui, sans-serif", fontWeight: 900, fontSize: "14px", letterSpacing: ".08em" }}>
+              INVOX
+            </span>
+            <nav className="flex items-center gap-4" style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "10px", letterSpacing: ".2em" }}>
+              <span style={{ borderBottom: "2px solid #d9a441", paddingBottom: "2px" }}>PIPELINE</span>
+              <span style={{ opacity: 0.65 }}>CLIENTS</span>
+              <span style={{ opacity: 0.65 }}>REPORTS</span>
+            </nav>
           </div>
 
-          {isLoading ? (
-            <div className="space-y-2">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="h-20 bg-card rounded-md border-2 border-ink shadow-hard-sm animate-pulse" />
-              ))}
+          {/* Frame interior */}
+          <div className="p-5 md:p-7 space-y-8">
+            {/* Stat columns */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              {PIPELINE.map((col, idx) => {
+                const s = stats[col.key];
+                return (
+                  <motion.div
+                    key={col.key}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="card-hard overflow-hidden"
+                    style={{ background: col.fullBlock ? "#1f7a3d" : "var(--cream)" }}
+                  >
+                    <div className={`px-4 py-2 ${col.headerBar} ${col.fullBlock ? "" : "border-b-2 border-ink"}`}>
+                      <p className="text-[11px] font-mono font-bold tracking-[0.15em] uppercase">{col.label}</p>
+                    </div>
+                    <div className="p-4 md:p-5">
+                      <p className={`font-amount tabular-nums text-[28px] md:text-[32px] leading-none ${col.amount}`}>
+                        ${formatMoney(s.total)}
+                      </p>
+                      <p className={`text-xs font-mono mt-1 ${col.sub}`}>{s.count} {s.count === 1 ? "invoice" : "invoices"}</p>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
-          ) : recentInvoices.length === 0 ? (
-            <div className="card-hard bg-card p-10 text-center">
-              <p className="font-mono text-ink text-lg">🧾 nothing printing yet</p>
-              <p className="text-sm font-mono text-ink/60 mt-2">go make some money — create your first invoice.</p>
+
+            {/* Overdue card (conditional) */}
+            {stats.overdue.count > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="card-hard overflow-hidden bg-stamp text-white"
+              >
+                <div className="p-4 md:p-5 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-[11px] font-mono font-bold tracking-[0.15em] uppercase text-white">Overdue</p>
+                    <p className="mt-2 font-amount tabular-nums text-[28px] md:text-[32px] leading-none text-white">
+                      ${formatMoney(stats.overdue.total)}
+                    </p>
+                    <p className="text-xs font-mono text-white/80 mt-1">{stats.overdue.count} overdue {stats.overdue.count === 1 ? "invoice" : "invoices"}</p>
+                  </div>
+                  <Button variant="secondary" onClick={() => navigate(createPageUrl("Invoices"))}>
+                    Review
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Recent invoices — own white inner card, reads as top layer on tan */}
+            <div
+              style={{
+                background: "#ffffff",
+                border: "2px solid #17150f",
+                boxShadow: "4px 4px 0 #17150f",
+                borderRadius: "6px",
+              }}
+              className="p-4 md:p-5"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="section-header text-sm text-ink">Recent Invoices</h2>
+                <Link to={createPageUrl("Invoices")} className="text-xs font-mono font-semibold text-money hover:text-ink">
+                  View all →
+                </Link>
+              </div>
+
+              {isLoading ? (
+                <div className="space-y-2">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="h-20 bg-sand rounded-md border-2 border-ink shadow-hard-sm animate-pulse" />
+                  ))}
+                </div>
+              ) : recentInvoices.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="font-mono text-ink text-lg">🧾 nothing printing yet</p>
+                  <p className="text-sm font-mono text-ink/60 mt-2">go make some money — create your first invoice.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {recentInvoices.map((inv) => (
+                    <InvoiceRow
+                      key={inv.id}
+                      invoice={inv}
+                      onView={() => handleViewInvoice(inv.id)}
+                      onFollowUp={() => openFollowUp(inv)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="space-y-2">
-              {recentInvoices.map((inv) => (
-                <InvoiceRow
-                  key={inv.id}
-                  invoice={inv}
-                  onView={() => handleViewInvoice(inv.id)}
-                  onFollowUp={() => openFollowUp(inv)}
-                />
-              ))}
-            </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -248,7 +291,16 @@ function InvoiceRow({ invoice, onView, onFollowUp }) {
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="highlighter font-mono text-xs md:text-sm font-bold text-ink">
+          <span
+            className="font-mono font-bold text-ink"
+            style={{
+              background: "var(--sand)",
+              border: "1px solid #17150f",
+              fontSize: "11px",
+              padding: "2px 8px",
+              borderRadius: "3px",
+            }}
+          >
             #{invoice.invoice_number || "—"}
           </span>
           {isViewed && (

@@ -178,7 +178,7 @@ export default function Settings() {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Settings</h1>
-            <p className="text-slate-600 mt-1">Configure your INVIO preferences and pricing</p>
+            <p className="text-slate-600 mt-1">Configure your INVOX preferences and pricing</p>
           </div>
         </motion.div>
 
@@ -327,14 +327,14 @@ export default function Settings() {
             >
               <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
                 <CardHeader>
-                  <CardTitle className="text-blue-900">💡 How SmartCalc™ Works</CardTitle>
+                  <CardTitle className="text-blue-900">💡 How RateCalc Works</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-blue-800">
                     <strong>Voice Command Example:</strong> "Calculate price for full print and installation on a 50 ft by 5 ft wall."
                   </p>
                   <p className="text-blue-700">
-                    <strong>INVIO Response:</strong> "The estimated total is approximately $3,750 (250 sq ft × $15/sq ft)."
+                    <strong>INVOX Response:</strong> "The estimated total is approximately $3,750 (250 sq ft × $15/sq ft)."
                   </p>
                   <p className="text-sm text-blue-600">
                     Set up presets for your most common services to get instant, accurate pricing during client consultations.

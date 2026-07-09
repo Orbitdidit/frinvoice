@@ -86,7 +86,7 @@ export default function VoiceInvoice() {
 
     try {
       const prompt = `
-You are INVIO, an AI assistant specialized in converting natural language requests into detailed, professional invoices.
+You are INVOX, an AI assistant specialized in converting natural language requests into detailed, professional invoices.
 
 Context: The user has provided the following request for creating an invoice:
 "${inputText}"

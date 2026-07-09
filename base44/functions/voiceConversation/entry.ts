@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
             body: JSON.stringify({
                 model: "gpt-4o-mini",
                 messages: [
-                    { role: "system", content: "You are Frinvoice, a concise, friendly voice invoicing assistant." },
+                    { role: "system", content: "You are Invox, a concise, friendly voice invoicing assistant." },
                     { role: "user", content: `Context: ${conversationHistory}\n\nMessage: ${userText}` }
                 ],
                 max_tokens: 150

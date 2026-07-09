@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -251,7 +250,7 @@ export default function VoiceConversation({ onInvoiceDataGenerated, onClose }) {
                 <div className="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center">
                   <Volume2 className="w-10 h-10 text-green-600 animate-pulse" />
                 </div>
-                <Badge className="bg-green-100 text-green-800">🗣️ INVIO Speaking...</Badge>
+                <Badge className="bg-green-100 text-green-800">🗣️ INVOX Speaking...</Badge>
                 {lastAiResponse && <p className="text-sm text-slate-600 italic">"{lastAiResponse}"</p>}
                 {servicesUsed.tts && (
                   <Badge variant="outline" className="text-xs">
@@ -290,7 +289,7 @@ export default function VoiceConversation({ onInvoiceDataGenerated, onClose }) {
 
             <h3 className="text-xl font-semibold text-slate-800">
               {isPlaying 
-                ? "INVIO is responding with premium AI voice..." 
+                ? "INVOX is responding with premium AI voice..." 
                 : isProcessing 
                 ? "Multiple AI services working on your request..." 
                 : isRecording 
@@ -326,7 +325,7 @@ export default function VoiceConversation({ onInvoiceDataGenerated, onClose }) {
             {isRecording ? (
               <p className="text-red-600 font-semibold">🔴 Recording... Click again to stop</p>
             ) : (
-              <p>Click the microphone to start your conversation with INVIO</p>
+              <p>Click the microphone to start your conversation with INVOX</p>
             )}
           </div>
 
@@ -335,7 +334,7 @@ export default function VoiceConversation({ onInvoiceDataGenerated, onClose }) {
             <div className="max-h-32 overflow-y-auto space-y-2 bg-white rounded-lg p-3 border">
               {conversationHistory.slice(-4).map((item, index) => (
                 <div key={index} className={`text-sm ${item.type === 'user' ? 'text-blue-700' : 'text-purple-700'}`}>
-                  <strong>{item.type === 'user' ? 'You:' : 'INVIO:'}</strong> {item.text}
+                  <strong>{item.type === 'user' ? 'You:' : 'INVOX:'}</strong> {item.text}
                 </div>
               ))}
             </div>

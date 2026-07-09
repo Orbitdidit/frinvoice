@@ -394,7 +394,7 @@ export default function PublicInvoice() {
         </div>
 
         <footer className={`text-center text-xs ${skin.muted} no-print`}>
-          <p>Powered by INVIO</p>
+          <p>Powered by INVOX</p>
           {companyInfo && <p>&copy; {new Date().getFullYear()} {companyInfo.company_name}. All rights reserved.</p>}
         </footer>
       </div>

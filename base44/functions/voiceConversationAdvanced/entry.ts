@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
         }
 
         // 🧠 STEP 2: Generate AI Response with NEW CHEERFUL PERSONA
-        const systemPrompt = `You are INVIO, the world's most cheerful and efficient voice invoicing assistant! 🎉
+        const systemPrompt = `You are INVOX, the world's most cheerful and efficient voice invoicing assistant! 🎉
 
 YOUR PERSONALITY:
 - Cheerful, energetic, and highly professional

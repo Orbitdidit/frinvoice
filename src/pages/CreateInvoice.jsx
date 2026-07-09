@@ -166,7 +166,7 @@ export default function CreateInvoice() {
     }).join('\n');
 
     const prompt = `
-You are Frinvoice AI — an elite billing assistant. Return a perfectly structured JSON invoice. Populate every field possible.
+You are Invox AI — an elite billing assistant. Return a perfectly structured JSON invoice. Populate every field possible.
 
 TODAY'S DATE: ${todayStr}
 DEFAULT DUE DATE (Net 30): ${net30Str}
@@ -424,7 +424,7 @@ OUTPUT: Return ONLY valid JSON matching the schema. No markdown. No backticks. N
                     Create Invoice
                   </h1>
                   <p className="text-xs text-cyan-300/70 font-semibold tracking-widest uppercase mt-1">
-                    Powered by Frinvoice AI
+                    Powered by INVOX
                   </p>
                 </div>
               </div>
@@ -568,7 +568,7 @@ OUTPUT: Return ONLY valid JSON matching the schema. No markdown. No backticks. N
                           <RefreshCw className="relative w-10 h-10 animate-spin text-cyan-400" />
                         </div>
                         <p className="text-white font-semibold text-lg">Processing your request…</p>
-                        <p className="text-cyan-300/70 text-sm">Frinvoice AI is generating your invoice.</p>
+                        <p className="text-cyan-300/70 text-sm">Invox AI is generating your invoice.</p>
                       </div>
                     )}
                   </div>
@@ -609,7 +609,7 @@ OUTPUT: Return ONLY valid JSON matching the schema. No markdown. No backticks. N
                     {inputMode === "screenshot" && (
                       <>
                         <p>→ Upload a screenshot or photo of any receipt, invoice, or quote</p>
-                        <p>› Frinvoice AI extracts all data instantly — no manual typing needed</p>
+                        <p>› Invox AI extracts all data instantly — no manual typing needed</p>
                         <p>→ Perfect for converting photos into professional invoices in seconds</p>
                       </>
                     )}

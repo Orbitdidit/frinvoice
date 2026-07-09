@@ -10,7 +10,6 @@ import {
   FileText,
   Users,
   Settings,
-  Zap,
   Bell,
   FileCheck,
   ArrowLeft,
@@ -104,17 +103,10 @@ function DesktopSidebar({ location, navigationItems, createPageUrl }) {
     <Sidebar className="border-r-2 border-ink bg-white hidden md:flex">
       <SidebarHeader className="border-b-2 border-ink p-6">
         <Link to={createPageUrl("Dashboard")} className="block">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-10 h-10 bg-ink rounded-md flex items-center justify-center shadow-hard-sm">
-                <Zap className="w-6 h-6 text-paper" />
-              </div>
-            </div>
-            <div>
-              <h2 className="font-heading font-extrabold text-xl text-ink tracking-tight">Frinvoice</h2>
-              <p className="text-xs text-slate-500 font-mono font-medium uppercase tracking-wider">Smart Invoicing</p>
-            </div>
-          </div>
+          <h2 className="font-heading font-extrabold text-2xl text-ink tracking-tight">
+            IN<span className="text-money">VOX</span>
+          </h2>
+          <p className="text-xs text-slate-500 font-mono font-medium tracking-wide mt-0.5">Speak it. Send it. Get paid.</p>
         </Link>
       </SidebarHeader>
 
@@ -214,10 +206,9 @@ function MobileHeader({ createPageUrl, currentPageName, darkMode, setDarkMode })
           <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors duration-200" />
         )}
         <Link to={createPageUrl("Dashboard")} className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-ink rounded-md flex items-center justify-center">
-            <Zap className="w-4 h-4 text-paper" />
-          </div>
-          <h1 className="text-xl font-heading font-extrabold text-ink dark:text-white">Frinvoice</h1>
+          <h1 className="text-xl font-heading font-extrabold text-ink dark:text-white tracking-tight">
+            IN<span className="text-money">VOX</span>
+          </h1>
         </Link>
         <button
           onClick={() => setDarkMode(d => !d)}
@@ -252,21 +243,21 @@ export default function Layout({ children, currentPageName }) {
   useEffect(() => {
     // --- PWA Installation Logic ---
     const manifest = {
-      name: "Frinvoice - Smart Invoice Management",
-      short_name: "Frinvoice",
+      name: "INVOX — Speak it. Send it. Get paid.",
+      short_name: "INVOX",
       description: "Create professional invoices instantly with AI-powered tools.",
       start_url: "/",
       display: "standalone",
       background_color: "#FFFFFF",
-      theme_color: "#8B5CF6", // Purple
+      theme_color: "#1f7a3d",
       icons: [
         {
-          src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXphcCI+PHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHg9IjAiIHk9IjAiIHJ4PSIyNCIgZmlsbD0iIzhCNUNGNyIvPjxwYXRoIGQ9Ik0xMyAyTDMgMTRoOWwtMiA4IDgtMTEuMDY2NjY2NzYzMjQ1MjA1SDVMMi04eiIvPjwvc3ZnPg==",
+          src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgMTkyIDE5MiI+PHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSIzMiIgZmlsbD0iIzFmN2EzZCIvPjx0ZXh0IHg9Ijk2IiB5PSIxMTgiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjaywgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI0OCIgZm9udC13ZWlnaHQ9IjkwMCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIyIj5JTlZPWDwvdGV4dD48L3N2Zz4=",
           sizes: "192x192",
           type: "image/svg+xml",
         },
         {
-          src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXphcCI+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHg9IjAiIHk9IjAiIHJ4PSI4MCIgZmlsbD0iIzhCNUNGNyIvPjxwYXRoIGQ9Ik0xMyAyTDMgMTRoOWwtMiA4IDgtMTEuMDY2NjY2NzYzMjQ1MjA1SDVMMi04eiIvPjwvc3ZnPg==",
+          src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSI4MCIgZmlsbD0iIzFmN2EzZCIvPjx0ZXh0IHg9IjI1NiIgeT0iMzE1IiBmb250LWZhbWlseT0iQXJpYWwgQmxhY2ssIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTI4IiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgbGV0dGVyLXNwYWNpbmc9IjQiPklOVk9YPC90ZXh0Pjwvc3ZnPg==",
           sizes: "512x512",
           type: "image/svg+xml",
         },

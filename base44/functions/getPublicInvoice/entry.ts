@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
 
         // 6. Sanitize Response
         const companyInfo = {
-            company_name: creator.company_name || "Frinvoice User",
+            company_name: creator.company_name || "Invox User",
             company_logo_url: creator.company_logo_url,
             payment_details: creator.payment_details || creator.default_invoice_terms || "",
             email: creator.email,

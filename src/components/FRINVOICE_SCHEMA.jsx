@@ -1,5 +1,5 @@
 /**
- * 🚀 FRINVOICE - COMPLETE APP SCHEMA & DOCUMENTATION
+ * 🚀 INVOX - COMPLETE APP SCHEMA & DOCUMENTATION
  * AI-Powered Invoice Management Platform
  * Last Updated: December 27, 2025
  * 
@@ -10,7 +10,7 @@
 
 export const FRINVOICE_SCHEMA = `
 
-# 🚀 Frinvoice - Complete App Schema & Documentation
+# 🚀 Invox - Complete App Schema & Documentation
 
 **AI-Powered Invoice Management Platform**  
 Last Updated: December 27, 2025
@@ -32,11 +32,11 @@ Last Updated: December 27, 2025
 
 ## 🎯 OVERVIEW
 
-Frinvoice is a next-generation invoicing platform that combines traditional invoice 
+Invox is a next-generation invoicing platform that combines traditional invoice 
 management with cutting-edge AI voice capabilities. Users can create professional 
 invoices by simply speaking naturally, as if talking to a friend.
 
-**Tagline:** "Your AI assistant friend helping you make invoices"
+**Tagline:** "Speak it. Send it. Get paid."
 
 ---
 
@@ -78,7 +78,7 @@ invoices by simply speaking naturally, as if talking to a friend.
 - Success/Cancel Pages
 
 ### 5. Smart Features 🧠
-- Pricing Presets (SmartCalc™)
+- Pricing Presets (RateCalc)
 - Company Branding (logo, terms)
 - Print/PDF Export
 - Mobile Responsive PWA

@@ -40,7 +40,7 @@ export default function ThermalReceipt({ invoiceData, isProcessing }) {
       <div className="bg-[#17150f] text-white px-4 py-2.5 rounded-t-lg flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Printer className="w-4 h-4" />
-          <span className="text-xs font-bold tracking-[0.2em]">INVIO THERMAL</span>
+          <span className="text-xs font-bold tracking-[0.2em]">INVOX THERMAL</span>
         </div>
         <div className="flex gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-green-400" />

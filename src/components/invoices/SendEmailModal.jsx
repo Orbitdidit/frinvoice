@@ -67,7 +67,7 @@ ${companyName}`);
         to,
         subject,
         body,
-        from_name: user?.company_name || user?.full_name || "INVIO",
+        from_name: user?.company_name || user?.full_name || "INVOX",
       });
 
       // Update invoice status to 'sent'

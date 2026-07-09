@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -431,8 +430,8 @@ export default function ClientInvoiceView({ invoice: initialInvoice, onInvoiceUp
         <div className="text-center text-sm text-slate-500 py-4">
           <p>
             Need to create professional invoices like this? 
-            <a href="https://invio.app" className="text-purple-600 hover:text-purple-700 font-medium ml-1">
-              Try INVIO - Voice-Powered Invoicing
+            <a href="https://invox.app" className="text-purple-600 hover:text-purple-700 font-medium ml-1">
+              Try INVOX — Voice-Powered Invoicing
             </a>
           </p>
         </div>

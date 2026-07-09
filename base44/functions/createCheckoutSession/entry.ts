@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
       client_reference_id: invoice.id,
       metadata: {
         invoice_id: invoice.id,
-        app_id: 'frinvoice'
+        app_id: 'invox'
       },
     });
 

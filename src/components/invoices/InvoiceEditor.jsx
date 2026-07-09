@@ -31,6 +31,7 @@ import {
   Wand2,
   Calculator,
   Camera,
+  ExternalLink,
   Sparkles as SparklesIcon
 } from "lucide-react";
 import { toast } from 'sonner';
@@ -207,6 +208,31 @@ export default function InvoiceEditor({ invoiceData, onSave, onCancel, isEditing
 
   const handleDateChange = (field, value) => {
     handleFieldChange(field, value);
+  };
+
+  const heroStats = editableData.hero_stats || [];
+
+  const handleHeroStatChange = (index, key, value) => {
+    const next = [...(editableData.hero_stats || [])];
+    next[index] = { ...next[index], [key]: value };
+    handleFieldChange("hero_stats", next);
+  };
+
+  const handleAddHeroStat = () => {
+    if (heroStats.length >= 4) return;
+    handleFieldChange("hero_stats", [...heroStats, { label: "", value: "" }]);
+  };
+
+  const handleRemoveHeroStat = (index) => {
+    handleFieldChange("hero_stats", heroStats.filter((_, i) => i !== index));
+  };
+
+  const handlePreviewAsClient = () => {
+    if (!invoiceData?.id) {
+      toast.error("Save the invoice first to preview it as a client.");
+      return;
+    }
+    window.open(`${window.location.origin}/PublicInvoice?id=${invoiceData.id}`, "_blank");
   };
 
   const formatDateForInput = (dateString) => {
@@ -511,6 +537,64 @@ Client: "${editableData.client_name || ''}"`,
       </div>
 
       <SkinPicker value={editableData.skin || 'ledger'} onChange={(v) => handleFieldChange('skin', v)} />
+
+      {/* Project title + hero stats for the client-facing page */}
+      <Card className="max-w-2xl mx-auto w-full">
+        <CardContent className="p-4 space-y-4">
+          <div>
+            <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Project Title (shown on client page)</Label>
+            <Input
+              value={editableData.project_title || ''}
+              onChange={(e) => handleFieldChange('project_title', e.target.value)}
+              placeholder="e.g. Exotic Pop — LED Wall Install"
+              className="mt-1"
+            />
+          </div>
+
+          {(editableData.skin || 'ledger') === 'neon' && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Hero Stats (Neon skin, max 4)</Label>
+                <Button variant="outline" size="sm" onClick={handleAddHeroStat} disabled={heroStats.length >= 4}>
+                  <PlusCircle className="w-4 h-4 mr-1" />
+                  Add Stat
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {heroStats.length === 0 && (
+                  <p className="text-xs text-slate-400">Add up to 4 short stats (e.g. "Panel Class" / "P3.9 SMD") to show under the LED grid.</p>
+                )}
+                {heroStats.map((stat, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <Input
+                      value={stat.value || ''}
+                      onChange={(e) => handleHeroStatChange(i, 'value', e.target.value)}
+                      placeholder="Value (e.g. 320 sq ft)"
+                      className="flex-1"
+                    />
+                    <Input
+                      value={stat.label || ''}
+                      onChange={(e) => handleHeroStatChange(i, 'label', e.target.value)}
+                      placeholder="Label (e.g. Wall Size)"
+                      className="flex-1"
+                    />
+                    <Button variant="ghost" size="icon" onClick={() => handleRemoveHeroStat(i)} className="text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {invoiceData?.id && (
+            <Button variant="outline" onClick={handlePreviewAsClient} className="w-full">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Preview as client
+            </Button>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="flex flex-col sm:flex-row justify-center gap-4">
         <Button

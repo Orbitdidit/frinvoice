@@ -5,7 +5,7 @@ import { User } from "@/entities/User";
 import InvoiceViewer from "../components/invoices/InvoiceViewer";
 import SendEmailModal from "../components/invoices/SendEmailModal";
 import ClientInvoiceView from "../components/invoices/ClientInvoiceView";
-import { Loader2, Send, Copy, Share, CheckCircle } from "lucide-react";
+import { Loader2, Send, Copy, Share, CheckCircle, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -125,12 +125,14 @@ export default function InvoiceDetail() {
                     {linkCopied ? "Link Copied!" : "Copy Payment Link"}
                   </Button>
 
-                  <div className="relative">
-                    <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
-                      <Share className="w-4 h-4 mr-2" />
-                      Share Options
-                    </Button>
-                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => window.open(getPublicInvoiceUrl(), "_blank")}
+                    className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Preview as client
+                  </Button>
               </div>
               
               <Alert className="bg-green-50 border-green-200 shadow-sm mt-4">

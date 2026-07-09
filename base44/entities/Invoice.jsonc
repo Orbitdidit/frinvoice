@@ -19,6 +19,35 @@
       "type": "string",
       "description": "Purchase Order number provided by the client"
     },
+    "project_title": {
+      "type": "string",
+      "description": "Project name / title displayed prominently in the public invoice hero"
+    },
+    "skin": {
+      "type": "string",
+      "enum": [
+        "ledger",
+        "neon",
+        "luxe"
+      ],
+      "default": "ledger",
+      "description": "Visual skin for the client-facing public invoice view"
+    },
+    "hero_stats": {
+      "type": "array",
+      "description": "Short stat blocks shown in the neon skin hero (max 4)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "client_name": {
       "type": "string",
       "description": "Client or company name"

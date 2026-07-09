@@ -100,7 +100,7 @@ function DesktopSidebar({ location, navigationItems, createPageUrl }) {
   }, [location.pathname]); // Refetch when navigation occurs
 
   return (
-    <Sidebar className="border-r-2 border-ink bg-white hidden md:flex">
+    <Sidebar className="border-r-2 border-ink bg-cream hidden md:flex">
       <SidebarHeader className="border-b-2 border-ink p-6">
         <Link to={createPageUrl("Dashboard")} className="block">
           <h2 className="font-heading font-extrabold text-2xl text-ink tracking-tight">
@@ -121,7 +121,7 @@ function DesktopSidebar({ location, navigationItems, createPageUrl }) {
                     className={`group relative transition-all duration-200 rounded-md mb-1 border-2 ${
                       location.pathname === item.url
                         ? 'bg-ink text-paper border-ink shadow-hard-sm'
-                        : 'text-ink border-transparent hover:bg-paper'
+                        : 'text-ink border-transparent hover:bg-sand'
                     }`}
                   >
                     <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
@@ -186,7 +186,7 @@ function MobileHeader({ createPageUrl, currentPageName, darkMode, setDarkMode })
 
   return (
     <header 
-    className="bg-white dark:bg-slate-900 border-b-2 border-ink px-6 md:hidden select-none"
+    className="bg-cream border-b-2 border-ink px-6 md:hidden select-none"
       style={{ 
         paddingTop: 'max(1rem, env(safe-area-inset-top))',
         paddingBottom: '1rem'
@@ -198,21 +198,21 @@ function MobileHeader({ createPageUrl, currentPageName, darkMode, setDarkMode })
             variant="ghost" 
             size="icon"
             onClick={() => navigate(-1)}
-            className="hover:bg-slate-100 p-2 rounded-lg transition-colors duration-200"
+            className="hover:bg-sand p-2 rounded-lg transition-colors duration-200"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
         ) : (
-          <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors duration-200" />
+          <SidebarTrigger className="hover:bg-sand p-2 rounded-lg transition-colors duration-200" />
         )}
         <Link to={createPageUrl("Dashboard")} className="flex items-center gap-2">
-          <h1 className="text-xl font-heading font-extrabold text-ink dark:text-white tracking-tight">
+          <h1 className="text-xl font-heading font-extrabold text-ink tracking-tight">
             IN<span className="text-money">VOX</span>
           </h1>
         </Link>
         <button
           onClick={() => setDarkMode(d => !d)}
-          className="ml-auto p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          className="ml-auto p-2 rounded-lg hover:bg-sand transition-colors"
         >
           {darkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-500" />}
         </button>

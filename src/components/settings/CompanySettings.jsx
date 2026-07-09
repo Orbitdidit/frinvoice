@@ -82,7 +82,7 @@ export default function CompanySettings() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <Card className="border-2 border-ink shadow-hard">
+      <Card className="border-2 border-ink shadow-hard" style={{ background: 'var(--cream)' }}>
         <CardHeader>
           <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-money mb-1">Your business</p>
           <CardTitle className="flex items-center gap-2 font-heading font-extrabold text-ink">
@@ -136,7 +136,7 @@ export default function CompanySettings() {
                 value={userData.company_name}
                 onChange={(e) => setUserData(prev => ({ ...prev, company_name: e.target.value }))}
                 placeholder="Your Company Name"
-                className="border-[1.5px] border-ink font-mono rounded"
+                className="tan-input font-mono"
               />
             </div>
             <div className="space-y-2">
@@ -145,7 +145,7 @@ export default function CompanySettings() {
                 value={userData.phone}
                 onChange={(e) => setUserData(prev => ({ ...prev, phone: e.target.value }))}
                 placeholder="+1 (555) 123-4567"
-                className="border-[1.5px] border-ink font-mono rounded"
+                className="tan-input font-mono"
               />
             </div>
           </div>
@@ -156,7 +156,7 @@ export default function CompanySettings() {
               value={userData.business_address}
               onChange={(e) => setUserData(prev => ({ ...prev, business_address: e.target.value }))}
               placeholder="123 Business St, City, State 12345"
-              className="border-[1.5px] border-ink font-mono rounded"
+              className="tan-input font-mono"
             />
           </div>
 
@@ -166,14 +166,14 @@ export default function CompanySettings() {
               value={userData.website}
               onChange={(e) => setUserData(prev => ({ ...prev, website: e.target.value }))}
               placeholder="https://yourcompany.com"
-              className="border-[1.5px] border-ink font-mono rounded"
+              className="tan-input font-mono"
             />
           </div>
         </CardContent>
       </Card>
 
       {/* Invoice Settings */}
-      <Card className="border-2 border-ink shadow-hard">
+      <Card className="border-2 border-ink shadow-hard" style={{ background: 'var(--cream)' }}>
         <CardHeader>
           <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-money mb-1">Defaults</p>
           <CardTitle className="flex items-center gap-2 font-heading font-extrabold text-ink">
@@ -190,7 +190,7 @@ export default function CompanySettings() {
             <select
               value={userData.default_due_days}
               onChange={(e) => setUserData(prev => ({ ...prev, default_due_days: e.target.value }))}
-              className="w-full border-[1.5px] border-ink rounded px-3 py-2 text-sm font-mono bg-card"
+              className="tan-input w-full px-3 py-2 text-sm font-mono"
             >
               <option value="0">Due Today (same day)</option>
               <option value="7">Net 7 (7 days)</option>
@@ -210,7 +210,7 @@ export default function CompanySettings() {
               onChange={(e) => setUserData(prev => ({ ...prev, default_invoice_terms: e.target.value }))}
               placeholder="Payment is due within 30 days..."
               rows={4}
-              className="border-[1.5px] border-ink font-mono rounded"
+              className="tan-input font-mono"
             />
             <p className="text-sm text-slate-500">
               This text will automatically appear in the notes section of new invoices.
@@ -220,10 +220,10 @@ export default function CompanySettings() {
       </Card>
 
        {/* Payment Instructions */}
-       <Card>
+       <Card className="border-2 border-ink shadow-hard" style={{ background: 'var(--cream)' }}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-purple-600" />
+          <CardTitle className="flex items-center gap-2 font-heading font-extrabold text-ink">
+            <DollarSign className="w-5 h-5 text-money" />
             Payment Instructions
           </CardTitle>
            <p className="text-slate-600">This information will be shown to your clients on their invoice.</p>
@@ -236,6 +236,7 @@ export default function CompanySettings() {
               onChange={(e) => setUserData(prev => ({ ...prev, payment_details: e.target.value }))}
               placeholder="e.g., PayPal: yourname@example.com, Venmo: @your-name, Bank Transfer: ..."
               rows={4}
+              className="tan-input font-mono"
             />
             <p className="text-sm text-slate-500">
               Clearly list the ways your clients can pay you.

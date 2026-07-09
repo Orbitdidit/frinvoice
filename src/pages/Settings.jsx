@@ -169,13 +169,20 @@ export default function Settings() {
           <h1 className="text-3xl md:text-4xl font-heading font-extrabold text-ink tracking-tight title-underline">Settings</h1>
         </div>
 
+        <div style={{ background: "var(--tan)", border: "2px solid #17150f", boxShadow: "6px 6px 0 #17150f", borderRadius: "6px", overflow: "hidden" }}>
+          <div className="flex items-center justify-between gap-4" style={{ background: "#17150f", color: "#f4f0e6", padding: "10px 20px" }}>
+            <span style={{ fontFamily: "Archivo, system-ui, sans-serif", fontWeight: 900, fontSize: "13px", letterSpacing: ".15em" }}>CONFIGURE INVOX</span>
+            <SettingsIcon className="w-4 h-4" />
+          </div>
+          <div className="p-5 md:p-7">
         <Tabs defaultValue="company" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 max-w-2xl gap-2 bg-transparent p-0 h-auto">
             {TABS.map((tab) => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="flex items-center justify-center gap-2 py-2.5 rounded-md border-2 border-ink bg-card text-ink shadow-hard-sm font-mono text-xs md:text-sm font-semibold uppercase tracking-wide data-[state=active]:bg-ink data-[state=active]:text-paper"
+                style={{ background: "var(--sand)" }}
+                className="flex items-center justify-center gap-2 py-2.5 rounded-md border-2 border-ink text-ink shadow-hard-sm font-mono text-xs md:text-sm font-semibold uppercase tracking-wide data-[state=active]:!bg-ink data-[state=active]:text-paper"
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
@@ -195,7 +202,7 @@ export default function Settings() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <Card className="border-2 border-ink shadow-hard">
+              <Card className="border-2 border-ink shadow-hard" style={{ background: "var(--cream)" }}>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
                     <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-money mb-1">RateCalc</p>
@@ -243,7 +250,7 @@ export default function Settings() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1 }}
                         >
-                          <Card className="border-2 border-ink shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] transition-transform">
+                          <Card className="border-2 border-ink shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] transition-transform" style={{ background: "var(--cream)" }}>
                             <CardContent className="p-4">
                               <div className="flex items-start justify-between mb-3">
                                 <div>
@@ -336,7 +343,7 @@ export default function Settings() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <Card className="border-2 border-ink shadow-hard">
+              <Card className="border-2 border-ink shadow-hard" style={{ background: "var(--cream)" }}>
                 <CardHeader>
                   <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-money mb-1">Account</p>
                   <CardTitle className="flex items-center gap-2 font-heading font-extrabold text-ink">
@@ -351,22 +358,22 @@ export default function Settings() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <Label className="font-mono text-xs uppercase tracking-wide text-ink-soft">Full Name</Label>
-                        <Input value={user.full_name || ''} disabled className="bg-paper border-[1.5px] border-ink font-mono rounded" />
+                        <Input value={user.full_name || ''} disabled className="tan-input font-mono" />
                       </div>
                       <div className="space-y-2">
                         <Label className="font-mono text-xs uppercase tracking-wide text-ink-soft">Email Address</Label>
-                        <Input value={user.email || ''} disabled className="bg-paper border-[1.5px] border-ink font-mono rounded" />
+                        <Input value={user.email || ''} disabled className="tan-input font-mono" />
                       </div>
                       <div className="space-y-2">
                         <Label className="font-mono text-xs uppercase tracking-wide text-ink-soft">Account Role</Label>
-                        <Input value={user.role || 'user'} disabled className="bg-paper border-[1.5px] border-ink font-mono rounded" />
+                        <Input value={user.role || 'user'} disabled className="tan-input font-mono" />
                       </div>
                       <div className="space-y-2">
                         <Label className="font-mono text-xs uppercase tracking-wide text-ink-soft">Member Since</Label>
                         <Input
                           value={user.created_date ? new Date(user.created_date).toLocaleDateString() : ''}
                           disabled
-                          className="bg-paper border-[1.5px] border-ink font-mono rounded"
+                          className="tan-input font-mono"
                         />
                       </div>
                     </div>
@@ -465,7 +472,7 @@ export default function Settings() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <Card className="border-2 border-ink shadow-hard">
+              <Card className="border-2 border-ink shadow-hard" style={{ background: "var(--cream)" }}>
                 <CardHeader>
                   <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-money mb-1">Get paid</p>
                   <CardTitle className="flex items-center gap-2 font-heading font-extrabold text-ink">
@@ -481,6 +488,8 @@ export default function Settings() {
             </motion.div>
           </TabsContent>
         </Tabs>
+          </div>
+        </div>
 
         {/* Preset Form Modal */}
         {showPresetForm && (

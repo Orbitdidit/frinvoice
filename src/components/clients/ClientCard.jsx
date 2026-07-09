@@ -6,19 +6,36 @@ function getPaymentTermLabel(term) {
   return map[term] || term || 'Net 30';
 }
 
+function getInitials(name) {
+  if (!name) return '?';
+  return name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+}
+
 export default function ClientCard({ client, onEdit, onDelete }) {
   return (
-    <div className="group bg-card rounded-md border-2 border-ink shadow-hard hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-hard-lg transition-all">
+    <div
+      className="group rounded-md border-2 border-ink shadow-hard hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-hard-lg transition-all"
+      style={{ background: 'var(--cream)' }}
+    >
       {/* Header bar */}
       <div className="flex items-start justify-between gap-2 bg-ink px-4 py-3 rounded-t-[4px]">
-        <div className="min-w-0">
-          <h3 className="font-heading font-extrabold text-lg text-paper truncate leading-tight">{client.name}</h3>
-          {client.company && (
-            <p className="text-xs font-mono text-paper/70 flex items-center gap-1 truncate mt-0.5">
-              <Building2 className="w-3 h-3 flex-shrink-0" />
-              {client.company}
-            </p>
-          )}
+        <div className="flex items-center gap-3 min-w-0">
+          {/* Initials avatar block */}
+          <div
+            className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center font-heading font-extrabold text-sm text-ink"
+            style={{ background: 'var(--sand)', border: '2px solid #17150f' }}
+          >
+            {getInitials(client.name)}
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-heading font-extrabold text-lg text-paper truncate leading-tight">{client.name}</h3>
+            {client.company && (
+              <p className="text-xs font-mono text-paper/70 flex items-center gap-1 truncate mt-0.5">
+                <Building2 className="w-3 h-3 flex-shrink-0" />
+                {client.company}
+              </p>
+            )}
+          </div>
         </div>
         <div className="flex gap-1 flex-shrink-0">
           <button

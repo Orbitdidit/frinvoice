@@ -122,63 +122,73 @@ export default function Clients() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative max-w-xl">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-soft" />
-          <Input
-            placeholder="Search by name, email, or company..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-11 py-3 rounded-md border-2 border-ink bg-card shadow-hard-sm font-mono text-base"
-          />
-        </div>
-
-        {/* Client grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1,2,3,4,5,6].map(i => (
-              <div key={i} className="h-48 bg-card border-2 border-ink/20 rounded-md animate-pulse" />
-            ))}
+        {/* Layered tan frame panel: search + client grid */}
+        <div style={{ background: "var(--tan)", border: "2px solid #17150f", boxShadow: "6px 6px 0 #17150f", borderRadius: "6px", overflow: "hidden" }}>
+          <div className="flex items-center justify-between gap-4" style={{ background: "#17150f", color: "#f4f0e6", padding: "10px 20px" }}>
+            <span style={{ fontFamily: "Archivo, system-ui, sans-serif", fontWeight: 900, fontSize: "13px", letterSpacing: ".15em" }}>CLIENT ROSTER</span>
+            <Users className="w-4 h-4" />
           </div>
-        ) : filteredClients.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-20 h-20 bg-card border-2 border-ink rounded-md shadow-hard-sm flex items-center justify-center mx-auto mb-4">
-              <Users className="w-10 h-10 text-ink" />
+
+          <div className="p-5 md:p-7 space-y-6">
+            {/* Search */}
+            <div className="relative max-w-xl">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-soft z-10" />
+              <Input
+                placeholder="Search by name, email, or company..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="tan-input pl-11 py-3 font-mono text-base"
+              />
             </div>
-            <h3 className="text-lg font-heading font-extrabold text-ink mb-2">
-              {clients.length === 0 ? "No clients yet" : "No results found"}
-            </h3>
-            <p className="text-ink-soft font-mono mb-6">
-              {clients.length === 0 ? "Add your first client to get started" : "Try a different search"}
-            </p>
-            {clients.length === 0 && (
-              <Button variant="signal" onClick={() => setShowForm(true)} className="font-mono uppercase tracking-wide">
-                <Plus className="w-4 h-4 mr-2" /> Add First Client
-              </Button>
+
+            {/* Client grid */}
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1,2,3,4,5,6].map(i => (
+                  <div key={i} className="h-48 border-2 border-ink/20 rounded-md animate-pulse" style={{ background: "var(--cream)" }} />
+                ))}
+              </div>
+            ) : filteredClients.length === 0 ? (
+              <div className="text-center py-20">
+                <div className="w-20 h-20 border-2 border-ink rounded-md shadow-hard-sm flex items-center justify-center mx-auto mb-4" style={{ background: "var(--cream)" }}>
+                  <Users className="w-10 h-10 text-ink" />
+                </div>
+                <h3 className="text-lg font-heading font-extrabold text-ink mb-2">
+                  {clients.length === 0 ? "No clients yet" : "No results found"}
+                </h3>
+                <p className="text-ink-soft font-mono mb-6">
+                  {clients.length === 0 ? "Add your first client to get started" : "Try a different search"}
+                </p>
+                {clients.length === 0 && (
+                  <Button variant="signal" onClick={() => setShowForm(true)} className="font-mono uppercase tracking-wide">
+                    <Plus className="w-4 h-4 mr-2" /> Add First Client
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <AnimatePresence>
+                  {filteredClients.map((client, index) => (
+                    <motion.div
+                      key={client.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ delay: Math.min(index * 0.03, 0.3) }}
+                      layout
+                    >
+                      <ClientCard
+                        client={client}
+                        onEdit={(c) => { setEditingClient(c); setShowForm(true); }}
+                        onDelete={handleDeleteClient}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
             )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <AnimatePresence>
-              {filteredClients.map((client, index) => (
-                <motion.div
-                  key={client.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: Math.min(index * 0.03, 0.3) }}
-                  layout
-                >
-                  <ClientCard
-                    client={client}
-                    onEdit={(c) => { setEditingClient(c); setShowForm(true); }}
-                    onDelete={handleDeleteClient}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Client Form Modal */}

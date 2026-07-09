@@ -243,3 +243,7 @@
 button.shadow-hard-sm:active, .card-hard:active{box-shadow:1px 1px 0 #17150f;transform:translate(2px,2px)}
 
 @media (prefers-reduced-motion: reduce){.anim-rise,.anim-stamp,.dot-live{animation:none}.card-hard,.card-hard:hover{transition:none;transform:none}}
+
+/* Tan-system text input: white field, ink border, green focus ring */
+.tan-input{background:#ffffff !important;border:2px solid #17150f !important;border-radius:4px;transition:border-color .15s ease, box-shadow .15s ease}
+.tan-input:focus,.tan-input:focus-visible{border-color:#1f7a3d !important;box-shadow:3px 3px 0 #1f7a3d !important;outline:none}

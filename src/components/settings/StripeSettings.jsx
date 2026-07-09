@@ -68,7 +68,7 @@ export default function StripeSettings() {
   if (isLoading) {
     return (
         <div className="flex justify-center p-8">
-            <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+            <Loader2 className="w-6 h-6 animate-spin text-money" />
         </div>
     );
   }
@@ -95,7 +95,6 @@ export default function StripeSettings() {
                 <Button 
                     onClick={() => setIsEditing(true)}
                     variant="outline" 
-                    className="border-purple-200 text-purple-700 hover:bg-purple-50"
                 >
                     <SettingsIcon className="w-4 h-4 mr-2" />
                     Configure Keys
@@ -143,7 +142,7 @@ export default function StripeSettings() {
                 </div>
                 <div className="flex justify-end gap-2 mt-4">
                     <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
-                    <Button onClick={handleSave} className="bg-purple-600 hover:bg-purple-700 text-white">Save Configuration</Button>
+                    <Button onClick={handleSave} variant="money">Save Configuration</Button>
                 </div>
             </motion.div>
         ) : (

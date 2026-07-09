@@ -4,18 +4,14 @@ import { Client } from "@/entities/Client";
 import { PricingPreset } from "@/entities/PricingPreset";
 import { base44 } from "@/api/base44Client";
 import {
-  FileText,
-  Wand2,
   RefreshCw,
   FileUp,
   Sparkles,
   Mic,
   Edit,
-  Camera
+  Camera,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -24,9 +20,6 @@ import InvoiceEditor from "../components/invoices/InvoiceEditor";
 import ManualInput from "../components/voice/ManualInput";
 import PdfInvoiceUploader from "../components/invoices/PdfInvoiceUploader";
 import ScreenshotInvoiceUploader from "../components/invoices/ScreenshotInvoiceUploader";
-import VoiceSetupGuide from "../components/voice/VoiceSetupGuide";
-import VoiceRecorder from "../components/voice/VoiceRecorder";
-import VoiceTranscript from "../components/voice/VoiceTranscript";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function getTodayStr() {
@@ -83,6 +76,20 @@ function sanitiseAndRecalc(raw) {
   return data;
 }
 
+const TABS = [
+  { value: "editor",     icon: Edit,     label: "Editor" },
+  { value: "ai",         icon: Sparkles, label: "AI Text" },
+  { value: "voice",      icon: Mic,      label: "Voice" },
+  { value: "screenshot", icon: Camera,   label: "Photo" },
+  { value: "pdf",        icon: FileUp,   label: "PDF" },
+];
+
+const AI_EXAMPLES = [
+  "Invoice Bayou Bites — 50 plates jambalaya at $18, $200 deposit paid",
+  "Estimate for ABC Corp — logo design, 10 hrs, contact Sarah Lee",
+  "Bill Exotic Pop for LED wall install $88,000, 50% deposit paid",
+];
+
 // ── main component ────────────────────────────────────────────────────────────
 export default function CreateInvoice() {
   const navigate = useNavigate();
@@ -92,8 +99,6 @@ export default function CreateInvoice() {
   const [error, setError] = useState(null);
   const [clients, setClients] = useState([]);
   const [inputMode, setInputMode] = useState("ai");
-  const [transcript, setTranscript] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
   const [isAiGenerated, setIsAiGenerated] = useState(false);
 
   useEffect(() => { loadClients(); }, []);
@@ -109,7 +114,6 @@ export default function CreateInvoice() {
 
   const createBlankInvoice = () => ({
     invoice_number: genInvoiceNumber(),
-    po_number: "",
     po_number: "",
     document_type: "invoice",
     client_name: "",
@@ -129,6 +133,10 @@ export default function CreateInvoice() {
   });
 
   const handleInputModeChange = (mode) => {
+    if (mode === "voice") {
+      navigate(createPageUrl("VoiceInvoice"));
+      return;
+    }
     if (mode === "editor") {
       setIsAiGenerated(false);
       setInvoiceData(createBlankInvoice());
@@ -138,7 +146,7 @@ export default function CreateInvoice() {
     }
   };
 
-  // ── UPGRADED processCommand ────────────────────────────────────────────────
+  // ── processCommand ─────────────────────────────────────────────────────────
   const processCommand = async (inputText) => {
     if (!inputText.trim()) return;
     setIsProcessing(true);
@@ -389,259 +397,158 @@ OUTPUT: Return ONLY valid JSON matching the schema. No markdown. No backticks. N
     setInvoiceData(null);
     setError(null);
     setInputMode("ai");
-    setTranscript("");
     setIsAiGenerated(false);
   };
 
   // ── RENDER ─────────────────────────────────────────────────────────────────
   return (
-    <div className="relative min-h-screen overflow-x-hidden" style={{ background: "#0A0A0F" }}>
-      {/* Ambient orbs */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-purple-600/20 blur-[120px]" />
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-cyan-500/15 blur-[120px]" />
-        <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] rounded-full bg-fuchsia-500/10 blur-[100px]" />
-      </div>
+    <div className="min-h-screen bg-money-paper p-4 md:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
 
-      <div className="relative z-10 p-4 md:p-6">
-        <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
+        {/* Header */}
+        <div>
+          <p className="text-xs font-mono font-semibold tracking-[0.2em] uppercase text-money">Create — any way you want</p>
+          <h1 className="text-3xl md:text-4xl font-heading font-extrabold text-ink tracking-tight">New Invoice</h1>
+        </div>
 
-          {/* ── Hero header ── */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative">
-            {/* Outer glow layer */}
-            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-purple-600/30 via-fuchsia-500/20 to-cyan-500/20 blur-xl" />
-            <div className="relative bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-3xl p-8 md:p-12 text-center space-y-4 shadow-2xl">
-              <div className="flex items-center justify-center gap-4">
-                {/* Logo with glow halo */}
-                <div className="relative">
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-cyan-400 blur-lg opacity-70" />
-                  <div className="relative w-16 h-16 bg-gradient-to-br from-purple-500 via-fuchsia-500 to-cyan-400 rounded-2xl flex items-center justify-center shadow-2xl">
-                    <Wand2 className="w-8 h-8 text-white" />
-                  </div>
-                </div>
-                <div className="text-left">
-                  <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
-                    Create Invoice
-                  </h1>
-                  <p className="text-xs text-cyan-300/70 font-semibold tracking-widest uppercase mt-1">
-                    Powered by INVOX
-                  </p>
-                </div>
+        <AnimatePresence mode="wait">
+          {invoiceData ? (
+            <motion.div
+              key="editor"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <InvoiceEditor
+                invoiceData={invoiceData}
+                onSave={saveAndClose}
+                onCancel={resetSession}
+                isNew={isAiGenerated}
+                isEditing={true}
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="input"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="space-y-6"
+            >
+              {/* Segmented paper tabs */}
+              <div className="grid grid-cols-5 gap-2">
+                {TABS.map((tab) => {
+                  const active = inputMode === tab.value;
+                  return (
+                    <button
+                      key={tab.value}
+                      onClick={() => handleInputModeChange(tab.value)}
+                      className={`flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-md border-2 border-ink transition-all ${
+                        active
+                          ? "bg-ink text-paper shadow-hard-sm"
+                          : "bg-card text-ink hover:bg-paper shadow-hard-sm"
+                      }`}
+                    >
+                      <tab.icon className="w-5 h-5" />
+                      <span className="text-[10px] md:text-xs font-mono font-semibold uppercase tracking-wide">{tab.label}</span>
+                    </button>
+                  );
+                })}
               </div>
-              <p className="text-slate-300/80 text-lg max-w-2xl mx-auto leading-relaxed">
-                Generate professional invoices in seconds using AI text, voice commands, or upload receipts and documents
-              </p>
-            </div>
-          </motion.div>
 
-          <AnimatePresence mode="wait">
-            {invoiceData ? (
-              <motion.div
-                key="editor"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                <InvoiceEditor
-                  invoiceData={invoiceData}
-                  onSave={saveAndClose}
-                  onCancel={resetSession}
-                  isNew={isAiGenerated}
-                  isEditing={true}
-                />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="input"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="space-y-4"
-              >
-                {/* Input card */}
-                <div className="bg-white/[0.04] backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-                  {/* Tabs */}
-                  <div className="p-4 border-b border-white/10">
-                    <Tabs value={inputMode} onValueChange={handleInputModeChange} className="w-full">
-                      <TabsList className="grid w-full grid-cols-5 bg-black/40 border border-white/5 p-1 rounded-xl">
-                        {[
-                          { value: "editor",     icon: <Edit className="w-4 h-4" />,     label: "Editor" },
-                          { value: "ai",         icon: <Sparkles className="w-4 h-4" />, label: "AI Text" },
-                          { value: "voice",      icon: <Mic className="w-4 h-4" />,      label: "Voice" },
-                          { value: "screenshot", icon: <Camera className="w-4 h-4" />,   label: "📸" },
-                          { value: "pdf",        icon: <FileUp className="w-4 h-4" />,   label: "PDF" },
-                        ].map((tab) => (
-                          <TabsTrigger
-                            key={tab.value}
-                            value={tab.value}
-                            className="flex items-center gap-1.5 text-slate-400 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all"
+              {/* Tab content */}
+              <div className="bg-card rounded-md border-2 border-ink p-6 shadow-hard">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={inputMode}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {inputMode === "ai" && (
+                      <div className="space-y-6">
+                        <ManualInput
+                          value={manualInput}
+                          onChange={setManualInput}
+                          isProcessing={isProcessing}
+                        />
+                        <div className="flex justify-center">
+                          <Button
+                            variant="money"
+                            size="lg"
+                            onClick={() => processCommand(manualInput)}
+                            disabled={!manualInput || isProcessing}
+                            className="font-mono uppercase tracking-wide"
                           >
-                            {tab.icon}
-                            <span className="hidden sm:inline">{tab.label}</span>
-                          </TabsTrigger>
-                        ))}
-                      </TabsList>
-                    </Tabs>
-                  </div>
-
-                  {/* Tab content */}
-                  <div className="p-6 space-y-6">
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={inputMode}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 10 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {inputMode === "ai" && (
-                          <div className="space-y-6">
-                            <ManualInput
-                              value={manualInput}
-                              onChange={setManualInput}
-                              isProcessing={isProcessing}
-                            />
-                            <div className="flex justify-center">
-                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-                                <Button
-                                  onClick={() => processCommand(manualInput)}
-                                  disabled={!manualInput || isProcessing}
-                                  className="px-10 py-6 rounded-2xl text-base font-semibold tracking-wide bg-gradient-to-r from-purple-600 via-fuchsia-500 to-cyan-500 hover:from-purple-500 hover:via-fuchsia-400 hover:to-cyan-400 text-white shadow-2xl border-0"
-                                >
-                                  {isProcessing ? (
-                                    <><RefreshCw className="w-5 h-5 mr-2 animate-spin" />Processing...</>
-                                  ) : (
-                                    <><Sparkles className="w-5 h-5 mr-2" />Generate Invoice with AI</>
-                                  )}
-                                </Button>
-                              </motion.div>
-                            </div>
-                          </div>
-                        )}
-
-                        {inputMode === "voice" && (
-                          <div className="space-y-6">
-                            <VoiceSetupGuide />
-                            <VoiceRecorder
-                              onTranscriptChange={setTranscript}
-                              onRecordingChange={setIsRecording}
-                              isProcessing={isProcessing}
-                            />
-                            {transcript && !isProcessing && (
-                              <div className="flex flex-col items-center gap-4">
-                                <VoiceTranscript transcript={transcript} isProcessing={isProcessing} />
-                                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
-                                  <Button
-                                    onClick={() => processCommand(transcript)}
-                                    disabled={!transcript || isProcessing}
-                                    className="px-10 py-6 rounded-2xl text-base font-semibold tracking-wide bg-gradient-to-r from-purple-600 via-fuchsia-500 to-cyan-500 hover:from-purple-500 hover:via-fuchsia-400 hover:to-cyan-400 text-white shadow-2xl border-0"
-                                  >
-                                    <Wand2 className="w-5 h-5 mr-2" />Generate from Voice
-                                  </Button>
-                                </motion.div>
-                              </div>
+                            {isProcessing ? (
+                              <><RefreshCw className="w-5 h-5 mr-2 animate-spin" />Processing…</>
+                            ) : (
+                              <>⚡ Generate Invoice</>
                             )}
-                          </div>
-                        )}
-
-                        {inputMode === "screenshot" && (
-                          <ScreenshotInvoiceUploader
-                            onDataExtracted={handlePdfDataExtracted}
-                            onProcessing={setIsProcessing}
-                          />
-                        )}
-
-                        {inputMode === "pdf" && (
-                          <PdfInvoiceUploader
-                            onDataExtracted={handlePdfDataExtracted}
-                            onProcessing={setIsProcessing}
-                          />
-                        )}
-                      </motion.div>
-                    </AnimatePresence>
-
-                    {/* Processing indicator */}
-                    {isProcessing && (
-                      <div className="flex flex-col items-center justify-center text-center py-4 gap-3">
-                        <div className="relative">
-                          <div className="absolute inset-0 rounded-full bg-cyan-400/40 blur-xl scale-150" />
-                          <RefreshCw className="relative w-10 h-10 animate-spin text-cyan-400" />
+                          </Button>
                         </div>
-                        <p className="text-white font-semibold text-lg">Processing your request…</p>
-                        <p className="text-cyan-300/70 text-sm">Invox AI is generating your invoice.</p>
                       </div>
                     )}
-                  </div>
-                </div>
 
-                {/* Tips / examples panel */}
-                <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 md:p-6">
-                  <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-white mb-3">
-                    <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                    {inputMode === "editor"     && "Manual Editor"}
-                    {inputMode === "ai"         && "AI Assistant Examples"}
-                    {inputMode === "voice"      && "Voice Command Tips"}
-                    {inputMode === "screenshot" && "Screenshot to Invoice"}
-                    {inputMode === "pdf"        && "PDF Upload"}
-                  </h3>
-                  <div className="space-y-2 text-sm text-slate-300/80">
-                    {inputMode === "editor" && (
-                      <>
-                        <p>→ Use the full-featured editor to build your invoice from scratch.</p>
-                        <p>› Add line items, upload images, set discounts, and more.</p>
-                        <p>→ Perfect for maximum control over every detail.</p>
-                      </>
-                    )}
-                    {inputMode === "ai" && (
-                      <>
-                        <p>→ <em>"Invoice Bayou Bites for 50 plates of jambalaya at $18 each, 2 hrs on-site at $75/hr, $200 deposit paid."</em></p>
-                        <p>› <em>"Create an estimate for ABC Corp — logo design, 10 hours, contact is Sarah Lee sarah@abc.com"</em></p>
-                        <p>→ <em>"Bill Exotic Pop for LED wall installation $88,000 — 50% deposit already paid"</em></p>
-                      </>
-                    )}
-                    {inputMode === "voice" && (
-                      <>
-                        <p>🎤 <em>"Create an invoice for ABC Company for website work"</em></p>
-                        <p>🎤 <em>"Bill John Smith for 5 hours of consulting at $150 per hour"</em></p>
-                        <p>🎤 <em>"Invoice for LED display installation, $50,000"</em></p>
-                      </>
-                    )}
                     {inputMode === "screenshot" && (
-                      <>
-                        <p>→ Upload a screenshot or photo of any receipt, invoice, or quote</p>
-                        <p>› Invox AI extracts all data instantly — no manual typing needed</p>
-                        <p>→ Perfect for converting photos into professional invoices in seconds</p>
-                      </>
+                      <ScreenshotInvoiceUploader
+                        onDataExtracted={handlePdfDataExtracted}
+                        onProcessing={setIsProcessing}
+                      />
                     )}
+
                     {inputMode === "pdf" && (
-                      <>
-                        <p>→ Upload existing PDF invoices or quotes to convert them</p>
-                        <p>› AI extracts all relevant data automatically</p>
-                        <p>→ Perfect for converting old invoices to the new format</p>
-                      </>
+                      <PdfInvoiceUploader
+                        onDataExtracted={handlePdfDataExtracted}
+                        onProcessing={setIsProcessing}
+                      />
                     )}
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Processing indicator */}
+                {isProcessing && inputMode === "ai" && (
+                  <div className="flex flex-col items-center justify-center text-center py-4 gap-2 mt-2">
+                    <RefreshCw className="w-8 h-8 animate-spin text-money" />
+                    <p className="font-mono text-sm text-ink">Invox AI is generating your invoice.</p>
                   </div>
+                )}
+              </div>
+
+              {/* AI examples as paper chips */}
+              {inputMode === "ai" && (
+                <div className="flex flex-wrap justify-center gap-3">
+                  {AI_EXAMPLES.map((cmd) => (
+                    <button
+                      key={cmd}
+                      onClick={() => setManualInput(cmd)}
+                      className="inline-block px-4 py-2 rounded-full border-2 border-ink bg-paper text-ink text-xs font-mono font-medium shadow-hard-sm hover:bg-card transition-colors text-left"
+                    >
+                      "{cmd}"
+                    </button>
+                  ))}
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          {/* Error */}
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-              >
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {/* Error */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+            >
+              <div className="rounded-md border-2 border-stamp bg-stamp/10 p-4 text-sm font-mono text-ink">
+                {error}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        </div>
       </div>
     </div>
   );

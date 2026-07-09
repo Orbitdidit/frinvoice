@@ -1,9 +1,6 @@
-
 import { useState, useCallback } from 'react';
 import { UploadFile, ExtractDataFromUploadedFile } from '@/integrations/Core';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { UploadCloud, FileText, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -199,147 +196,113 @@ export default function PdfInvoiceUploader({ onDataExtracted, onProcessing }) {
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4">
-      {/* Upload Area */}
-      <Card 
-        className={`border-2 border-dashed transition-all duration-300 ${
-          status === 'success' ? 'border-green-400 bg-green-50' :
-          status === 'error' ? 'border-red-400 bg-red-50' :
-          'border-slate-300 hover:border-purple-400 hover:bg-purple-50'
+      {/* Upload Area — paper card, dashed ink border */}
+      <div
+        className={`rounded-md border-2 border-dashed transition-colors duration-300 p-8 ${
+          status === 'success' ? 'border-money bg-money/5' :
+          status === 'error' ? 'border-stamp bg-stamp/5' :
+          'border-ink bg-[#fffdf7] hover:bg-paper'
         }`}
       >
-        <CardContent className="p-8">
-          <div className="text-center space-y-4">
-            {/* Status Icons */}
-            {status === 'success' && (
-              <motion.div 
-                initial={{ scale: 0 }} 
-                animate={{ scale: 1 }}
-                className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center"
-              >
-                <CheckCircle className="w-8 h-8 text-green-600" />
-              </motion.div>
-            )}
-            
-            {status === 'error' && (
-              <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-8 h-8 text-red-600" />
-              </div>
-            )}
-            
-            {(status === 'uploading' || status === 'processing') && (
-              <div className="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-              </div>
-            )}
-            
-            {status === 'idle' && (
-              <div className="w-16 h-16 mx-auto bg-slate-100 rounded-full flex items-center justify-center">
-                <UploadCloud className="w-8 h-8 text-slate-500" />
-              </div>
-            )}
-
-            {/* Status Messages */}
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                {status === 'idle' && 'Upload PDF Invoice or Quote'}
-                {status === 'uploading' && 'Uploading PDF...'}
-                {status === 'processing' && 'Extracting Data with AI...'}
-                {status === 'success' && 'PDF Processed Successfully!'}
-                {status === 'error' && 'Upload Failed'}
-              </h3>
-              
-              <p className="text-slate-600 mb-4">
-                {status === 'idle' && 'Drag and drop your PDF file here, or click to browse'}
-                {status === 'uploading' && 'Uploading your file to the server...'}
-                {status === 'processing' && 'AI is reading and extracting invoice data...'}
-                {status === 'success' && 'Data extracted! Review and edit your invoice below.'}
-                {status === 'error' && error}
-              </p>
+        <div className="text-center space-y-4">
+          {/* Status Icons */}
+          {status === 'success' && (
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 mx-auto rounded-full border-2 border-ink bg-money/10 flex items-center justify-center">
+              <CheckCircle className="w-8 h-8 text-money" />
+            </motion.div>
+          )}
+          {status === 'error' && (
+            <div className="w-16 h-16 mx-auto rounded-full border-2 border-ink bg-stamp/10 flex items-center justify-center">
+              <AlertCircle className="w-8 h-8 text-stamp" />
             </div>
+          )}
+          {(status === 'uploading' || status === 'processing') && (
+            <div className="w-16 h-16 mx-auto rounded-full border-2 border-ink bg-paper flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-ink animate-spin" />
+            </div>
+          )}
+          {status === 'idle' && (
+            <div className="w-16 h-16 mx-auto rounded-full border-2 border-ink bg-paper flex items-center justify-center">
+              <UploadCloud className="w-8 h-8 text-ink" />
+            </div>
+          )}
 
-            {/* Progress Bar */}
-            {(status === 'uploading' || status === 'processing') && (
-              <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                <motion.div 
-                  className="bg-blue-600 h-2 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.5 }}
-                />
-              </div>
-            )}
-
-            {/* File Input */}
-            {status === 'idle' && (
-              <>
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={handleFileInputChange}
-                  className="hidden"
-                  id="pdf-upload"
-                />
-                <label htmlFor="pdf-upload" className="cursor-pointer">
-                  <Button variant="outline" className="bg-white hover:bg-slate-50" asChild>
-                    <span>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Choose PDF File
-                    </span>
-                  </Button>
-                </label>
-              </>
-            )}
-
-            {/* Try Again Button */}
-            {status === 'error' && (
-              <Button onClick={resetUploader} variant="outline">
-                Try Another File
-              </Button>
-            )}
-
-            {/* File Info */}
-            {file && status !== 'idle' && (
-              <div className="mt-4 p-3 bg-slate-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-slate-500" />
-                  <span className="text-sm font-medium">{file.name}</span>
-                  <span className="text-xs text-slate-500">
-                    ({(file.size / 1024 / 1024).toFixed(1)} MB)
-                  </span>
-                </div>
-              </div>
-            )}
+          {/* Status Messages */}
+          <div>
+            <h3 className="text-base font-heading font-bold text-ink mb-1">
+              {status === 'idle' && 'Upload PDF Invoice or Quote'}
+              {status === 'uploading' && 'Uploading PDF…'}
+              {status === 'processing' && 'Extracting Data with AI…'}
+              {status === 'success' && 'PDF Processed Successfully!'}
+              {status === 'error' && 'Upload Failed'}
+            </h3>
+            <p className="font-mono text-xs text-ink/60 mb-4">
+              {status === 'idle' && 'Drag and drop your PDF here, or click to browse'}
+              {status === 'uploading' && 'Uploading your file to the server…'}
+              {status === 'processing' && 'AI is reading and extracting invoice data…'}
+              {status === 'success' && 'Data extracted! Review your invoice below.'}
+              {status === 'error' && error}
+            </p>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Error Alert */}
-      {error && status === 'error' && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Upload Failed:</strong> {error}
-            <br />
-            <small className="text-slate-600">
-              Make sure your PDF contains clear text (not just images) with invoice details like line items, prices, and client information.
-            </small>
-          </AlertDescription>
-        </Alert>
-      )}
+          {/* Progress Bar */}
+          {(status === 'uploading' || status === 'processing') && (
+            <div className="w-full bg-paper border-2 border-ink rounded-full h-3 mb-4 overflow-hidden">
+              <motion.div
+                className="bg-money h-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.5 }}
+              />
+            </div>
+          )}
+
+          {/* File Input */}
+          {status === 'idle' && (
+            <>
+              <input type="file" accept=".pdf" onChange={handleFileInputChange} className="hidden" id="pdf-upload" />
+              <label htmlFor="pdf-upload" className="cursor-pointer">
+                <Button variant="outline" className="font-mono" asChild>
+                  <span>
+                    <FileText className="w-4 h-4 mr-2" />
+                    Choose PDF File
+                  </span>
+                </Button>
+              </label>
+            </>
+          )}
+
+          {/* Try Again Button */}
+          {status === 'error' && (
+            <Button onClick={resetUploader} variant="outline" className="font-mono">
+              Try Another File
+            </Button>
+          )}
+
+          {/* File Info */}
+          {file && status !== 'idle' && (
+            <div className="mt-4 p-3 rounded-md border-2 border-ink bg-paper">
+              <div className="flex items-center justify-center gap-2 font-mono">
+                <FileText className="w-5 h-5 text-ink" />
+                <span className="text-sm font-medium text-ink">{file.name}</span>
+                <span className="text-xs text-ink/50">({(file.size / 1024 / 1024).toFixed(1)} MB)</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Tips */}
       {status === 'idle' && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
-            <h4 className="font-semibold text-blue-900 mb-2">💡 Tips for best results:</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Upload clear, text-based PDFs (not scanned images)</li>
-              <li>• Make sure the PDF contains line items with prices</li>
-              <li>• Client information should be clearly visible</li>
-              <li>• File size should be under 10MB</li>
-            </ul>
-          </CardContent>
-        </Card>
+        <div className="rounded-md border-2 border-ink bg-paper p-4">
+          <h4 className="font-mono font-bold text-xs uppercase tracking-wider text-ink mb-2">Tips for best results</h4>
+          <ul className="font-mono text-xs text-ink/70 space-y-1">
+            <li>• Upload clear, text-based PDFs (not scanned images)</li>
+            <li>• Make sure the PDF contains line items with prices</li>
+            <li>• Client information should be clearly visible</li>
+            <li>• File size should be under 10MB</li>
+          </ul>
+        </div>
       )}
     </div>
   );

@@ -19,6 +19,10 @@ module.exports = {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			paper: 'var(--paper)',
+  			'paper-deep': 'var(--paper-deep)',
+  			tan: 'var(--tan)',
+  			sand: 'var(--sand)',
+  			cream: 'var(--cream)',
   			ink: {
   				DEFAULT: 'var(--ink)',
   				soft: 'var(--ink-soft)',

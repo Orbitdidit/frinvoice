@@ -11,6 +11,10 @@
    ============================================================ */
 :root {
   --paper: #f4f0e6;
+  --paper-deep: #e3dac4;   /* darkest tan — page canvas edges, footers */
+  --tan: #eae2cd;          /* frame panels that group content */
+  --sand: #efe8d6;         /* chips, table row hovers, input backgrounds */
+  --cream: #f7f3ea;        /* raised card interiors, one step off white */
   --card: #ffffff;
   --ink: #17150f;
   --ink-soft: #6d6656;

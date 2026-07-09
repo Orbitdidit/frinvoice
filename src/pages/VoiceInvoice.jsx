@@ -16,7 +16,7 @@ import ThermalReceipt from "../components/invoices/ThermalReceipt";
 import InvoiceEditor from "../components/invoices/InvoiceEditor";
 import SendConfirmationModal from "../components/invoices/SendConfirmationModal";
 import VoiceDebugPanel from "../components/voice/VoiceDebugPanel";
-import ShowpiecePreview from "../components/invoices/ShowpiecePreview";
+import ShowpieceOverlay from "../components/invoices/ShowpieceOverlay";
 
 const EXAMPLE_COMMANDS = [
   "Invoice ABC Corp for website design, $2,500",
@@ -399,9 +399,9 @@ Return the invoice data in the exact JSON structure specified. Double-check: cou
       </div>
 
       {showPreview && invoiceData && (
-        <ShowpiecePreview
-          invoiceData={invoiceData}
-          companyInfo={companyInfo}
+        <ShowpieceOverlay
+          invoice={invoiceData}
+          business={companyInfo}
           onClose={() => setShowPreview(false)}
         />
       )}
@@ -429,7 +429,7 @@ function ReceiptActions({ invoiceData, onPreview, onSend, onEdit }) {
       transition={{ duration: 0.3 }}
       className="space-y-3 max-w-sm mx-auto md:mx-0"
     >
-      <Button variant="signal" className="w-full" onClick={onPreview}>
+      <Button variant="outline" className="w-full font-mono uppercase tracking-[0.12em] shadow-hard" onClick={onPreview}>
         <Eye className="w-4 h-4 mr-2" />
         Preview Showpiece
       </Button>

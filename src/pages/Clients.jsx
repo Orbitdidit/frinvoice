@@ -29,8 +29,11 @@ export default function Clients() {
   const loadClients = async () => {
     setIsLoading(true);
     try {
-      // RLS already scopes clients to the current owner — no manual created_by filter
-      const data = await Client.list('-total_revenue', 500);
+      // RLS already scopes clients to the current owner — no manual created_by filter.
+      // Sort by created_date (always present) instead of total_revenue, which is 0/missing
+      // on every record and was returning an empty set.
+      const data = await Client.list('-created_date', 500);
+      console.log(`[Clients] loaded ${data.length} client records`, data);
       setClients(data);
     } catch (error) {
       console.error('Error loading clients:', error);

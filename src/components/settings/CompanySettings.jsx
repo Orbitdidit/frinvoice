@@ -82,10 +82,11 @@ export default function CompanySettings() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <Card>
+      <Card className="border-2 border-ink shadow-hard">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building className="w-5 h-5 text-purple-600" />
+          <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-money mb-1">Your business</p>
+          <CardTitle className="flex items-center gap-2 font-heading font-extrabold text-ink">
+            <Building className="w-5 h-5 text-ink" />
             Company Information
           </CardTitle>
         </CardHeader>
@@ -130,61 +131,66 @@ export default function CompanySettings() {
           {/* Company Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Company Name</Label>
+              <Label className="font-mono text-xs uppercase tracking-wide text-ink-soft">Company Name</Label>
               <Input
                 value={userData.company_name}
                 onChange={(e) => setUserData(prev => ({ ...prev, company_name: e.target.value }))}
                 placeholder="Your Company Name"
+                className="border-[1.5px] border-ink font-mono rounded"
               />
             </div>
             <div className="space-y-2">
-              <Label>Phone Number</Label>
+              <Label className="font-mono text-xs uppercase tracking-wide text-ink-soft">Phone Number</Label>
               <Input
                 value={userData.phone}
                 onChange={(e) => setUserData(prev => ({ ...prev, phone: e.target.value }))}
                 placeholder="+1 (555) 123-4567"
+                className="border-[1.5px] border-ink font-mono rounded"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Business Address</Label>
+            <Label className="font-mono text-xs uppercase tracking-wide text-ink-soft">Business Address</Label>
             <Input
               value={userData.business_address}
               onChange={(e) => setUserData(prev => ({ ...prev, business_address: e.target.value }))}
               placeholder="123 Business St, City, State 12345"
+              className="border-[1.5px] border-ink font-mono rounded"
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Website</Label>
+            <Label className="font-mono text-xs uppercase tracking-wide text-ink-soft">Website</Label>
             <Input
               value={userData.website}
               onChange={(e) => setUserData(prev => ({ ...prev, website: e.target.value }))}
               placeholder="https://yourcompany.com"
+              className="border-[1.5px] border-ink font-mono rounded"
             />
           </div>
         </CardContent>
       </Card>
 
       {/* Invoice Settings */}
-      <Card>
+      <Card className="border-2 border-ink shadow-hard">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-purple-600" />
+          <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-money mb-1">Defaults</p>
+          <CardTitle className="flex items-center gap-2 font-heading font-extrabold text-ink">
+            <FileText className="w-5 h-5 text-ink" />
             Invoice Settings
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-purple-600" />
+            <Label className="flex items-center gap-2 font-mono text-xs uppercase tracking-wide text-ink-soft">
+              <Calendar className="w-4 h-4 text-ink" />
               Default Due Date
             </Label>
             <select
               value={userData.default_due_days}
               onChange={(e) => setUserData(prev => ({ ...prev, default_due_days: e.target.value }))}
-              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm bg-white"
+              className="w-full border-[1.5px] border-ink rounded px-3 py-2 text-sm font-mono bg-card"
             >
               <option value="0">Due Today (same day)</option>
               <option value="7">Net 7 (7 days)</option>
@@ -198,12 +204,13 @@ export default function CompanySettings() {
           </div>
 
           <div className="space-y-2">
-            <Label>Default Terms & Conditions</Label>
+            <Label className="font-mono text-xs uppercase tracking-wide text-ink-soft">Default Terms & Conditions</Label>
             <Textarea
               value={userData.default_invoice_terms}
               onChange={(e) => setUserData(prev => ({ ...prev, default_invoice_terms: e.target.value }))}
               placeholder="Payment is due within 30 days..."
               rows={4}
+              className="border-[1.5px] border-ink font-mono rounded"
             />
             <p className="text-sm text-slate-500">
               This text will automatically appear in the notes section of new invoices.

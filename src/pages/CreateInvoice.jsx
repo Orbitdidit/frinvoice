@@ -10,6 +10,7 @@ import {
   Mic,
   Edit,
   Camera,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -479,12 +480,12 @@ OUTPUT: Return ONLY valid JSON matching the schema. No markdown. No backticks. N
                             size="lg"
                             onClick={() => processCommand(manualInput)}
                             disabled={!manualInput || isProcessing}
-                            className="font-mono uppercase tracking-wide"
+                            className="font-mono uppercase tracking-wide text-white font-bold"
                           >
                             {isProcessing ? (
-                              <><RefreshCw className="w-5 h-5 mr-2 animate-spin" />Processing…</>
+                              <><RefreshCw className="w-5 h-5 mr-2 animate-spin" /><span>Processing…</span></>
                             ) : (
-                              <>⚡ Generate Invoice</>
+                              <><Zap className="w-5 h-5 mr-2 fill-white" /><span>Generate Invoice</span></>
                             )}
                           </Button>
                         </div>

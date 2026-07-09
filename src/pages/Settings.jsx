@@ -20,7 +20,8 @@ import {
   EyeOff,
   Loader2,
   Trash,
-  Ruler
+  Ruler,
+  Building2
 } from "lucide-react";
 import { PaymentConfig } from "@/entities/PaymentConfig";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,13 +61,11 @@ export default function Settings() {
 
   const loadData = async () => {
     try {
-      const user = await User.me(); // Get current user
-      const [presetsData, userData] = await Promise.all([
-        PricingPreset.filter({ created_by: user.email }), // Filter by user
-        user // We already have the user object
-      ]);
+      const user = await User.me();
+      // RLS scopes presets to the owner — no manual created_by filter (records may lack that field)
+      const presetsData = await PricingPreset.list('-created_date', 500);
       setPresets(presetsData);
-      setUser(userData);
+      setUser(user);
     } catch (error) {
       console.error("Error loading settings:", error);
     }
@@ -140,17 +139,7 @@ export default function Settings() {
     }
   };
 
-  const getCategoryColor = (category) => {
-    const colors = {
-      design: 'bg-purple-100 text-purple-800',
-      video: 'bg-red-100 text-red-800',
-      print: 'bg-blue-100 text-blue-800',
-      installation: 'bg-green-100 text-green-800',
-      consultation: 'bg-orange-100 text-orange-800',
-      other: 'bg-gray-100 text-gray-800'
-    };
-    return colors[category] || colors.other;
-  };
+  const getCategoryColor = () => 'bg-ink text-paper';
 
   const getUnitTypeLabel = (unitType) => {
     const labels = {
@@ -164,42 +153,34 @@ export default function Settings() {
     return labels[unitType] || unitType;
   };
 
+  const TABS = [
+    { value: 'company', label: 'Company', icon: Building2 },
+    { value: 'pricing', label: 'Pricing Presets', icon: Calculator },
+    { value: 'profile', label: 'Profile', icon: UserIcon },
+    { value: 'payments', label: 'Payments', icon: CreditCard },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 p-6">
+    <div className="min-h-screen bg-money-paper p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4"
-        >
-          <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
-            <SettingsIcon className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Settings</h1>
-            <p className="text-slate-600 mt-1">Configure your INVOX preferences and pricing</p>
-          </div>
-        </motion.div>
+        <div>
+          <p className="text-xs font-mono font-semibold tracking-[0.2em] uppercase text-money">Configure INVOX</p>
+          <h1 className="text-3xl md:text-4xl font-heading font-extrabold text-ink tracking-tight title-underline">Settings</h1>
+        </div>
 
         <Tabs defaultValue="company" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl bg-slate-100">
-            <TabsTrigger value="company" className="flex items-center gap-2">
-              <UserIcon className="w-4 h-4" />
-              Company
-            </TabsTrigger>
-            <TabsTrigger value="pricing" className="flex items-center gap-2">
-              <Calculator className="w-4 h-4" />
-              Pricing Presets
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <UserIcon className="w-4 h-4" />
-              Profile
-            </TabsTrigger>
-            <TabsTrigger value="payments" className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4" />
-              Payments
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 max-w-2xl gap-2 bg-transparent p-0 h-auto">
+            {TABS.map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="flex items-center justify-center gap-2 py-2.5 rounded-md border-2 border-ink bg-card text-ink shadow-hard-sm font-mono text-xs md:text-sm font-semibold uppercase tracking-wide data-[state=active]:bg-ink data-[state=active]:text-paper"
+              >
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           {/* Company Tab */}
@@ -214,20 +195,22 @@ export default function Settings() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <Card>
+              <Card className="border-2 border-ink shadow-hard">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calculator className="w-5 h-5 text-purple-600" />
-                      RateCalc Pricing Presets
+                    <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-money mb-1">RateCalc</p>
+                    <CardTitle className="flex items-center gap-2 font-heading font-extrabold text-ink">
+                      <Calculator className="w-5 h-5 text-ink" />
+                      Pricing Presets
                     </CardTitle>
-                    <p className="text-slate-600 mt-1">
+                    <p className="text-ink-soft font-mono text-sm mt-1">
                       Set up pricing templates with optional item dimensions for auto-calculating quantities from target areas
                     </p>
                   </div>
                   <Button
+                    variant="signal"
                     onClick={() => setShowPresetForm(true)}
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                    className="font-mono uppercase tracking-wide"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Preset
@@ -237,14 +220,15 @@ export default function Settings() {
                 <CardContent>
                   {presets.length === 0 ? (
                     <div className="text-center py-12">
-                      <Calculator className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                      <h3 className="text-lg font-semibold text-slate-600 mb-2">No pricing presets yet</h3>
-                      <p className="text-slate-500 mb-6">
+                      <Calculator className="w-16 h-16 mx-auto mb-4 text-ink/20" />
+                      <h3 className="text-lg font-heading font-extrabold text-ink mb-2">No pricing presets yet</h3>
+                      <p className="text-ink-soft font-mono mb-6">
                         Create presets to speed up your voice invoicing with pre-configured pricing
                       </p>
                       <Button
+                        variant="signal"
                         onClick={() => setShowPresetForm(true)}
-                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                        className="font-mono uppercase tracking-wide"
                       >
                         <Plus className="w-4 h-4 mr-2" />
                         Create First Preset
@@ -259,12 +243,12 @@ export default function Settings() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1 }}
                         >
-                          <Card className="hover:shadow-md transition-shadow">
+                          <Card className="border-2 border-ink shadow-hard-sm hover:-translate-x-[1px] hover:-translate-y-[1px] transition-transform">
                             <CardContent className="p-4">
                               <div className="flex items-start justify-between mb-3">
                                 <div>
-                                  <h4 className="font-semibold text-slate-900">{preset.name}</h4>
-                                  <p className="text-sm text-slate-600 mt-1">{preset.description}</p>
+                                  <h4 className="font-heading font-extrabold text-ink">{preset.name}</h4>
+                                  <p className="text-sm font-mono text-ink-soft mt-1">{preset.description}</p>
                                 </div>
                                 <div className="flex gap-1">
                                   <Button
@@ -281,7 +265,7 @@ export default function Settings() {
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="w-8 h-8 text-red-600 hover:text-red-700"
+                                    className="w-8 h-8 text-red hover:text-red"
                                     onClick={() => deletePreset(preset.id)}
                                   >
                                     <Trash2 className="w-4 h-4" />
@@ -290,20 +274,20 @@ export default function Settings() {
                               </div>
 
                               <div className="space-y-2">
-                                <Badge className={getCategoryColor(preset.category)}>
+                                <span className="inline-block text-[10px] font-mono font-semibold uppercase tracking-wide px-2 py-0.5 rounded bg-ink text-paper">
                                   {preset.category}
-                                </Badge>
+                                </span>
 
                                 <div className="flex items-center justify-between text-sm">
-                                  <span className="text-slate-600">{getUnitTypeLabel(preset.unit_type)}</span>
-                                  <span className="font-semibold text-green-600 flex items-center gap-1">
+                                  <span className="font-mono text-ink-soft">{getUnitTypeLabel(preset.unit_type)}</span>
+                                  <span className="font-amount text-money flex items-center gap-0.5">
                                     <DollarSign className="w-4 h-4" />
                                     {preset.base_price}
                                   </span>
                                 </div>
 
                                 {preset.item_dimension_width && (
-                                  <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 rounded px-2 py-1">
+                                  <div className="flex items-center gap-1 text-xs font-mono text-ink bg-paper border border-ink rounded px-2 py-1">
                                     <Ruler className="w-3 h-3" />
                                     {preset.item_dimension_width}{preset.item_dimension_unit} × {preset.item_dimension_height}{preset.item_dimension_unit}
                                   </div>
@@ -325,18 +309,19 @@ export default function Settings() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+              <Card className="bg-paper border-2 border-ink shadow-hard">
                 <CardHeader>
-                  <CardTitle className="text-blue-900">💡 How RateCalc Works</CardTitle>
+                  <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-money mb-1">Tip</p>
+                  <CardTitle className="font-heading font-extrabold text-ink">How RateCalc Works</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-blue-800">
-                    <strong>Voice Command Example:</strong> "Calculate price for full print and installation on a 50 ft by 5 ft wall."
+                <CardContent className="space-y-3 font-mono text-sm text-ink">
+                  <p>
+                    <strong className="font-heading">Voice Command Example:</strong> "Calculate price for full print and installation on a 50 ft by 5 ft wall."
                   </p>
-                  <p className="text-blue-700">
-                    <strong>INVOX Response:</strong> "The estimated total is approximately $3,750 (250 sq ft × $15/sq ft)."
+                  <p>
+                    <strong className="font-heading">INVOX Response:</strong> "The estimated total is approximately $3,750 (250 sq ft × $15/sq ft)."
                   </p>
-                  <p className="text-sm text-blue-600">
+                  <p className="text-ink-soft">
                     Set up presets for your most common services to get instant, accurate pricing during client consultations.
                   </p>
                 </CardContent>
@@ -351,36 +336,37 @@ export default function Settings() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <Card>
+              <Card className="border-2 border-ink shadow-hard">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <UserIcon className="w-5 h-5 text-purple-600" />
+                  <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-money mb-1">Account</p>
+                  <CardTitle className="flex items-center gap-2 font-heading font-extrabold text-ink">
+                    <UserIcon className="w-5 h-5 text-ink" />
                     Profile Settings
                   </CardTitle>
-                  <p className="text-slate-600">Manage your account information and preferences</p>
+                  <p className="text-ink-soft font-mono text-sm">Manage your account information and preferences</p>
                 </CardHeader>
 
                 <CardContent className="space-y-6">
                   {user && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label>Full Name</Label>
-                        <Input value={user.full_name || ''} disabled className="bg-slate-50" />
+                        <Label className="font-mono text-xs uppercase tracking-wide text-ink-soft">Full Name</Label>
+                        <Input value={user.full_name || ''} disabled className="bg-paper border-[1.5px] border-ink font-mono rounded" />
                       </div>
                       <div className="space-y-2">
-                        <Label>Email Address</Label>
-                        <Input value={user.email || ''} disabled className="bg-slate-50" />
+                        <Label className="font-mono text-xs uppercase tracking-wide text-ink-soft">Email Address</Label>
+                        <Input value={user.email || ''} disabled className="bg-paper border-[1.5px] border-ink font-mono rounded" />
                       </div>
                       <div className="space-y-2">
-                        <Label>Account Role</Label>
-                        <Input value={user.role || 'user'} disabled className="bg-slate-50" />
+                        <Label className="font-mono text-xs uppercase tracking-wide text-ink-soft">Account Role</Label>
+                        <Input value={user.role || 'user'} disabled className="bg-paper border-[1.5px] border-ink font-mono rounded" />
                       </div>
                       <div className="space-y-2">
-                        <Label>Member Since</Label>
+                        <Label className="font-mono text-xs uppercase tracking-wide text-ink-soft">Member Since</Label>
                         <Input
                           value={user.created_date ? new Date(user.created_date).toLocaleDateString() : ''}
                           disabled
-                          className="bg-slate-50"
+                          className="bg-paper border-[1.5px] border-ink font-mono rounded"
                         />
                       </div>
                     </div>
@@ -479,13 +465,14 @@ export default function Settings() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <Card>
+              <Card className="border-2 border-ink shadow-hard">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-purple-600" />
+                  <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-money mb-1">Get paid</p>
+                  <CardTitle className="flex items-center gap-2 font-heading font-extrabold text-ink">
+                    <CreditCard className="w-5 h-5 text-ink" />
                     Payment Integrations
                   </CardTitle>
-                  <p className="text-slate-600">Manage how you accept payments from clients</p>
+                  <p className="text-ink-soft font-mono text-sm">Manage how you accept payments from clients</p>
                 </CardHeader>
                 <CardContent>
                   <StripeSettings />
@@ -544,11 +531,11 @@ function PresetForm({ preset, onSave, onCancel }) {
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-lg w-full"
       >
-        <Card>
-          <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
-            <CardTitle className="flex items-center justify-between">
+        <Card className="border-2 border-ink shadow-hard-lg">
+          <CardHeader className="bg-ink text-paper">
+            <CardTitle className="flex items-center justify-between font-heading font-extrabold">
               <span>{preset ? 'Edit Preset' : 'Add New Preset'}</span>
-              <Button variant="ghost" size="icon" onClick={onCancel} className="text-white hover:bg-white/20">
+              <Button variant="ghost" size="icon" onClick={onCancel} className="text-paper hover:bg-white/20">
                 <X className="w-5 h-5" />
               </Button>
             </CardTitle>
@@ -631,12 +618,12 @@ function PresetForm({ preset, onSave, onCancel }) {
               </div>
 
               {isPerPanel && (
-                <div className="space-y-3 p-4 rounded-lg bg-blue-50 border border-blue-200">
+                <div className="space-y-3 p-4 rounded-md bg-paper border-2 border-ink">
                   <div className="flex items-center gap-2">
-                    <Ruler className="w-4 h-4 text-blue-600" />
-                    <p className="text-sm font-semibold text-blue-900">Item Dimensions</p>
+                    <Ruler className="w-4 h-4 text-ink" />
+                    <p className="text-sm font-heading font-extrabold text-ink">Item Dimensions</p>
                   </div>
-                  <p className="text-xs text-blue-600">
+                  <p className="text-xs font-mono text-ink-soft">
                     Enter the physical size of a single panel/unit. RateCalc uses this to calculate how many fit in a target area.
                   </p>
                   <div className="grid grid-cols-3 gap-3">
@@ -685,11 +672,11 @@ function PresetForm({ preset, onSave, onCancel }) {
               )}
             </CardContent>
 
-            <div className="flex justify-end gap-3 p-6 border-t bg-slate-50">
+            <div className="flex justify-end gap-3 p-6 border-t-2 border-ink bg-paper">
               <Button type="button" variant="outline" onClick={onCancel}>
                 Cancel
               </Button>
-              <Button type="submit" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+              <Button type="submit" variant="money" className="font-mono uppercase tracking-wide">
                 <Save className="w-4 h-4 mr-2" />
                 Save Preset
               </Button>
